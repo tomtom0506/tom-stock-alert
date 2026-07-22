@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>רשימת המעקב שלי</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --panel: #121417;
+    --border: #22262c;
+    --border-light: #2a2f36;
+    --text: #e8e6e1;
+    --text-dim: #8b9199;
+    --text-title: #f2ede3;
+    --blue: #4d7cff;
+    --blue-hover: #3d6cf0;
+    --green: #1f7a4d;
+    --red: #a4392f;
+    --ok-bg: #0f2418;
+    --ok-text: #5fd88f;
+    --err-bg: #2a1414;
+    --err-text: #e0554f;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 20px; }
+  header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 28px;
+  }
+  h1 { font-size: 22px; font-weight: 600; color: var(--text-title); margin: 0; }
+  .subtitle { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+  .gear-btn {
+    background: none; border: none; color: var(--text-dim); cursor: pointer;
+    padding: 8px; border-radius: 8px; font-size: 20px;
+  }
+  .gear-btn:active { background: #181b1f; }
+  .panel {
+    border: 1px solid var(--border); background: var(--panel);
+    border-radius: 12px; padding: 18px; margin-bottom: 16px;
+  }
+  .panel h2 { font-size: 13px; font-weight: 500; color: #c7cbd1; margin: 0 0 14px; }
+  label { display: block; font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+  input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border-light);
+    border-radius: 8px; padding: 9px 12px; font-size: 14px; color: var(--text);
+    margin-bottom: 12px;
+  }
+  input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 2px rgba(77,124,255,0.3); }
+  input::placeholder { color: #565c64; }
+  .mono { font-family: ui-monospace, "SF Mono", monospace; }
+  .btn-primary {
+    width: 100%; background: var(--blue); color: white; border: none;
+    border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 500; cursor: pointer;
+  }
+  .btn-primary:active { background: var(--blue-hover); }
+  .btn-primary:disabled { opacity: 0.6; }
+  .row {
+    border: 1px solid var(--border); background: var(--panel); border-radius: 12px;
+    padding: 16px; margin-bottom: 12px;
+  }
+  .row-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .row-bottom { display: flex; align-items: flex-end; gap: 10px; }
+  .grow { flex: 1; }
+  .toggle-group { display: flex; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-light); }
+  .toggle-btn {
+    padding: 9px 12px; font-size: 12px; background: var(--bg); color: var(--text-dim);
+    border: none; cursor: pointer; display: flex; align-items: center; gap: 4px;
+  }
+  .toggle-btn.active-above { background: var(--green); color: white; }
+  .toggle-btn.active-below { background: var(--red); color: white; }
+  .del-btn {
+    background: none; border: none; color: var(--text-dim); padding: 8px; cursor: pointer; font-size: 16px;
+  }
+  .add-btn {
+    width: 100%; border: 1px dashed var(--border-light); background: none; color: var(--text-dim);
+    border-radius: 12px; padding: 14px; font-size: 14px; cursor: pointer; margin-top: 8px; margin-bottom: 20px;
+  }
+  .status { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 14px; }
+  .status.ok { background: var(--ok-bg); color: var(--ok-text); }
+  .status.error { background: var(--err-bg); color: var(--err-text); }
+  .empty { text-align: center; color: var(--text-dim); font-size: 14px; padding: 40px 0; border: 1px dashed var(--border-light); border-radius: 12px; }
+  .loading { text-align: center; color: var(--text-dim); font-size: 14px; padding: 40px 0; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>רשימת המעקב שלי</h1>
+      <div class="subtitle">עריכת מניות ויעדי מחיר · נשמר ישירות ל-GitHub</div>
+    </div>
+    <button class="gear-btn" id="gearBtn">⚙️</button>
+  </header>
+
+  <div class="panel hidden" id="configPanel">
+    <h2>חיבור ל-GitHub</h2>
+    <label>שם משתמש</label>
+    <input id="cfgOwner" placeholder="tomtom0506" />
+    <label>שם הריפו</label>
+    <input id="cfgRepo" placeholder="tom-stock-alert" />
+    <label>Personal Access Token (Contents: Read & Write)</label>
+    <input id="cfgToken" type="password" placeholder="github_pat_..." />
+    <button class="btn-primary" id="saveConfigBtn">שמור והתחבר</button>
+  </div>
+
+  <div class="loading hidden" id="loadingMsg">טוען רשימה...</div>
+
+  <div id="rowsContainer"></div>
+  <div class="empty hidden" id="emptyMsg">הרשימה ריקה. הוסף מניה כדי להתחיל.</div>
+
+  <button class="add-btn hidden" id="addBtn">+ הוסף מניה</button>
+  <button class="btn-primary hidden" id="saveBtn">שמור שינויים</button>
+  <div id="statusMsg"></div>
+  <div class="empty hidden" id="needConfigMsg">הגדר חיבור ל-GitHub כדי להתחיל.</div>
+</div>
+
+<script>
+const CONFIG_KEY = "gh-watchlist-config";
+let owner = "", repo = "", token = "", sha = null, rows = [];
+
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+function saveConfigToStorage(cfg) {
+  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
+}
+
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary);
+}
+function base64ToUtf8(b64) {
+  const binary = atob(b64.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function setStatus(type, text) {
+  const el = document.getElementById("statusMsg");
+  if (!text) { el.innerHTML = ""; return; }
+  el.innerHTML = `<div class="status ${type}">${text}</div>`;
+}
+
+function showConfigPanel(show) {
+  document.getElementById("configPanel").classList.toggle("hidden", !show);
+}
+
+function render() {
+  const container = document.getElementById("rowsContainer");
+  container.innerHTML = "";
+  document.getElementById("emptyMsg").classList.toggle("hidden", rows.length !== 0);
+  rows.forEach((row, idx) => {
+    const div = document.createElement("div");
+    div.className = "row";
+    div.innerHTML = `
+      <div class="row-grid">
+        <div>
+          <label>טיקר (Yahoo Finance)</label>
+          <input class="mono" data-idx="${idx}" data-field="ticker" value="${row.ticker || ""}" placeholder="AAPL / TEVA.TA" />
+        </div>
+        <div>
+          <label>שם לתצוגה</label>
+          <input data-idx="${idx}" data-field="name" value="${row.name || ""}" placeholder="Apple" />
+        </div>
+      </div>
+      <div class="row-bottom">
+        <div class="grow">
+          <label>מחיר יעד</label>
+          <input class="mono" type="number" data-idx="${idx}" data-field="target_price" value="${row.target_price ?? 0}" />
+        </div>
+        <div class="toggle-group">
+          <button class="toggle-btn ${row.condition === "above" ? "active-above" : ""}" data-idx="${idx}" data-cond="above">↑ מעל</button>
+          <button class="toggle-btn ${row.condition === "below" ? "active-below" : ""}" data-idx="${idx}" data-cond="below">↓ מתחת</button>
+        </div>
+        <button class="del-btn" data-idx="${idx}" data-action="del">🗑️</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll("input[data-field]").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      const i = +e.target.dataset.idx;
+      rows[i][e.target.dataset.field] = e.target.value;
+    });
+  });
+  container.querySelectorAll("button[data-cond]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const i = +e.target.dataset.idx;
+      rows[i].condition = e.target.dataset.cond;
+      render();
+    });
+  });
+  container.querySelectorAll("button[data-action='del']").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const i = +e.target.dataset.idx;
+      rows.splice(i, 1);
+      render();
+    });
+  });
+}
+
+async function loadWatchlist() {
+  document.getElementById("loadingMsg").classList.remove("hidden");
+  document.getElementById("addBtn").classList.add("hidden");
+  document.getElementById("saveBtn").classList.add("hidden");
+  setStatus(null, "");
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/watchlist.json`, {
+      headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" }
+    });
+    if (!res.ok) throw new Error(`שגיאה בטעינה (${res.status}). בדוק שם משתמש, ריפו וטוקן.`);
+    const data = await res.json();
+    rows = JSON.parse(base64ToUtf8(data.content));
+    sha = data.sha;
+    render();
+    document.getElementById("addBtn").classList.remove("hidden");
+    document.getElementById("saveBtn").classList.remove("hidden");
+  } catch (e) {
+    setStatus("error", (e.message || "שגיאה בטעינת הרשימה"));
+  } finally {
+    document.getElementById("loadingMsg").classList.add("hidden");
+  }
+}
+
+async function saveWatchlist() {
+  const saveBtn = document.getElementById("saveBtn");
+  saveBtn.disabled = true;
+  saveBtn.textContent = "שומר...";
+  setStatus(null, "");
+  try {
+    const clean = rows.map(r => ({
+      ticker: (r.ticker || "").trim(),
+      name: (r.name || "").trim() || (r.ticker || "").trim(),
+      target_price: Number(r.target_price) || 0,
+      condition: r.condition === "below" ? "below" : "above"
+    }));
+    const body = {
+      message: "עדכון רשימת מניות דרך הממשק",
+      content: utf8ToBase64(JSON.stringify(clean, null, 2)),
+      sha
+    };
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/watchlist.json`, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || `שמירה נכשלה (${res.status})`);
+    }
+    const data = await res.json();
+    sha = data.content.sha;
+    setStatus("ok", "נשמר בהצלחה ✓");
+  } catch (e) {
+    setStatus("error", e.message || "שמירה נכשלה");
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = "שמור שינויים";
+  }
+}
+
+document.getElementById("gearBtn").addEventListener("click", () => {
+  showConfigPanel(document.getElementById("configPanel").classList.contains("hidden"));
+});
+
+document.getElementById("saveConfigBtn").addEventListener("click", () => {
+  owner = document.getElementById("cfgOwner").value.trim();
+  repo = document.getElementById("cfgRepo").value.trim();
+  token = document.getElementById("cfgToken").value.trim();
+  saveConfigToStorage({ owner, repo, token });
+  showConfigPanel(false);
+  document.getElementById("needConfigMsg").classList.add("hidden");
+  loadWatchlist();
+});
+
+document.getElementById("addBtn").addEventListener("click", () => {
+  rows.push({ ticker: "", name: "", target_price: 0, condition: "above" });
+  render();
+});
+document.getElementById("saveBtn").addEventListener("click", saveWatchlist);
+
+// init
+const cfg = loadConfig();
+if (cfg && cfg.owner && cfg.repo && cfg.token) {
+  owner = cfg.owner; repo = cfg.repo; token = cfg.token;
+  document.getElementById("cfgOwner").value = owner;
+  document.getElementById("cfgRepo").value = repo;
+  document.getElementById("cfgToken").value = token;
+  loadWatchlist();
+} else {
+  showConfigPanel(true);
+  document.getElementById("needConfigMsg").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
