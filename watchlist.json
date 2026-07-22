@@ -10,5 +10,11 @@
     "name": "טבע",
     "target_price": 50,
     "condition": "below"
+  },
+  {
+    "ticker": "GOOGL",
+    "name": "Google",
+    "target_price": 350,
+    "condition": "above"
   }
 ]
