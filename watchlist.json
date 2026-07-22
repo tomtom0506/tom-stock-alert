@@ -1,0 +1,14 @@
+[
+  {
+    "ticker": "AAPL",
+    "name": "Apple",
+    "target_price": 200,
+    "condition": "above"
+  },
+  {
+    "ticker": "TEVA.TA",
+    "name": "טבע",
+    "target_price": 50,
+    "condition": "below"
+  }
+]
