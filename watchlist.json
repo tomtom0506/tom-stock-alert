@@ -16,5 +16,11 @@
     "name": "Google",
     "target_price": 350,
     "condition": "above"
+  },
+  {
+    "ticker": "GOOGL",
+    "name": "Google",
+    "target_price": 345,
+    "condition": "below"
   }
 ]
