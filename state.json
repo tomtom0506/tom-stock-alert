@@ -1,4 +1,5 @@
 {
   "AAPL_above_200": true,
-  "GOOGL_below_345": true
+  "GOOGL_below_345": false,
+  "GOOGL_above_350": true
 }
