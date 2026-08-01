@@ -34,5 +34,11 @@
     "name": "Space X",
     "target_price": 115,
     "condition": "above"
+  },
+  {
+    "ticker": "PLTR",
+    "name": "פלנטיר",
+    "target_price": 163,
+    "condition": "above"
   }
 ]
