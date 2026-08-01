@@ -28,5 +28,11 @@
     "name": "זברה",
     "target_price": 13.2,
     "condition": "above"
+  },
+  {
+    "ticker": "SPCX",
+    "name": "Space X",
+    "target_price": 115,
+    "condition": "above"
   }
 ]
