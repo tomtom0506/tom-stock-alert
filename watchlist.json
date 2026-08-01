@@ -10,5 +10,17 @@
     "name": "Google",
     "target_price": 345,
     "condition": "below"
+  },
+  {
+    "ticker": "XOP",
+    "name": "שמן וגז",
+    "target_price": 190,
+    "condition": "above"
+  },
+  {
+    "ticker": "XOP",
+    "name": "שמן וגז",
+    "target_price": 160,
+    "condition": "below"
   }
 ]
