@@ -22,5 +22,11 @@
     "name": "שמן וגז",
     "target_price": 160,
     "condition": "below"
+  },
+  {
+    "ticker": "ZVRA",
+    "name": "זברה",
+    "target_price": 13.2,
+    "condition": "above"
   }
 ]
