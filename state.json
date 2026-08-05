@@ -2,5 +2,5 @@
   "AAPL_above_200": true,
   "GOOGL_below_345": false,
   "GOOGL_above_350": true,
-  "SPCX_above_115": true
+  "SPCX_above_115": false
 }
