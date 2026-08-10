@@ -3,5 +3,17 @@
   "GOOGL_below_345": false,
   "GOOGL_above_350": true,
   "SPCX_above_115": true,
-  "PLTR_above_163": true
+  "PLTR_above_163": true,
+  "US_ABCL_bigmove_2026-08-10": true,
+  "US_NESR_bigmove_2026-08-10": true,
+  "US_FSLY_bigmove_2026-08-10": true,
+  "US_LFST_bigmove_2026-08-10": true,
+  "US_BFLY_bigmove_2026-08-10": true,
+  "US_HP_bigmove_2026-08-10": true,
+  "US_ACHR_bigmove_2026-08-10": true,
+  "US_BSP_bigmove_2026-08-10": true,
+  "US_CLMT_bigmove_2026-08-10": true,
+  "US_BTDR_bigmove_2026-08-10": true,
+  "US_AXTI_bigmove_2026-08-10": true,
+  "US_COHR_bigmove_2026-08-10": true
 }
