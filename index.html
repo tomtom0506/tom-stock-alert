@@ -103,6 +103,29 @@
   .prediction-row.strong .prediction-dir-down { font-weight: 800; }
   .predictions-empty { color: var(--text-faint); font-size: 13px; padding: 14px 0; text-align: center; }
 
+  /* ---------- strong prediction track record ---------- */
+  .track-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .track-tile {
+    border-radius: 12px; padding: 12px 8px; text-align: center; border: 1px solid var(--border);
+  }
+  .track-tile.hits { background: var(--up-bg); }
+  .track-tile.misses { background: var(--down-bg); }
+  .track-tile.rate { background: rgba(212,169,74,0.1); }
+  .track-num { font-size: 20px; font-weight: 700; }
+  .track-tile.hits .track-num { color: var(--up); }
+  .track-tile.misses .track-num { color: var(--down); }
+  .track-tile.rate .track-num { color: var(--gold); }
+  .track-label { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; }
+  .track-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .track-row:last-child { border-bottom: none; }
+  .track-row .t-ticker { font-weight: 700; }
+  .track-outcome { font-size: 12px; font-weight: 600; }
+  .track-outcome.correct { color: var(--up); }
+  .track-outcome.wrong { color: var(--down); }
+
   /* ---------- stock cards ---------- */
   .stock-card {
     background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
@@ -219,6 +242,16 @@
     <div class="predictions-panel"><div id="predictionsList"></div></div>
   </div>
 
+  <div id="trackRecordSection" class="hidden">
+    <div class="section-title">🔥 ביצועי תחזיות חזקות</div>
+    <div class="track-stats">
+      <div class="track-tile hits"><div class="track-num mono" id="trackHits">—</div><div class="track-label">הצלחות</div></div>
+      <div class="track-tile misses"><div class="track-num mono" id="trackMisses">—</div><div class="track-label">כשלונות</div></div>
+      <div class="track-tile rate"><div class="track-num mono" id="trackRate">—</div><div class="track-label">אחוז הצלחה</div></div>
+    </div>
+    <div class="predictions-panel"><div id="trackList"></div></div>
+  </div>
+
   <div class="panel hidden" id="configPanel">
     <h2>חיבור ל-GitHub</h2>
     <label class="field-label">שם משתמש</label>
@@ -326,9 +359,43 @@ async function loadPredictions() {
       `).join("");
     }
     section.classList.remove("hidden");
+    renderTrackRecord(history, acc);
   } catch (e) {
     section.classList.add("hidden");
   }
+}
+
+function renderTrackRecord(history, acc) {
+  const section = document.getElementById("trackRecordSection");
+  const list = document.getElementById("trackList");
+
+  if (!acc || !acc.strong_total) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  document.getElementById("trackHits").textContent = acc.strong_hits ?? 0;
+  document.getElementById("trackMisses").textContent = acc.strong_misses ?? 0;
+  document.getElementById("trackRate").textContent = acc.strong_only != null ? `${acc.strong_only}%` : "—";
+
+  const gradedStrong = history
+    .filter(p => p.strong && p.graded)
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 10);
+
+  if (gradedStrong.length === 0) {
+    list.innerHTML = `<div class="predictions-empty">עדיין אין תחזיות חזקות שנבדקו</div>`;
+  } else {
+    list.innerHTML = gradedStrong.map(p => `
+      <div class="track-row">
+        <span class="t-ticker mono">${p.ticker}</span>
+        <span class="mono" style="color:var(--text-faint)">${p.date}</span>
+        <span>${p.predicted === "up" ? "▲" : "▼"} ${p.score}</span>
+        <span class="track-outcome ${p.correct ? "correct" : "wrong"}">${p.correct ? "✅ הצליח" : "❌ פספס"}</span>
+      </div>
+    `).join("");
+  }
+  section.classList.remove("hidden");
 }
 
 function renderTickerTape() {
