@@ -1,5 +1,11 @@
 [
   {
+    "ticker": "",
+    "name": "",
+    "target_high": null,
+    "target_low": null
+  },
+  {
     "ticker": "GOOGL",
     "name": "Google",
     "target_high": 350,
