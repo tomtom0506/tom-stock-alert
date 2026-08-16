@@ -1,0 +1,32 @@
+[
+  {
+    "ticker": "GOOGL",
+    "name": "Google",
+    "target_high": 350,
+    "target_low": 345
+  },
+  {
+    "ticker": "XOP",
+    "name": "שמן וגז",
+    "target_high": 190,
+    "target_low": 160
+  },
+  {
+    "ticker": "ZVRA",
+    "name": "זברה",
+    "target_high": 13.2,
+    "target_low": null
+  },
+  {
+    "ticker": "SPCX",
+    "name": "Space X",
+    "target_high": 115,
+    "target_low": null
+  },
+  {
+    "ticker": "PLTR",
+    "name": "פלנטיר",
+    "target_high": 163,
+    "target_low": null
+  }
+]
