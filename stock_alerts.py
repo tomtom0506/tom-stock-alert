@@ -9,7 +9,9 @@ Two independent features:
    major Israeli (TASE) stocks (ta_tickers.json), and reports any stock
    that moved more than MOVE_THRESHOLD_PCT in a day, grouped into a
    separate summary message per market. Sent at most once per day per
-   stock/market.
+   stock/market. Each mover is cross-referenced against the prediction
+   engine's most recent prior call for that ticker (direction + score),
+   so you can see whether the big move matches what was predicted.
 
 State (already-sent alerts) is kept in state.json so re-runs don't spam.
 """
@@ -135,7 +137,7 @@ def run_watchlist_alerts(state):
 
 # ---------- market-wide big-move alerts ----------
 
-def get_us_movers(threshold, today, state):
+def get_us_movers(threshold, today, state, prediction_store):
     movers = []
     seen_symbols = set()
     for screen_name in ["day_gainers", "day_losers"]:
@@ -155,13 +157,15 @@ def get_us_movers(threshold, today, state):
             if abs(pct) >= threshold:
                 move_key = f"US_{symbol}_bigmove_{today}"
                 if not state.get(move_key, False):
-                    movers.append(f"{name} ({symbol}): {pct:+.1f}% (מחיר: {price})")
+                    line = f"{name} ({symbol}): {pct:+.1f}% (מחיר: {price})"
+                    line += "\n" + format_prediction_match(prediction_store, symbol, today, pct)
+                    movers.append(line)
                     state[move_key] = True
                 seen_symbols.add(symbol)
     return movers
 
 
-def get_il_movers(threshold, today, state):
+def get_il_movers(threshold, today, state, prediction_store):
     tickers = load_json(TA_TICKERS_FILE, [])
     if not tickers:
         return []
@@ -190,29 +194,56 @@ def get_il_movers(threshold, today, state):
         if abs(pct) >= threshold:
             move_key = f"IL_{ticker}_bigmove_{today}"
             if not state.get(move_key, False):
-                movers.append(f"{ticker}: {pct:+.1f}% (מ-{prev_close:.2f} ל-{price:.2f})")
+                line = f"{ticker}: {pct:+.1f}% (מ-{prev_close:.2f} ל-{price:.2f})"
+                line += "\n" + format_prediction_match(prediction_store, ticker, today, pct)
+                movers.append(line)
                 state[move_key] = True
     return movers
 
 
-def run_market_wide_alerts(state):
+def run_market_wide_alerts(state, prediction_store):
     today = date.today().isoformat()
 
-    us_movers = get_us_movers(MOVE_THRESHOLD_PCT, today, state)
+    us_movers = get_us_movers(MOVE_THRESHOLD_PCT, today, state, prediction_store)
     if us_movers:
         msg = (f"📈📉 תנודה חדה - שוק ארה\"ב (מעל {MOVE_THRESHOLD_PCT:.0f}%)\n\n"
-               + "\n".join(us_movers))
+               + "\n\n".join(us_movers))
         send_telegram_message(msg)
 
-    il_movers = get_il_movers(MOVE_THRESHOLD_PCT, today, state)
+    il_movers = get_il_movers(MOVE_THRESHOLD_PCT, today, state, prediction_store)
     if il_movers:
         msg = (f"📈📉 תנודה חדה - בורסת תל אביב (מעל {MOVE_THRESHOLD_PCT:.0f}%)\n\n"
-               + "\n".join(il_movers))
+               + "\n\n".join(il_movers))
         send_telegram_message(msg)
 
 
 def is_israeli(ticker):
     return ticker.upper().endswith(".TA")
+
+
+def find_last_prediction(prediction_store, ticker, today):
+    """Most recent prediction made for this ticker before today, if any."""
+    candidates = [
+        e for e in prediction_store.get("history", [])
+        if e.get("ticker") == ticker and e.get("date") and e["date"] < today
+    ]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda e: e["date"])
+    return candidates[-1]
+
+
+def format_prediction_match(prediction_store, ticker, today, actual_pct):
+    """Short line noting whether a big move today matches a prior prediction."""
+    pred = find_last_prediction(prediction_store, ticker, today)
+    if pred is None:
+        return "   🔮 לא נמצאה תחזית קודמת למניה זו"
+    actual_direction = "up" if actual_pct >= 0 else "down"
+    matched = pred["predicted"] == actual_direction
+    direction_he = "עלייה" if pred["predicted"] == "up" else "ירידה"
+    mark = "✅ תואם" if matched else "❌ לא תואם"
+    strength = " 🔥 חזקה" if pred.get("strong") else ""
+    return f"   🔮 נחזה ב-{pred['date']}: {direction_he}{strength} (ציון {pred['score']}) {mark}"
 
 
 # ---------- next-day prediction engine (with self-grading / learning) ----------
@@ -303,6 +334,7 @@ def load_prediction_store():
 
 def recompute_accuracy(store):
     graded = [e for e in store["history"] if e.get("graded")]
+    strong_graded = [e for e in graded if e.get("strong")]
 
     def calc(subset):
         if not subset:
@@ -313,7 +345,10 @@ def recompute_accuracy(store):
     store["accuracy"] = {
         "overall": calc(graded),
         "total_graded": len(graded),
-        "strong_only": calc([e for e in graded if e.get("strong")]),
+        "strong_only": calc(strong_graded),
+        "strong_hits": sum(1 for e in strong_graded if e["correct"]),
+        "strong_misses": sum(1 for e in strong_graded if not e["correct"]),
+        "strong_total": len(strong_graded),
         "us": calc([e for e in graded if not is_israeli(e["ticker"])]),
         "il": calc([e for e in graded if is_israeli(e["ticker"])]),
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -401,10 +436,11 @@ def run_predictions(store):
 
 def main():
     state = load_json(STATE_FILE, {})
-    run_watchlist_alerts(state)
-    run_market_wide_alerts(state)
-
     prediction_store = load_prediction_store()
+
+    run_watchlist_alerts(state)
+    run_market_wide_alerts(state, prediction_store)  # cross-references yesterday's predictions
+
     grade_pending_predictions(prediction_store)
     run_predictions(prediction_store)
     save_json(PREDICTIONS_FILE, prediction_store)
