@@ -225,5 +225,9 @@
   "GPN_above_81.39": true,
   "LII_below_452.04": true,
   "DECK_below_94.16": true,
-  "ZBH_above_96.94": true
+  "ZBH_above_96.94": true,
+  "US_CBRS_bigmove_2026-08-17": true,
+  "US_ARGX_bigmove_2026-08-17": true,
+  "US_AXTI_bigmove_2026-08-17": true,
+  "US_OCUL_bigmove_2026-08-17": true
 }
