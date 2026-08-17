@@ -28,5 +28,65 @@
     "name": "פלנטיר",
     "target_high": 163,
     "target_low": null
+  },
+  {
+    "ticker": "DHI",
+    "name": "DHI",
+    "target_high": 160.09,
+    "target_low": 138.01
+  },
+  {
+    "ticker": "SMCI",
+    "name": "SMCI",
+    "target_high": 34.96,
+    "target_low": 25.6
+  },
+  {
+    "ticker": "NEM",
+    "name": "NEM",
+    "target_high": 120.81,
+    "target_low": 91.48
+  },
+  {
+    "ticker": "GPN",
+    "name": "GPN",
+    "target_high": 81.39,
+    "target_low": 66.78
+  },
+  {
+    "ticker": "FERG",
+    "name": "FERG",
+    "target_high": 259.3,
+    "target_low": 223.04
+  },
+  {
+    "ticker": "LII",
+    "name": "LII",
+    "target_high": 552.0,
+    "target_low": 452.04
+  },
+  {
+    "ticker": "DECK",
+    "name": "DECK",
+    "target_high": 114.37,
+    "target_low": 94.16
+  },
+  {
+    "ticker": "ZBH",
+    "name": "ZBH",
+    "target_high": 96.94,
+    "target_low": 83.66
+  },
+  {
+    "ticker": "CDW",
+    "name": "CDW",
+    "target_high": 142.5,
+    "target_low": 116.78
+  },
+  {
+    "ticker": "BF-B",
+    "name": "BF-B",
+    "target_high": 29.23,
+    "target_low": 24.97
   }
 ]
