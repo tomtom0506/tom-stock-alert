@@ -220,5 +220,10 @@
   "US_WING_bigmove_2026-08-17": true,
   "US_MXL_bigmove_2026-08-17": true,
   "US_STDN_bigmove_2026-08-17": true,
-  "US_BLSH_bigmove_2026-08-17": true
+  "US_BLSH_bigmove_2026-08-17": true,
+  "SMCI_above_34.96": true,
+  "GPN_above_81.39": true,
+  "LII_below_452.04": true,
+  "DECK_below_94.16": true,
+  "ZBH_above_96.94": true
 }
