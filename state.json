@@ -234,5 +234,11 @@
   "US_STUB_bigmove_2026-08-17": true,
   "NEM_above_120.81": true,
   "US_NBTX_bigmove_2026-08-17": true,
-  "US_MESO_bigmove_2026-08-17": true
+  "US_MESO_bigmove_2026-08-17": true,
+  "US_FIGR_bigmove_2026-08-17": true,
+  "US_COHR_bigmove_2026-08-17": true,
+  "US_PGEN_bigmove_2026-08-17": true,
+  "US_RUM_bigmove_2026-08-17": true,
+  "US_HTHT_bigmove_2026-08-17": true,
+  "US_FRVO_bigmove_2026-08-17": true
 }
