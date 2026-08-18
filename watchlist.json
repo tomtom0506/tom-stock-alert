@@ -20,8 +20,8 @@
   {
     "ticker": "SPCX",
     "name": "Space X",
-    "target_high": 115,
-    "target_low": null
+    "target_high": 160,
+    "target_low": 110
   },
   {
     "ticker": "PLTR",
