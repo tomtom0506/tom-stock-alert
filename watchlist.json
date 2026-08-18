@@ -26,8 +26,8 @@
   {
     "ticker": "PLTR",
     "name": "פלנטיר",
-    "target_high": 163,
-    "target_low": null
+    "target_high": 180,
+    "target_low": 160
   },
   {
     "ticker": "DHI",
