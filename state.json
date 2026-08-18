@@ -1,6 +1,6 @@
 {
   "AAPL_above_200": true,
-  "GOOGL_below_345": false,
+  "GOOGL_below_345": true,
   "GOOGL_above_350": false,
   "SPCX_above_115": true,
   "PLTR_above_163": true,
@@ -250,5 +250,12 @@
   "US_RUM_bigmove_2026-08-18": true,
   "US_STUB_bigmove_2026-08-18": true,
   "IL_MTRX.TA_bigmove_2026-08-18": true,
-  "IL_ROBO.TA_bigmove_2026-08-18": true
+  "IL_ROBO.TA_bigmove_2026-08-18": true,
+  "US_AMLX_bigmove_2026-08-18": true,
+  "US_HAE_bigmove_2026-08-18": true,
+  "US_KLAR_bigmove_2026-08-18": true,
+  "US_AUR_bigmove_2026-08-18": true,
+  "US_KALU_bigmove_2026-08-18": true,
+  "US_VNET_bigmove_2026-08-18": true,
+  "US_COHR_bigmove_2026-08-18": true
 }
