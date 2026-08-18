@@ -15,7 +15,7 @@
     "ticker": "ZVRA",
     "name": "זברה",
     "target_high": 13.2,
-    "target_low": null
+    "target_low": 10
   },
   {
     "ticker": "SPCX",
@@ -62,7 +62,7 @@
   {
     "ticker": "LII",
     "name": "LII",
-    "target_high": 552.0,
+    "target_high": 552,
     "target_low": 452.04
   },
   {
