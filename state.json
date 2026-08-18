@@ -272,5 +272,9 @@
   "US_CIEN_bigmove_2026-08-18": true,
   "US_PDFS_bigmove_2026-08-18": true,
   "US_CIFR_bigmove_2026-08-18": true,
-  "US_BE_bigmove_2026-08-18": true
+  "US_BE_bigmove_2026-08-18": true,
+  "US_FN_bigmove_2026-08-18": true,
+  "US_AEIS_bigmove_2026-08-18": true,
+  "US_KLIC_bigmove_2026-08-18": true,
+  "US_TER_bigmove_2026-08-18": true
 }
