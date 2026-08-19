@@ -356,5 +356,10 @@
   "US_VICR_bigmove_2026-08-19": true,
   "US_EL_bigmove_2026-08-19": true,
   "US_DRD_bigmove_2026-08-19": true,
-  "US_IOVA_bigmove_2026-08-19": true
+  "US_IOVA_bigmove_2026-08-19": true,
+  "US_HIMS_bigmove_2026-08-19": true,
+  "US_CRSP_bigmove_2026-08-19": true,
+  "US_TXG_bigmove_2026-08-19": true,
+  "US_AU_bigmove_2026-08-19": true,
+  "US_SBSW_bigmove_2026-08-19": true
 }
