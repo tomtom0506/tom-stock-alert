@@ -361,5 +361,9 @@
   "US_CRSP_bigmove_2026-08-19": true,
   "US_TXG_bigmove_2026-08-19": true,
   "US_AU_bigmove_2026-08-19": true,
-  "US_SBSW_bigmove_2026-08-19": true
+  "US_SBSW_bigmove_2026-08-19": true,
+  "US_AAUC_bigmove_2026-08-19": true,
+  "US_OGC_bigmove_2026-08-19": true,
+  "US_ARE_bigmove_2026-08-19": true,
+  "US_FSLY_bigmove_2026-08-19": true
 }
