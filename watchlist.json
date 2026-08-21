@@ -30,12 +30,6 @@
     "target_low": 160
   },
   {
-    "ticker": "LII",
-    "name": "LII",
-    "target_high": 552,
-    "target_low": 452.04
-  },
-  {
     "ticker": "DECK",
     "name": "DECK",
     "target_high": 114.37,
