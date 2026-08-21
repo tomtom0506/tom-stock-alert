@@ -30,12 +30,6 @@
     "target_low": 160
   },
   {
-    "ticker": "SMCI",
-    "name": "SMCI",
-    "target_high": 34.96,
-    "target_low": 25.6
-  },
-  {
     "ticker": "NEM",
     "name": "NEM",
     "target_high": 120.81,
