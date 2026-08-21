@@ -30,12 +30,6 @@
     "target_low": 160
   },
   {
-    "ticker": "DHI",
-    "name": "DHI",
-    "target_high": 160.09,
-    "target_low": 138.01
-  },
-  {
     "ticker": "SMCI",
     "name": "SMCI",
     "target_high": 34.96,
