@@ -30,12 +30,6 @@
     "target_low": 160
   },
   {
-    "ticker": "NEM",
-    "name": "NEM",
-    "target_high": 120.81,
-    "target_low": 91.48
-  },
-  {
     "ticker": "GPN",
     "name": "GPN",
     "target_high": 81.39,
