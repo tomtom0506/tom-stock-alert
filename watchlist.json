@@ -30,12 +30,6 @@
     "target_low": 160
   },
   {
-    "ticker": "FERG",
-    "name": "FERG",
-    "target_high": 259.3,
-    "target_low": 223.04
-  },
-  {
     "ticker": "LII",
     "name": "LII",
     "target_high": 552,
