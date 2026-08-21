@@ -30956,5 +30956,12 @@
     "up": 253,
     "down": 22,
     "universe_size": 712
+  },
+  "portfolio_sim": {
+    "start_value": 100000,
+    "currency": "ILS",
+    "value": 100000.0,
+    "last_processed_date": null,
+    "daily_log": []
   }
 }
