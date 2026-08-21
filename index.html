@@ -410,7 +410,7 @@
         <p>תגית בראש העמוד שמראה אם השוק הרחב (S&amp;P 500) נמצא במגמת עלייה (שורי) או ירידה (דובי). <b>לחיצה עליה</b> פותחת הסבר מפורט - כולל הנתונים המדויקים שעליהם מבוססת הקביעה. מתחתיה 4 ריבועים עם שערים עדכניים (S&amp;P 500, מדד ת"א 125, דולר/שקל, ביטקוין), מתעדכנים כל 15 דקות, בירוק לעלייה ואדום לירידה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">4 האריחים הכחולים</p>
-        <p><b>אחוז הצלחת חיזוי</b> - כמה מהתחזיות החזקות שהתבררו כנכונות עד כה.<br>
+        <p><b>אחוז הצלחת חיזוי</b> - מתוך התחזיות ב-Top 10 שכבר ניתן היה לבדוק (יום אחרי הפרסום), כמה התממשו בכיוון הנכון.<br>
         <b>תחזיות חזקות היום</b> - כמה מניות נכנסו לרשימה המצומצמת של היום (עד 25).<br>
         <b>מניות במעקב</b> - כמה מניות יש לך ברשימה הידנית "המניות שלי".<br>
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
@@ -479,6 +479,7 @@
 
   <div id="trackRecordSection" class="hidden">
     <div class="section-title">🔥 ביצועי תחזיות חזקות</div>
+    <div id="top10Summary" style="margin-bottom:14px; font-size:13.5px; color:var(--text-dim); line-height:1.6;"></div>
     <div class="track-stats">
       <div class="track-tile hits"><div class="track-num mono" id="trackHits">—</div><div class="track-label">הצלחות</div></div>
       <div class="track-tile misses"><div class="track-num mono" id="trackMisses">—</div><div class="track-label">כשלונות</div></div>
@@ -572,7 +573,7 @@
 </div>
 
 <script>
-const APP_VERSION = "2.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "2.5"; // bump this every time index.html is updated, so we can tell what's actually deployed
 document.getElementById("versionBadge").textContent = `v${APP_VERSION}`;
 document.getElementById("refreshBtn").addEventListener("click", () => {
   // a plain reload can still be served from cache (this is exactly the bug
@@ -1081,7 +1082,9 @@ async function loadPredictions() {
     renderRegimeBadge(data.market_regime, data.market_breadth);
 
     document.getElementById("statsRow").classList.remove("hidden");
-    document.getElementById("statAccuracy").textContent = acc.overall != null ? `${acc.overall}%` : "—";
+    document.getElementById("statAccuracy").textContent = acc.top10_accuracy != null
+      ? `${acc.top10_accuracy}%`
+      : (acc.overall != null ? `${acc.overall}%` : "—");
 
     const today = new Date().toISOString().slice(0, 10);
     // "strong" is the curated shortlist the engine already picked (top
@@ -1106,10 +1109,19 @@ async function loadPredictions() {
 function renderTrackRecord(history, acc) {
   const section = document.getElementById("trackRecordSection");
   const list = document.getElementById("trackList");
+  const summary = document.getElementById("top10Summary");
 
   if (!acc || !acc.strong_total) {
     section.classList.add("hidden");
     return;
+  }
+
+  if (acc.top10_total) {
+    summary.innerHTML = `מתוך <b class="mono">${acc.top10_total}</b> תחזיות Top 10 שנבדקו עד כה מול המחיר יום למחרת: ` +
+      `<b class="mono" style="color:var(--up);">${acc.top10_hits}</b> התממשו בכיוון הנכון ` +
+      `(<b class="mono" style="color:var(--up);">${acc.top10_accuracy}%</b> הצלחה).`;
+  } else {
+    summary.innerHTML = `עדיין אין תחזיות Top 10 שנבדקו - הבדיקה מתבצעת רק יום אחרי שהתחזית פורסמה.`;
   }
 
   document.getElementById("trackHits").textContent = acc.strong_hits ?? 0;
