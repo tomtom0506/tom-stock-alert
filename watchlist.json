@@ -28,11 +28,5 @@
     "name": "פלנטיר",
     "target_high": 180,
     "target_low": 160
-  },
-  {
-    "ticker": "DECK",
-    "name": "DECK",
-    "target_high": 114.37,
-    "target_low": 94.16
   }
 ]
