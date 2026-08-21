@@ -35411,5 +35411,76 @@
     "value": 100000.0,
     "last_processed_date": null,
     "daily_log": []
+  },
+  "factor_analysis": {
+    "updated_at": "2026-08-21T20:55:25.779004+00:00",
+    "baseline": 52.3,
+    "baseline_n": 748,
+    "min_sample": 20,
+    "factors": [
+      {
+        "key": "short_high",
+        "label": "שורט גבוה (15%+)",
+        "n": 38,
+        "hit_rate": 78.9,
+        "edge": 26.6
+      },
+      {
+        "key": "vol_surge",
+        "label": "נפח מסחר חריג (פי 1.5+)",
+        "n": 30,
+        "hit_rate": 63.3,
+        "edge": 11.0
+      },
+      {
+        "key": "rsi_oversold",
+        "label": "RSI מתחת ל-30 (תשואת יתר)",
+        "n": 48,
+        "hit_rate": 58.3,
+        "edge": 6.0
+      },
+      {
+        "key": "ma_golden",
+        "label": "מגמת ממוצעים חיובית (Golden Cross)",
+        "n": 247,
+        "hit_rate": 57.1,
+        "edge": 4.8
+      },
+      {
+        "key": "analyst_upside_high",
+        "label": "אפסייד אנליסטים 15%+",
+        "n": 205,
+        "hit_rate": 55.6,
+        "edge": 3.3
+      },
+      {
+        "key": "macd_bearish",
+        "label": "MACD שלילי",
+        "n": 392,
+        "hit_rate": 54.3,
+        "edge": 2.0
+      },
+      {
+        "key": "macd_bullish",
+        "label": "MACD חיובי",
+        "n": 356,
+        "hit_rate": 50.0,
+        "edge": -2.3
+      },
+      {
+        "key": "rsi_overbought",
+        "label": "RSI מעל 70 (קניית יתר)",
+        "n": 119,
+        "hit_rate": 46.2,
+        "edge": -6.1
+      },
+      {
+        "key": "ma_death",
+        "label": "מגמת ממוצעים שלילית (Death Cross)",
+        "n": 108,
+        "hit_rate": 41.7,
+        "edge": -10.6
+      }
+    ]
   }
 }
