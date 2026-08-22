@@ -444,5 +444,14 @@
   "US_FCFS_bigmove_2026-08-21": true,
   "US_FUTU_bigmove_2026-08-21": true,
   "US_NEXA_bigmove_2026-08-21": true,
-  "US_IQMX_bigmove_2026-08-21": true
+  "US_IQMX_bigmove_2026-08-21": true,
+  "US_SLS_bigmove_2026-08-22": true,
+  "US_IQMX_bigmove_2026-08-22": true,
+  "US_HOOD_bigmove_2026-08-22": true,
+  "US_USAR_bigmove_2026-08-22": true,
+  "US_INFQ_bigmove_2026-08-22": true,
+  "US_DK_bigmove_2026-08-22": true,
+  "US_RGTI_bigmove_2026-08-22": true,
+  "US_VIRT_bigmove_2026-08-22": true,
+  "US_CVI_bigmove_2026-08-22": true
 }
