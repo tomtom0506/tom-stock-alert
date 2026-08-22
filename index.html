@@ -1,0 +1,2332 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>המעקב שלי</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="המעקב שלי">
+<link rel="icon" href="favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg-glow: #0f1420;
+    --panel: #151b25;
+    --panel-hi: #1c2431;
+    --border: #262e3c;
+    --border-hi: #364052;
+    --text: #eef0f4;
+    --text-dim: #9aa4b6;
+    --text-faint: #6b7488;
+    --gold: #d9b158;
+    --gold-dim: #b3903f;
+    --gold-glow: rgba(217,177,88,0.16);
+    --ice: #6fd0ec;
+    --ice-dim: rgba(111,208,236,0.14);
+    --up: #58bd93;
+    --up-bg: rgba(88,189,147,0.12);
+    --down: #e07668;
+    --down-bg: rgba(224,118,104,0.12);
+  }
+  /* ---------- light theme (opt-in via toggle) ---------- */
+  body.light-theme {
+    --bg: #f4f5f8;
+    --bg-glow: #ffffff;
+    --panel: #ffffff;
+    --panel-hi: #eef0f4;
+    --border: #dde1e8;
+    --border-hi: #c7cdd8;
+    --text: #171b24;
+    --text-dim: #454e60;
+    --text-faint: #6b7486;
+    --gold: #93641d;
+    --gold-dim: #78511a;
+    --gold-glow: rgba(147,100,29,0.12);
+    --ice: #0c6784;
+    --ice-dim: rgba(12,103,132,0.10);
+    --up: #157a4f;
+    --up-bg: rgba(21,122,79,0.10);
+    --down: #a53a2f;
+    --down-bg: rgba(165,58,47,0.10);
+  }
+  body.light-theme .tape-wrap { background: #ffffff; }
+  body { transition: background-color 0.2s ease, color 0.2s ease; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; color: var(--text);
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -5%, rgba(212,169,74,0.07), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(95,201,232,0.05), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, .display { font-family: 'Space Grotesk', sans-serif; }
+  .serif { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; direction: ltr; unicode-bidi: plaintext; }
+  a { color: inherit; }
+  button { font-family: inherit; }
+
+  /* ---------- ticker tape ---------- */
+  .tape-wrap {
+    background: #10141b; border-bottom: 1px solid var(--border);
+    overflow: hidden; white-space: nowrap; padding: 10px 0;
+  }
+  .tape-track {
+    display: inline-flex; gap: 28px; animation: tape-scroll 30s linear infinite;
+    padding-inline-start: 100%;
+  }
+  @keyframes tape-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-100%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tape-track { animation: none; }
+  }
+  .tape-item { display: inline-flex; align-items: baseline; gap: 6px; font-size: 13px; }
+  .tape-ticker { font-weight: 600; color: var(--text); }
+  .tape-price { color: var(--text-dim); }
+  .tape-up { color: var(--up); }
+  .tape-down { color: var(--down); }
+
+  /* ---------- layout ---------- */
+  .wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 100px; }
+  header.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
+  .brand { font-size: 24px; font-weight: 600; letter-spacing: -0.2px; }
+  .brand-sub { font-size: 11.5px; color: var(--text-faint); margin-top: 3px; letter-spacing: 0.3px; }
+  .regime-badge {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600;
+    padding: 5px 12px; border-radius: 20px; margin-bottom: 16px; cursor: pointer;
+  }
+  .regime-badge:active { opacity: 0.8; }
+  .regime-badge.bull { background: var(--up-bg); color: var(--up); }
+  .regime-badge.bear { background: var(--down-bg); color: var(--down); }
+  .indices-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px;
+  }
+  .index-tile {
+    background: linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 30%);
+    border: 1px solid var(--border); border-radius: 12px; padding: 9px 4px; text-align: center;
+  }
+  .index-label { font-size: 9.5px; color: var(--text-faint); margin-bottom: 3px; }
+  .index-value { font-size: 14px; font-weight: 700; color: var(--text); }
+  .index-pct { font-size: 10.5px; font-weight: 600; margin-top: 2px; }
+  .index-pct.up { color: var(--up); }
+  .index-pct.down { color: var(--down); }
+  .index-pct.flat { color: var(--text-faint); }
+  .gear-btn {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text-dim);
+    width: 38px; height: 38px; min-width: 38px; border-radius: 10px; cursor: pointer; font-size: 17px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .gear-btn:active { background: var(--panel-hi); }
+  .version-badge {
+    font-size: 10px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace;
+    padding: 3px 6px; border: 1px solid var(--border); border-radius: 6px;
+  }
+
+  /* ---------- hero stats ---------- */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+  .stat-tile {
+    background: linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 30%);
+    border: 1px solid var(--border); border-radius: 13px;
+    padding: 13px 8px; text-align: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+  }
+  .stat-num { font-size: 20px; font-weight: 700; color: var(--gold); }
+  .stat-label { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; line-height: 1.3; }
+
+  /* ---------- section headers ---------- */
+  .section-title {
+    font-family: 'Fraunces', serif; font-optical-sizing: auto;
+    font-size: 16px; font-weight: 600; color: var(--text); margin: 26px 0 12px;
+    display: flex; align-items: center; gap: 7px;
+  }
+
+  /* ---------- predictions ---------- */
+  .predictions-panel {
+    border: 1px solid var(--border); background: linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 20%);
+    border-radius: 16px; padding: 6px 15px; margin-bottom: 4px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+  }
+  .prediction-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px;
+  }
+  .prediction-row:last-child { border-bottom: none; }
+  .prediction-ticker { font-weight: 700; }
+  .prediction-dir-up { color: var(--up); }
+  .prediction-dir-down { color: var(--down); }
+  .prediction-row.strong { background: rgba(212,169,74,0.07); border-radius: 8px; padding: 10px 8px; margin: 3px 0; }
+  .prediction-row.strong .prediction-ticker,
+  .prediction-row.strong .prediction-dir-up,
+  .prediction-row.strong .prediction-dir-down { font-weight: 800; }
+  .predictions-empty { color: var(--text-faint); font-size: 13px; padding: 14px 0; text-align: center; }
+
+  /* ---------- conviction gauge + factor badges ---------- */
+  .conviction-bar {
+    position: relative; height: 5px; border-radius: 3px; margin: 8px 0 10px;
+    background: linear-gradient(to right, var(--down), #333c4a 48%, #333c4a 52%, var(--up));
+  }
+  .conviction-marker {
+    position: absolute; top: -4px; width: 3px; height: 13px; background: #fff;
+    border-radius: 2px; box-shadow: 0 0 6px rgba(255,255,255,0.5);
+  }
+  .factor-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .factor-badge {
+    font-size: 10.5px; padding: 3px 8px; border-radius: 6px; font-weight: 600;
+    background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border);
+  }
+  .factor-badge.pos { color: var(--up); border-color: rgba(79,178,134,0.3); background: var(--up-bg); }
+  .factor-badge.neg { color: var(--down); border-color: rgba(217,105,92,0.3); background: var(--down-bg); }
+  .factor-badge.news { color: var(--ice); border-color: rgba(95,201,232,0.3); background: var(--ice-dim); text-decoration: none; cursor: pointer; }
+  body.light-theme .factor-badge { background: rgba(0,0,0,0.035); }
+
+  /* ---------- sort/filter controls ---------- */
+  .predictions-controls { display: flex; gap: 8px; margin: 4px 0 10px; flex-wrap: wrap; }
+  .sort-select {
+    flex: 1; background: var(--panel-hi); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 10px; font-size: 12.5px; font-family: inherit;
+  }
+  .top-toggle-btn {
+    background: var(--panel-hi); color: var(--gold); border: 1px solid var(--border-hi);
+    border-radius: 10px; padding: 9px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+
+  /* ---------- hot pick spotlight ---------- */
+  .hot-pick-card {
+    border: 1px solid var(--gold-dim); background: linear-gradient(135deg, var(--gold-glow), transparent 70%), var(--panel-hi);
+    border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 4px 18px rgba(212,169,74,0.12);
+  }
+  .hot-pick-label { font-size: 11px; color: var(--gold); font-weight: 700; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .hot-pick-ticker { font-size: 22px; font-weight: 800; font-family: 'Space Grotesk', sans-serif; }
+
+  /* ---------- strong prediction track record ---------- */
+  .track-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+  .track-tile {
+    border-radius: 12px; padding: 12px 8px; text-align: center; border: 1px solid var(--border);
+  }
+  .track-tile.hits { background: var(--up-bg); }
+  .track-tile.misses { background: var(--down-bg); }
+  .track-tile.rate { background: rgba(212,169,74,0.1); }
+  .track-num { font-size: 20px; font-weight: 700; }
+  .track-tile.hits .track-num { color: var(--up); }
+  .track-tile.misses .track-num { color: var(--down); }
+  .track-tile.rate .track-num { color: var(--gold); }
+  .track-label { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; }
+  .track-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .track-row:last-child { border-bottom: none; }
+  .track-row .t-ticker { font-weight: 700; }
+  .track-outcome { font-size: 12px; font-weight: 600; }
+  .track-outcome.correct { color: var(--up); }
+  .track-outcome.wrong { color: var(--down); }
+
+  /* ---------- stock cards ---------- */
+  .stock-card {
+    background: linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 14%);
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 15px 17px; margin-bottom: 11px; transition: border-color 0.15s;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+    position: relative; overflow: hidden;
+  }
+  .stock-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,169,74,0.35), transparent);
+  }
+  .stock-card:active { border-color: var(--border-hi); }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .card-id .card-ticker { font-size: 15px; font-weight: 700; }
+  .card-id .card-name { font-size: 12px; color: var(--text-faint); margin-top: 1px; }
+  .card-price-block { text-align: left; }
+  .card-price { font-size: 19px; font-weight: 600; }
+  .card-pct { font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+  .card-pct.up { color: var(--up); } .card-pct.down { color: var(--down); }
+  .card-pct.flat { color: var(--text-faint); }
+
+  .card-target-line {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 12px; font-size: 12px; color: var(--text-dim);
+  }
+  .target-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600;
+  }
+  .target-badge.hit { background: var(--up-bg); color: var(--up); }
+  .target-badge.pending { background: rgba(139,147,161,0.12); color: var(--text-dim); }
+  .target-badge.hot { background: var(--gold-glow); color: var(--gold); }
+  .target-badge.sell-zone { background: var(--ice-dim); color: var(--ice); }
+  .progress-track {
+    flex: 1; height: 6px; border-radius: 3px; margin: 0 10px; overflow: visible; position: relative;
+    background: linear-gradient(to right, rgba(212,169,74,0.3), #2a3140 50%, rgba(95,201,232,0.3));
+  }
+  .progress-fill {
+    position: absolute; top: 0; height: 100%; border-radius: 3px;
+    background: linear-gradient(to right, var(--gold), var(--ice));
+  }
+  .progress-marker {
+    position: absolute; top: -7px; font-size: 15px; line-height: 1; transform: translateX(50%);
+    filter: drop-shadow(0 0 3px rgba(0,0,0,0.6));
+  }
+  .hot-badge {
+    display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700;
+    color: var(--gold); background: var(--gold-glow); padding: 2px 8px; border-radius: 20px;
+    margin-inline-start: 6px; border: 1px solid rgba(212,169,74,0.35);
+  }
+
+  .card-actions { display: flex; gap: 8px; margin-top: 10px; }
+  .icon-btn {
+    background: none; border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 8px; padding: 6px 10px; font-size: 12px; cursor: pointer;
+  }
+  .icon-btn:active { background: var(--panel-hi); }
+  .star-btn {
+    background: none; border: none; cursor: pointer; font-size: 17px; line-height: 1;
+    padding: 2px 3px; color: var(--gold); flex-shrink: 0;
+  }
+  .icon-btn.danger { color: var(--down); border-color: rgba(217,105,92,0.3); }
+
+  /* ---------- edit mode ---------- */
+  .edit-area { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border); display: none; }
+  .stock-card.editing .edit-area { display: block; }
+  .stock-card.editing .card-view-only { opacity: 0.5; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  label.field-label { display: block; font-size: 10.5px; color: var(--text-faint); margin-bottom: 3px; }
+  input.field-input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border-hi); border-radius: 8px;
+    padding: 8px 10px; font-size: 13.5px; color: var(--text);
+  }
+  input.field-input:focus { outline: none; border-color: var(--gold); }
+  .range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+  .add-btn {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--gold); color: #24190a; border: none; border-radius: 28px;
+    padding: 13px 26px; font-size: 14px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 8px 24px rgba(212,169,74,0.35); z-index: 10;
+  }
+  .add-btn:active { transform: translateX(-50%) scale(0.97); }
+
+  /* ---------- settings panel ---------- */
+  .panel {
+    border: 1px solid var(--border); background: var(--panel); border-radius: 14px;
+    padding: 18px; margin-bottom: 16px;
+  }
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(6,8,12,0.72); backdrop-filter: blur(2px);
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-box {
+    width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.45); margin-bottom: 0;
+  }
+  .modal-close-btn {
+    background: none; border: none; color: var(--text-dim); font-size: 18px;
+    cursor: pointer; padding: 4px 8px; line-height: 1;
+  }
+  .panel h2 { font-size: 13px; font-weight: 600; color: var(--text-dim); margin: 0 0 14px; }
+  .panel input {
+    width: 100%; background: var(--bg); border: 1px solid var(--border-hi); border-radius: 8px;
+    padding: 9px 12px; font-size: 14px; color: var(--text); margin-bottom: 12px;
+  }
+  .panel input:focus { outline: none; border-color: var(--gold); }
+  .btn-primary {
+    width: 100%; background: var(--gold); color: #24190a; border: none;
+    border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+  }
+  .btn-primary:disabled { opacity: 0.6; }
+
+  .status { margin: 10px 0; padding: 10px 14px; border-radius: 10px; font-size: 13.5px; }
+  .status.ok { background: var(--up-bg); color: var(--up); }
+  .status.error { background: var(--down-bg); color: var(--down); }
+  .empty { text-align: center; color: var(--text-faint); font-size: 13.5px; padding: 34px 0; }
+  .loading { text-align: center; color: var(--text-faint); font-size: 13.5px; padding: 34px 0; }
+  .hidden { display: none !important; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<div class="tape-wrap" id="tapeWrap" style="display:none;">
+  <div class="tape-track mono" id="tapeTrack"></div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div style="display:flex; align-items:center; gap:12px; min-width:0; overflow:hidden;">
+      <img src="apple-touch-icon.png" alt="" style="width:38px; height:38px; min-width:38px; border-radius:9px; box-shadow:0 2px 10px rgba(0,0,0,0.35); flex-shrink:0;" />
+      <div style="min-width:0; overflow:hidden;">
+        <div class="brand serif" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">המעקב שלי</div>
+        <div class="brand-sub" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">מניות · תחזיות · התראות</div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+      <span class="version-badge" id="versionBadge" style="cursor:pointer;"></span>
+      <button class="gear-btn" id="guideBtn" aria-label="מדריך שימוש" title="מדריך שימוש" style="font-size:15px;">📖</button>
+      <button class="gear-btn" id="themeToggleBtn" aria-label="מצב תצוגה בהיר/כהה" title="החלפת מצב תצוגה" style="font-size:15px;">🌙</button>
+      <button class="gear-btn" id="refreshBtn" aria-label="בדיקת עדכון" title="רענון גרסה" style="font-size:15px;">⟳</button>
+      <button class="gear-btn" id="gearBtn" aria-label="הגדרות">⚙</button>
+    </div>
+  </header>
+
+  <div id="regimeBadge" class="regime-badge hidden"></div>
+  <div id="indicesRow" class="indices-row hidden"></div>
+
+  <div class="modal-overlay hidden" id="marketReviewOverlay" style="z-index:150;">
+    <div class="panel modal-box" id="marketReviewPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">📊 סקירת שוק</h2>
+        <button id="marketReviewCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="marketReviewBody" style="font-size:13.5px; color:var(--text-dim); line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="guideOverlay" style="z-index:300;">
+    <div class="panel modal-box" id="guidePanel" style="max-height:85vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">📖 מדריך שימוש</h2>
+        <button id="guideCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div style="font-size:13px; color:var(--text-dim); line-height:1.75;">
+
+        <p style="color:var(--text); font-weight:700; margin-bottom:4px;">מה האפליקציה עושה</p>
+        <p>האפליקציה עוקבת אחרי מניות שבחרת, ובנוסף מריצה כל יום מנוע ניתוח טכני על מאות מניות בשוק האמריקאי והישראלי, ומדגישה את המניות עם האותות החזקים ביותר. כל הנתונים מבוססים על ניתוח אוטומטי בלבד - לא ייעוץ השקעות (פירוט מלא בתנאי השימוש בתחתית העמוד).</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">האייקונים בכותרת העליונה</p>
+        <p>📖 - המדריך הזה.<br>
+        🌙 / ☀️ - מעבר בין מצב תצוגה כהה לבהיר (נשמר במכשיר שלך).<br>
+        ⟳ - רענון כפוי של הדף (טוען מחדש את הגרסה העדכנית, עוקף מטמון).<br>
+        ⚙ - הגדרות החיבור לגיטהאב (שם משתמש, שם ריפו, טוקן).<br>
+      <span class="mono">vX.X</span> (התגית עם מספר הגרסה) - לחיצה עליה פותחת היסטוריית גרסאות מלאה, מה השתנה בכל עדכון.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📈 מצב שוק כללי ומדדים</p>
+        <p>תגית בראש העמוד שמראה אם השוק הרחב (S&amp;P 500) נמצא במגמת עלייה (שורי) או ירידה (דובי). <b>לחיצה עליה</b> פותחת הסבר מפורט - כולל הנתונים המדויקים שעליהם מבוססת הקביעה. מתחתיה 4 ריבועים עם שערים עדכניים (S&amp;P 500, מדד ת"א 125, דולר/שקל, ביטקוין), מתעדכנים כל 15 דקות, בירוק לעלייה ואדום לירידה.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">4 האריחים הכחולים</p>
+        <p><b>אחוז הצלחת חיזוי</b> (לחיצה עליו פותחת הסבר מדויק - Top 10 ברגע שיש, אחרת הדיוק על כל השוק) - מתוך התחזיות ב-Top 10 שכבר ניתן היה לבדוק (יום אחרי הפרסום), כמה התממשו בכיוון הנכון.<br>
+        <b>תחזיות חזקות היום</b> - כמה מניות נכנסו לרשימה המצומצמת של היום (עד 25).<br>
+        <b>מניות במעקב</b> - כמה מניות יש לך ברשימה הידנית "המניות שלי".<br>
+        <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 תחזיות ליום המסחר הבא</p>
+        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים (עוצמת אות, אפסייד אנליסטים, RSI, נפח מסחר, קרבה לתמיכה/התנגדות), ולעבור בין תצוגת Top 10 לתצוגה מלאה. כפתור <b>🔄 עדכן ניתוח</b> מפעיל ריצה חדשה של המנוע בגיטהאב (לוקח כמה דקות).</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">⭐ הכוכב וסקשן "מניות במעקב"</p>
+        <p>לחיצה על ☆ ליד כל מניה מסמנת אותה ⭐ ומעלה אותה לסקשן קבוע למעלה, גם אם היא לא ברשימה המצומצמת של יום מסוים. מניות מסומנות מקבלות גם עדכון סטטוס יומי נפרד בטלגרם.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">משמעות הפסים בכרטיס מניה</p>
+        <p><b>פס אדום-ירוק עם סמן לבן</b> - עוצמת החיזוי (מ-5- עד 5+), כמה שהסמן קרוב לירוק כך החיזוי חיובי יותר.<br>
+        <b>פס עם שני מספרים (תמיכה/התנגדות)</b> - טווח המחיר שהניתוח הטכני מזהה: המספר הימני הוא רמת תמיכה (אזור קנייה), השמאלי רמת התנגדות (אזור מכירה/שורט), עם סמן 📍 שמראה איפה המחיר הנוכחי נמצא. כוכבית (*) ליד מספר מציינת שהוא מוערך (המניה שברה את הטווח ההיסטורי).<br>
+        <b>מחיר ואחוז שינוי</b> - מתעדכן כל 15 דקות במהלך המסחר.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏢 שם החברה ותקציר פעילות</p>
+        <p>מתחת לסמל המניה (בכרטיסים שיש להם נתונים - בעיקר המצומצמות/מסומנות), מופיע שם החברה המלא. <b>לחיצה עליו</b> פותחת תקציר קצר של תחום הפעילות שלה. לא לכל מניה יש את זה זמין - זה תלוי בזמינות המידע מהמקור החיצוני.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📈 גרף נקודות תמיכה/התנגדות</p>
+        <p>בכרטיסים של המניות המצומצמות (עד 25) והמניות המסומנות בכוכב, אפשר <b>ללחוץ על התגית</b> בפס התמיכה/התנגדות (מסומנת ב-📈) כדי לפתוח גרף שמראה את ~140 ימי המסחר האחרונים, עם נקודות אדומות (שיאים מקומיים) וירוקות (שפלים מקומיים) שעליהן מבוסס חישוב התמיכה/ההתנגדות, וקו זהוב מקווקו שמחבר ביניהן לפי סדר כרונולוגי - בדיוק כמו שמסמנים ידנית על גרף. מניות אחרות (שאינן בין ה-25 או מסומנות) אין להן עדיין נתוני גרף, כדי לא להכביד על גודל הקובץ.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">⚖️ ניסוי: משקל לפי יחס סיכוי/סיכון</p>
+        <p>סקשן השוואה בין השיטה הנוכחית (בחירת Top 10 לפי עוצמת חיזוי בלבד) לשיטה ניסיונית שמעדיפה מניות שבהן הפוטנציאל לרווח (עד ההתנגדות) גדול משמעותית מהסיכון (עד התמיכה) - לא רק "לאן זה הולך" אלא "כמה", עם הגבלה של עד 50% מהתיק מאותו סקטור (למניעת ריכוזיות מוגזמת בסקטור אחד). <b>זו השוואה בלבד</b> - שום דבר לא הוחלף בפועל, וכרגע אין עדיין מספיק ימים כדי להסיק מסקנה.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧪 ניתוח טריגרים - מה עובד ומה פחות</p>
+        <p>בכל יום, המערכת בודקת את הדיוק של כל אחד מהטריגרים (Golden Cross, MACD, RSI קיצוני, נפח חריג, קרבה לתמיכה/התנגדות, אפסייד אנליסטים ועוד) מול <b>כל השוק</b> שנותח - לא רק המניות המצומצמות, אלא כל מניה בארה"ב ובישראל שיש לה תחזית שכבר נבדקה. כל טריגר מציג את אחוז ההצלחה שלו וכמה זה טוב/גרוע יותר מהממוצע הכללי ("מהבסיס"). זו בדיקה גולמית (לא ניסוי מבוקר - טריגרים חופפים ולא בלתי-תלויים), אבל היא נותנת כיוון אמיתי לאן שווה לחזק או להחליש במשקלי הנוסחה. עדכון הנוסחה עצמה נשאר תמיד להחלטה משותפת - המערכת לא משנה משקלים לבד.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔥 "למה נבחרה?" במניה הכי חמה</p>
+        <p>לחיצה על "למה נבחרה? 🔍" ליד כותרת המניה הכי חמה פותחת פירוק מלא ושקוף של הציון: אילו גורמי מגמה, תיקון-יתר ופונדמנטלס תרמו (עם הנקודות המדויקות של כל אחד), אם הבחירה התבססה על אישור נפח מסחר חריג, והשפעת מצב השוק הכללי. אם יש למניה נתוני גרף (מבין ה-25/המסומנות), הוא מוצג גם כאן.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">התגיות (badges)</p>
+        <p><b>RSI</b> - מדד תנופה; מתחת ל-30 = תשואת יתר (ירידה מוגזמת), מעל 70 = קניית יתר.<br>
+        <b>MACD חיובי/שלילי</b> - מגמה קצרת-טווח.<br>
+        <b>מגמת זהב 🌟 / מגמה שלילית 💀</b> - יחס בין ממוצעים נעים (50/200 יום).<br>
+        <b>📊 נפח חריג</b> - מסחר גבוה משמעותית מהרגיל.<br>
+        <b>אנליסטים: +X%</b> - כמה אנליסטים מצפים שהמניה תעלה, ובאיזה שיעור בממוצע.<br>
+        <b>שורט X%</b> - אחוז המניות שנמכרות בחסר (סימן לספקנות בשוק).<br>
+        <b>👥 X אנליסטים</b> - כמות אנליסטים שעוקבים אחרי המניה, והמלצתם הממוצעת.<br>
+        <b>📰 כתבה עדכנית</b> - קישור לכתבה רלוונטית אחרונה.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔥 ביצועי תחזיות חזקות</p>
+        <p>מעקב אחרי דיוק התחזיות החזקות לאורך זמן - כמה הצליחו, כמה פספסו, ואחוז ההצלחה הכולל.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💰 סימולציית תיק ₪100,000</p>
+        <p>תיק מדומה שמניח השקעה של ₪100,000 בחלוקה שווה בין כל מניות ה-Top 10 שהומלצו לעלייה, ומתעדכן כל יום לפי הביצוע בפועל. <b>לחיצה על ריבוע הרווח/הפסד היומי</b> מציגה פירוט של כל מניה וכמה היא עלתה/ירדה. הריבועים הנוספים מציגים את אחוז ההצלחה של אותן 10 מניות, שווי התיק הנוכחי, ואת הרווח המצטבר החודשי והשנתי. זו הערכה בלבד - ללא עמלות, מרווחי קנייה/מכירה או המרות מטבע.<br><br>
+        <b>חשוב:</b> ה-"Top 10" כאן הוא תמיד לפי עוצמת האות (קבוע) - לא מושפע מהמיון שבחרת בתפריט "מיון" מעל רשימת התחזיות. אם שינית שם את המיון, הרשימה שרואים שם עשויה להיראות שונה מ-10 המניות שמשמשות לסימולציה ולמדידת הדיוק.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">המניות שלי</p>
+        <p>רשימה ידנית שאתה בונה בעצמך - לכל מניה אפשר להגדיר יעד עליון (מכירה) ו/או תחתון (קנייה), ולקבל התראת טלגרם כשהמחיר חוצה אותם. עריכה/מחיקה בכפתורים שבתחתית כל כרטיס, והוספת מניה חדשה בכפתור הצהוב הקבוע למטה.</p>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row hidden" id="statsRow">
+    <div class="stat-tile" id="statAccuracyTile" style="cursor:pointer;"><div class="stat-num mono" id="statAccuracy">—</div><div class="stat-label">אחוז הצלחת חיזוי ℹ️</div></div>
+    <div class="stat-tile"><div class="stat-num mono" id="statPredictions">—</div><div class="stat-label">תחזיות חזקות היום</div></div>
+    <div class="stat-tile"><div class="stat-num mono" id="statTracked">—</div><div class="stat-label">מניות במעקב</div></div>
+    <div class="stat-tile"><div class="stat-num mono" id="statHit">—</div><div class="stat-label">הגיעו ליעד</div></div>
+  </div>
+
+  <div id="trackRecordSection" class="hidden">
+    <div class="section-title">🔥 ביצועי תחזיות חזקות</div>
+    <div id="top10Summary" style="margin-bottom:14px; font-size:13.5px; color:var(--text-dim); line-height:1.6;"></div>
+    <div class="track-stats">
+      <div class="track-tile hits"><div class="track-num mono" id="trackHits">—</div><div class="track-label">הצלחות</div></div>
+      <div class="track-tile misses"><div class="track-num mono" id="trackMisses">—</div><div class="track-label">כשלונות</div></div>
+      <div class="track-tile rate"><div class="track-num mono" id="trackRate">—</div><div class="track-label">אחוז הצלחה</div></div>
+    </div>
+    <div class="predictions-panel"><div id="trackList"></div></div>
+  </div>
+
+  <div id="portfolioSimSection" class="hidden">
+    <div class="section-title">💰 סימולציית תיק ₪100,000</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
+      תיק מדומה: משקיע ₪100,000 בחלוקה שווה בין מניות ה-Top 10 שהומלצו לעלייה בכל יום (לפי עוצמת האות, קבוע - לא מושפע מהמיון שבחרת ברשימה למטה), ומתעדכן יום אחרי יום לפי הביצוע בפועל. הערכה בלבד - ללא עמלות/מרווחים, וללא המרות מטבע.
+    </div>
+    <div class="indices-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom:8px;">
+      <div class="index-tile" id="top10AccuracyTile">
+        <div class="index-label">אחוז הצלחה Top 10</div>
+        <div class="index-value mono" id="top10AccuracyValue">—</div>
+        <div class="index-pct" id="top10AccuracyDetail" style="color:var(--text-faint);"></div>
+      </div>
+      <div class="index-tile" id="dailyPnlTile" style="cursor:pointer;">
+        <div class="index-label">רווח/הפסד יומי</div>
+        <div class="index-value mono" id="dailyPnlValue">—</div>
+        <div class="index-pct" id="dailyPnlDate" style="color:var(--text-faint);"></div>
+      </div>
+      <div class="index-tile">
+        <div class="index-label">שווי תיק מדומה</div>
+        <div class="index-value mono" id="portfolioValue">—</div>
+        <div class="index-pct" id="portfolioTotalReturn"></div>
+      </div>
+    </div>
+    <div class="indices-row" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="index-tile">
+        <div class="index-label">רווח חודשי</div>
+        <div class="index-value mono" id="monthlyReturn">—</div>
+      </div>
+      <div class="index-tile">
+        <div class="index-label">רווח שנתי</div>
+        <div class="index-value mono" id="annualReturn">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="factorAnalysisSection" class="hidden">
+    <div class="section-title">🧪 ניתוח טריגרים - מה עובד ומה פחות</div>
+    <div id="factorAnalysisSummary" style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;"></div>
+    <div class="predictions-panel"><div id="factorAnalysisList"></div></div>
+  </div>
+
+  <div id="rrExperimentSection" class="hidden">
+    <div class="section-title">⚖️ ניסוי: משקל לפי יחס סיכוי/סיכון</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
+      השוואה בין השיטה הנוכחית (Top 10 לפי עוצמת חיזוי בלבד) לשיטה ניסיונית שמעדיפה מניות עם פוטנציאל רווח גדול משמעותית מהסיכון (עד ההתנגדות לעומת עד התמיכה), עם הגבלה של עד 50% מהתיק מאותו סקטור כדי למנוע ריכוזיות. <b>עדיין לא הוחלף שום דבר בפועל</b> - זו השוואה בלבד, לצפייה עד שיצטבר מספיק נתונים.
+    </div>
+    <div class="indices-row" style="grid-template-columns: repeat(2, 1fr);">
+      <div class="index-tile">
+        <div class="index-label">שיטה נוכחית - הצלחה</div>
+        <div class="index-value mono" id="rrCurrentAccuracy">—</div>
+      </div>
+      <div class="index-tile">
+        <div class="index-label">ניסיוני - הצלחה</div>
+        <div class="index-value mono" id="rrExpAccuracy">—</div>
+      </div>
+    </div>
+    <div class="indices-row" style="grid-template-columns: repeat(2, 1fr); margin-top:8px;">
+      <div class="index-tile">
+        <div class="index-label">שיטה נוכחית - תיק מדומה</div>
+        <div class="index-value mono" id="rrCurrentPortfolio">—</div>
+      </div>
+      <div class="index-tile">
+        <div class="index-label">ניסיוני - תיק מדומה</div>
+        <div class="index-value mono" id="rrExpPortfolio">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="predictionsSection" class="hidden">
+    <div id="starredSection" class="hidden">
+      <div class="section-title">⭐ מניות במעקב</div>
+      <div id="starredList"></div>
+    </div>
+    <div class="section-title">🔮 תחזיות ליום המסחר הבא</div>
+    <div id="hotPickCard"></div>
+    <div class="predictions-controls">
+      <select id="sortSelect" class="sort-select">
+        <option value="score">מיון: עוצמת אות</option>
+        <option value="upside">מיון: אפסייד אנליסטים</option>
+        <option value="analysts">מיון: כמות אנליסטים ממליצים</option>
+        <option value="rsi">מיון: RSI קיצוני</option>
+        <option value="volume">מיון: נפח מסחר חריג</option>
+        <option value="near_support">מיון: הכי קרוב לתמיכה (קנייה)</option>
+        <option value="near_resistance">מיון: הכי קרוב להתנגדות (מכירה/שורט)</option>
+      </select>
+      <button id="topToggleBtn" class="top-toggle-btn">הצג רק Top 10</button>
+      <button id="recomputeBtn" class="top-toggle-btn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
+    </div>
+    <div id="recomputeStatus"></div>
+    <div id="predictionsList"></div>
+  </div>
+
+  <div class="modal-overlay hidden" id="dailyPnlOverlay" style="z-index:150;">
+    <div class="panel modal-box" id="dailyPnlPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">📋 פירוט Top 10 לעלייה</h2>
+        <button id="dailyPnlCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="dailyPnlBody" style="font-size:13.5px; color:var(--text-dim); line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="changelogOverlay" style="z-index:210;">
+    <div class="panel modal-box" id="changelogPanel" style="max-height:85vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0; font-size:17px;">📋 היסטוריית גרסאות</h2>
+        <button id="changelogCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="changelogBody" style="font-size:12.5px; color:var(--text-dim); line-height:1.65; margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="companyOverlay" style="z-index:175;">
+    <div class="panel modal-box" id="companyPanel" style="max-height:80vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="companyTitle" style="margin:0; font-size:17px;">🏢 על החברה</h2>
+        <button id="companyCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="companyBody" style="font-size:13px; color:var(--text-dim); line-height:1.7; margin-top:6px;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="chartOverlay" style="z-index:180;">
+    <div class="panel modal-box" id="chartPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="chartTitle" style="margin:0; font-size:17px;">📈 גרף</h2>
+        <button id="chartCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div style="font-size:11.5px; color:var(--text-faint); margin:4px 0 10px; line-height:1.5;">
+        הנקודות האדומות/ירוקות הן שיאי/שפלי מחיר מקומיים (סווינג) שהניתוח הטכני מזהה על פני כ-140 ימי מסחר אחרונים. הקו המקווקו הזהוב מחבר ביניהם לפי סדר כרונולוגי.
+      </div>
+      <div id="chartBody"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="accExplainOverlay" style="z-index:190;">
+    <div class="panel modal-box" id="accExplainPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0; font-size:17px;">ℹ️ איך חושב אחוז ההצלחה?</h2>
+        <button id="accExplainCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="accExplainBody" style="font-size:13px; color:var(--text-dim); line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="hotPickExplainOverlay" style="z-index:190;">
+    <div class="panel modal-box" id="hotPickExplainPanel" style="max-height:85vh; overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="hotPickExplainTitle" style="margin:0; font-size:17px;">🔥 למה נבחרה?</h2>
+        <button id="hotPickExplainCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="hotPickExplainBody" style="font-size:13px; color:var(--text-dim); line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="configOverlay">
+    <div class="panel modal-box" id="configPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">חיבור ל-GitHub</h2>
+        <button id="configCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <label class="field-label">שם משתמש</label>
+      <input id="cfgOwner" placeholder="tomtom0506" />
+      <label class="field-label">שם הריפו</label>
+      <input id="cfgRepo" placeholder="tom-stock-alert" />
+      <label class="field-label">Personal Access Token (Contents: Read & Write)</label>
+      <input id="cfgToken" type="password" placeholder="github_pat_..." />
+      <button class="btn-primary" id="saveConfigBtn">שמור והתחבר</button>
+    </div>
+  </div>
+
+  <div class="loading hidden" id="loadingMsg">טוען...</div>
+
+  <div id="watchlistSection" class="hidden">
+    <div class="section-title">המניות שלי</div>
+    <div id="rowsContainer"></div>
+    <div class="empty hidden" id="emptyMsg">אין עדיין מניות. הוסף אחת עם הכפתור למטה.</div>
+  </div>
+
+  <div id="statusMsg"></div>
+  <div class="empty hidden" id="needConfigMsg">הגדר חיבור ל-GitHub כדי להתחיל.</div>
+
+  <div style="text-align:center; padding:22px 10px 6px; font-size:11px; color:var(--text-faint); line-height:1.6;">
+    המידע באפליקציה אינו מהווה ייעוץ השקעות ואינו תחליף לשיקול דעת עצמאי או ייעוץ מקצועי.
+    <br />
+    <a href="#" id="footerTosLink" style="color:var(--text-faint); text-decoration:underline;">תנאי שימוש והבהרה משפטית מלאה</a>
+  </div>
+</div>
+
+<button class="add-btn hidden" id="addBtn">+ הוסף מניה</button>
+
+<div class="modal-overlay hidden" id="legalOverlay" style="z-index:200;">
+  <div class="panel modal-box" id="legalPanel">
+    <h2 style="margin:0 0 12px;">לפני שממשיכים</h2>
+    <p style="font-size:13px; color:var(--text-dim); line-height:1.65; margin:0 0 16px;">
+      המידע, הניתוחים, הציונים והסימונים באפליקציה זו (כולל "מומלצת לקנייה", "מומלצת למכירה/שורט" וכל ניסוח דומה) הם תוצר של ניתוח טכני וסטטיסטי אוטומטי בלבד, ואינם מהווים ייעוץ השקעות, שיווק השקעות או המלצה לביצוע כל פעולה פיננסית. מפעיל האפליקציה אינו בעל רישיון לייעוץ או לשיווק השקעות. כל החלטה פיננסית היא באחריותו הבלעדית של המשתמש, ומומלץ להיוועץ באיש מקצוע מורשה לפני כל פעולה.
+    </p>
+    <label style="display:flex; align-items:flex-start; gap:9px; font-size:13px; color:var(--text-dim); margin-bottom:16px; cursor:pointer;">
+      <input type="checkbox" id="legalCheckbox" style="margin-top:3px; flex-shrink:0; width:16px; height:16px;" />
+      <span>קראתי והבנתי שהמידע באפליקציה אינו מהווה ייעוץ השקעות, ואני מאשר/ת את <a href="#" id="openTosLink" style="color:var(--gold); text-decoration:underline;">תנאי השימוש המלאים</a>.</span>
+    </label>
+    <button class="btn-primary" id="legalAcceptBtn" disabled>אני מסכים/ה ונכנס/ת</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="tosOverlay" style="z-index:250;">
+  <div class="panel modal-box" id="tosPanel" style="max-height:82vh; overflow-y:auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="margin:0;">תנאי שימוש והבהרה משפטית</h2>
+      <button id="tosCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+    </div>
+    <div style="font-size:12.5px; color:var(--text-dim); line-height:1.75; white-space:pre-line;">1. כללי
+אפליקציה זו ("המעקב שלי") הינה כלי אישי למעקב אחר מניות ולניתוח טכני וסטטיסטי אוטומטי, המבוסס על נתונים ציבוריים ממקורות חיצוניים. השימוש באפליקציה הינו וולונטרי ועל אחריות המשתמש בלבד.
+
+2. אין ייעוץ השקעות
+המידע, הניתוחים, הציונים, טווחי המחיר (תמיכה/התנגדות) והסימונים המוצגים באפליקציה (לרבות "מומלצת לקנייה", "מומלצת למכירה/שורט", "קרובה לקנייה/מכירה" וכל ניסוח דומה) הם תוצר של חישוב אוטומטי בלבד, ואינם מהווים ייעוץ השקעות, שיווק השקעות או ניהול תיקי השקעות כהגדרתם בחוק הסדרת העיסוק בייעוץ השקעות, בשיווק השקעות ובניהול תיקי השקעות, התשנ"ה-1995. מפעיל האפליקציה אינו בעל רישיון כאמור, והמידע אינו מותאם לצרכיו, למצבו הפיננסי או למטרותיו של משתמש כלשהו.
+
+3. מקורות מידע ואמינות
+הנתונים מבוססים על מקורות חיצוניים (כגון Yahoo Finance) שאינם בשליטת מפעיל האפליקציה. אין כל התחייבות לדיוקם, לעדכניותם, לשלמותם או לזמינותם הרציפה של הנתונים, והם עשויים להכיל שגיאות או עיכובים.
+
+4. ביצועי עבר
+נתוני הצלחה/דיוק היסטוריים המוצגים באפליקציה (ככל שמוצגים) אינם מהווים אינדיקציה או התחייבות לביצועים עתידיים.
+
+5. אחריות בלעדית של המשתמש
+כל החלטה להשקיע, לרכוש, למכור, להימנע מפעולה או לבצע כל פעולה פיננסית אחרת, היא באחריותו הבלעדית והמלאה של המשתמש. מומלץ להיוועץ באיש מקצוע מורשה (יועץ השקעות בעל רישיון כדין) לפני קבלת כל החלטה פיננסית.
+
+6. הגבלת אחריות
+מפעיל האפליקציה לא יישא באחריות לכל נזק, ישיר או עקיף, שייגרם למשתמש או לצד שלישי כתוצאה משימוש או הסתמכות על המידע המוצג באפליקציה.
+
+7. שימוש אישי
+האפליקציה מיועדת לשימוש אישי ואינה מהווה שירות מסחרי או ציבורי, אלא אם צוין אחרת מפורשות.
+
+8. שינויים בתנאים
+מפעיל האפליקציה רשאי לעדכן תנאים אלה מעת לעת, ללא הודעה מוקדמת.
+
+עודכן לאחרונה: אוגוסט 2026.</div>
+  </div>
+</div>
+
+<script>
+const APP_VERSION = "4.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+
+// Detailed per-version logging starts here (v4.0). Everything before that
+// is grouped into summary entries below - add one new entry to the TOP of
+// this array every time APP_VERSION changes.
+const CHANGELOG = [
+  { version: "4.1", items: [
+    "נוספה היסטוריית גרסאות - לחיצה על תגית הגרסה (למעלה) מראה מה השתנה בכל עדכון.",
+  ]},
+  { version: "4.0", items: [
+    "ניסוי המשקל לפי יחס סיכוי/סיכון מוגבל עכשיו לעד 50% מהתיק מאותו סקטור, כדי למנוע ריכוזיות.",
+  ]},
+  { version: "3.9", items: [
+    "נוסף ניסוי מקביל: בחירת Top 10 לפי יחס סיכוי/סיכון (לא רק עוצמת חיזוי), מושווה לשיטה הנוכחית בסקשן נפרד - בלי לגעת בנתונים האמיתיים.",
+  ]},
+  { version: "3.8", items: [
+    "שם החברה מוצג מתחת לסמל המניה; לחיצה עליו פותחת תקציר קצר של תחום הפעילות.",
+  ]},
+  { version: "3.7", items: [
+    "תוקן באג מיון אמיתי ברשימת 'ביצועי תחזיות חזקות' - הרשימה לא הייתה ממוינת לפי עוצמת חיזוי בפועל.",
+  ]},
+  { version: "3.6", items: [
+    "ריבוע 'אחוז הצלחת חיזוי' הפך ללחיץ - מסביר בדיוק על אילו נתונים הוא מבוסס ברגע נתון.",
+  ]},
+  { version: "3.5", items: [
+    "נוסף סקשן 'ניתוח טריגרים' - בודק יומית אילו אותות טכניים/פונדמנטליים באמת עוזרים לדיוק, מול כל השוק.",
+  ]},
+  { version: "3.4", items: [
+    "רשימת 'ביצועי תחזיות חזקות' הורחבה ל-25, והאחוז המוצג מחושב רק מהרשימה שמוצגת (שקוף לגמרי).",
+  ]},
+  { version: "3.3", items: [
+    "נוסף 'למה נבחרה?' במניה הכי חמה - פירוק מלא של הציון לגורמים עם הנקודות המדויקות של כל אחד.",
+  ]},
+  { version: "3.1–3.2", items: [
+    "נוסף גרף תמיכה/התנגדות (SVG) עם נקודות סווינג, ציר מחירים וסימון הנקודה שנבחרה בפועל.",
+  ]},
+  { version: "3.0", items: [
+    "תוקן מיון 'קרוב לתמיכה/התנגדות' להשתמש במחיר החי (15 דק') במקום מחיר הבוקר.",
+  ]},
+  { version: "2.6–2.9", items: [
+    "נוספה סימולציית תיק ₪100,000 (רווח יומי/חודשי/שנתי) על בסיס ה-Top 10 שהומלץ לעלייה, ומדד דיוק ייעודי ל-Top 10.",
+    "סדר הסקשנים סודר מחדש כך שהנתונים החשובים (דיוק, סימולציה) מופיעים למעלה, לפני רשימת התחזיות המלאה.",
+  ]},
+  { version: "2.0–2.5", items: [
+    "מצב תצוגה בהיר/כהה, מדריך שימוש מלא, הסבר לחיץ על מצב השוק, 4 מדדי שוק (S&P500/ת\"א 125/דולר/ביטקוין), ותיקון חישוב הדיוק (Top 10 אמיתי מול פערי מדידה ישנים).",
+  ]},
+  { version: "1.5–1.9", items: [
+    "פס תמיכה/התנגדות ויזואלי, ⭐ מניות במעקב, מחיר חי כל 15 דק' ברשימה הדינמית, ותיבת הסכמה משפטית בכניסה הראשונה.",
+  ]},
+];
+
+function showChangelog() {
+  const body = document.getElementById("changelogBody");
+  body.innerHTML = CHANGELOG.map(entry => `
+    <div style="margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
+      <div style="font-weight:700; color:var(--text); margin-bottom:5px;">גרסה ${entry.version}</div>
+      <ul style="margin:0; padding-inline-start:18px;">
+        ${entry.items.map(i => `<li style="margin-bottom:3px;">${i}</li>`).join("")}
+      </ul>
+    </div>`).join("");
+  document.getElementById("changelogOverlay").classList.remove("hidden");
+}
+document.getElementById("versionBadge").addEventListener("click", showChangelog);
+document.getElementById("changelogCloseBtn").addEventListener("click", () => {
+  document.getElementById("changelogOverlay").classList.add("hidden");
+});
+document.getElementById("changelogOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "changelogOverlay") document.getElementById("changelogOverlay").classList.add("hidden");
+});
+document.getElementById("versionBadge").textContent = `v${APP_VERSION}`;
+document.getElementById("refreshBtn").addEventListener("click", () => {
+  // a plain reload can still be served from cache (this is exactly the bug
+  // we're working around - Home Screen shortcuts especially don't reliably
+  // revalidate); appending a one-off query string forces the browser to
+  // treat this as a brand new URL and fetch it fresh from the network.
+  const url = new URL(window.location.href);
+  url.searchParams.set("_r", Date.now());
+  window.location.href = url.toString();
+});
+
+const CONFIG_KEY = "gh-watchlist-config";
+let owner = "", repo = "", token = "", sha = null, rows = [];
+let latestPredictionsByTicker = {};
+let currentPrices = {};
+let editingId = null;
+
+/* ---------- storage / config ---------- */
+function loadConfig() {
+  try {
+    const raw = localStorage.getItem(CONFIG_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return null;
+}
+function saveConfigToStorage(cfg) {
+  try { localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg)); } catch (e) {}
+}
+
+/* ---------- encoding helpers ---------- */
+function utf8ToBase64(str) {
+  const bytes = new TextEncoder().encode(str);
+  let binary = "";
+  bytes.forEach((b) => (binary += String.fromCharCode(b)));
+  return btoa(binary);
+}
+function base64ToUtf8(b64) {
+  const binary = atob(b64.replace(/\n/g, ""));
+  const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function setStatus(type, text) {
+  const el = document.getElementById("statusMsg");
+  el.innerHTML = text ? `<div class="status ${type}">${text}</div>` : "";
+}
+function showConfigPanel(show) {
+  document.getElementById("configOverlay").classList.toggle("hidden", !show);
+}
+
+/* ---------- data loads ---------- */
+async function loadCurrentPrices() {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/current_prices.json?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    currentPrices = data.prices || {};
+    renderMarketIndices(data.indices || {});
+  } catch (e) {
+    currentPrices = {};
+  }
+}
+
+function renderMarketIndices(indices) {
+  const row = document.getElementById("indicesRow");
+  const order = ["sp500", "ta125", "usdils", "btc"];
+  const keysPresent = order.filter(k => indices[k] && indices[k].price != null);
+  if (!keysPresent.length) { row.classList.add("hidden"); return; }
+
+  const formatValue = (key, price) => {
+    if (key === "usdils") return price.toFixed(3);
+    if (key === "btc") return Math.round(price).toLocaleString("en-US");
+    return Math.round(price).toLocaleString("en-US");
+  };
+
+  row.innerHTML = keysPresent.map((key) => {
+    const info = indices[key];
+    const pct = info.pct_change;
+    const pctClass = pct == null ? "flat" : (pct >= 0 ? "up" : "down");
+    const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
+    return `
+      <div class="index-tile">
+        <div class="index-label">${info.label}</div>
+        <div class="index-value mono">${formatValue(key, info.price)}</div>
+        <div class="index-pct mono ${pctClass}">${pctText}</div>
+      </div>`;
+  }).join("");
+  row.classList.remove("hidden");
+}
+
+let lastMarketRegime = null;
+let lastAccData = null;
+let lastMarketBreadth = null;
+
+function renderRegimeBadge(marketRegime, marketBreadth) {
+  lastMarketRegime = marketRegime || null;
+  lastMarketBreadth = marketBreadth || null;
+  const badge = document.getElementById("regimeBadge");
+  if (!marketRegime || marketRegime.bullish == null) {
+    badge.classList.add("hidden");
+    return;
+  }
+  const bull = marketRegime.bullish;
+  badge.className = "regime-badge " + (bull ? "bull" : "bear");
+  const pct = marketRegime.recent_10d_pct;
+  const pctText = pct != null ? ` (${pct >= 0 ? "+" : ""}${pct}% ב-10 ימים)` : "";
+  badge.innerHTML = (bull
+    ? `📈 מצב שוק כללי: שורי${pctText}`
+    : `📉 מצב שוק כללי: דובי${pctText}`) + ` <span style="opacity:0.6;">ℹ️</span>`;
+  badge.classList.remove("hidden");
+}
+
+function showMarketReview(show) {
+  document.getElementById("marketReviewOverlay").classList.toggle("hidden", !show);
+  if (!show) return;
+  const body = document.getElementById("marketReviewBody");
+  const r = lastMarketRegime;
+  const b = lastMarketBreadth;
+  if (!r || r.bullish == null) {
+    body.innerHTML = `<p>אין כרגע מספיק נתונים כדי לקבוע את מצב השוק הכללי.</p>`;
+    return;
+  }
+  const bull = r.bullish;
+  const pct = r.recent_10d_pct;
+  const pctDir = pct != null && pct >= 0 ? "עלה" : "ירד";
+  const pctAbs = pct != null ? Math.abs(pct).toFixed(2) : null;
+
+  let html = `
+    <p>
+      הסיווג מבוסס על מדד ה-S&amp;P 500 (הנציג הרחב של שוק המניות האמריקאי), לפי יחס בין שני ממוצעים נעים:
+      <b class="mono">SMA50</b> (ממוצע 50 הימים האחרונים) לעומת <b class="mono">SMA200</b> (ממוצע 200 הימים האחרונים).
+    </p>
+    <p>
+      ${bull
+        ? "כרגע ה-SMA50 <b>מעל</b> ה-SMA200 - זהו סימן קלאסי (\"Golden Cross\") למגמת עלייה כללית בשוק."
+        : "כרגע ה-SMA50 <b>מתחת</b> ל-SMA200 - זהו סימן קלאסי (\"Death Cross\") למגמת ירידה כללית בשוק."}
+    </p>`;
+  if (pctAbs != null) {
+    html += `<p>בנוסף, ב-10 ימי המסחר האחרונים המדד ${pctDir} ב-${pctAbs}%.</p>`;
+  }
+  html += `
+    <p>
+      <b>איך זה משפיע על הניתוח באפליקציה:</b> מצב השוק הכללי משמש כ"נדנוד" קטן בציון של כל מניה בנפרד -
+      הוא לא קובע את הציון לבד, אבל מניה שנוטה לעלייה מקבלת קצת יותר משקל בשוק שורי, ולהפך במניה שנוטה לירידה בשוק דובי.
+    </p>`;
+  if (b && b.total != null) {
+    html += `
+    <p>
+      <b>רוחב השוק היום:</b> מתוך ${b.universe_size ?? "—"} מניות שנותחו,
+      ${b.total} חצו את סף המובהקות הטכני (${b.up} כלפי מעלה, ${b.down} כלפי מטה).
+      ${b.total >= 200 ? "כמות כזו מעידה על תנועה כללית של השוק כולו, ולא על איתות ממוקד במניה ספציפית." : ""}
+    </p>`;
+  }
+  body.innerHTML = html;
+}
+
+document.getElementById("regimeBadge").addEventListener("click", () => showMarketReview(true));
+document.getElementById("marketReviewCloseBtn").addEventListener("click", () => showMarketReview(false));
+document.getElementById("marketReviewOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "marketReviewOverlay") showMarketReview(false);
+});
+
+document.getElementById("guideBtn").addEventListener("click", () => {
+  document.getElementById("guideOverlay").classList.remove("hidden");
+});
+document.getElementById("guideCloseBtn").addEventListener("click", () => {
+  document.getElementById("guideOverlay").classList.add("hidden");
+});
+document.getElementById("guideOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "guideOverlay") document.getElementById("guideOverlay").classList.add("hidden");
+});
+
+function convictionBarHtml(score) {
+  const clamped = Math.max(-5, Math.min(5, score));
+  const pct = ((clamped + 5) / 10) * 100;
+  return `<div class="conviction-bar"><div class="conviction-marker" style="right:${pct}%"></div></div>`;
+}
+
+function factorBadgesHtml(p) {
+  const badges = [];
+  if (p.rsi != null) {
+    if (p.rsi <= 30) badges.push(`<span class="factor-badge">RSI ${p.rsi.toFixed(0)} · תשואת יתר</span>`);
+    else if (p.rsi >= 70) badges.push(`<span class="factor-badge">RSI ${p.rsi.toFixed(0)} · קניית יתר</span>`);
+    else badges.push(`<span class="factor-badge">RSI ${p.rsi.toFixed(0)}</span>`);
+  }
+  if (p.macd_bullish != null) {
+    badges.push(p.macd_bullish
+      ? `<span class="factor-badge">MACD חיובי</span>`
+      : `<span class="factor-badge">MACD שלילי</span>`);
+  }
+  if (p.ma_trend === "golden") badges.push(`<span class="factor-badge">מגמת זהב 🌟</span>`);
+  else if (p.ma_trend === "death") badges.push(`<span class="factor-badge">מגמה שלילית 💀</span>`);
+  if (p.vol_ratio != null && p.vol_ratio >= 1.5) {
+    badges.push(`<span class="factor-badge">📊 נפח חריג x${p.vol_ratio.toFixed(1)}</span>`);
+  }
+  if (p.upside_pct != null && p.upside_pct >= 15) {
+    badges.push(`<span class="factor-badge">אנליסטים: +${p.upside_pct.toFixed(0)}%</span>`);
+  }
+  if (p.short_pct != null && p.short_pct >= 8) {
+    badges.push(`<span class="factor-badge">שורט ${p.short_pct.toFixed(0)}%</span>`);
+  }
+  if (p.analyst_count != null && p.analyst_count > 0) {
+    const recText = p.recommendation_mean != null
+      ? (p.recommendation_mean <= 2 ? " · קנייה" : p.recommendation_mean >= 4 ? " · מכירה" : " · החזקה")
+      : "";
+    badges.push(`<span class="factor-badge">👥 ${p.analyst_count} אנליסטים${recText}</span>`);
+  }
+  if (p.news_link) {
+    badges.push(`<a class="factor-badge news" href="${p.news_link}" target="_blank" rel="noopener">📰 כתבה עדכנית</a>`);
+  }
+  return badges.length ? `<div class="factor-badges">${badges.join("")}</div>` : "";
+}
+
+function rangeBarHtml(p, livePrice) {
+  const low = p.support != null ? Number(p.support) : null;
+  const high = p.resistance != null ? Number(p.resistance) : null;
+  const price = livePrice != null ? Number(livePrice) : (p.price != null ? Number(p.price) : null);
+  if (low == null && high == null) return "";
+
+  const ticker = (p.ticker || "").trim();
+  if (p.chart) chartDataByTicker[ticker] = p.chart;
+  const chartAttrs = p.chart
+    ? ` data-action="show-chart" data-ticker="${ticker}" style="cursor:pointer;" title="לחץ לגרף עם נקודות התמיכה/התנגדות"`
+    : "";
+
+  if (low != null && high != null) {
+    let markerPct = 50;
+    if (price != null && high > low) {
+      markerPct = Math.min(100, Math.max(0, ((price - low) / (high - low)) * 100));
+    }
+    const hitLow = price != null && price <= low;
+    const hitHigh = price != null && price >= high;
+    const nearBuy = markerPct <= 20 || hitLow;
+    const nearSell = markerPct >= 80 && !hitHigh;
+
+    let badgeClass = "pending";
+    let badgeText = "בטווח";
+    if (hitLow) {
+      badgeClass = "hot";
+      badgeText = "🔥 מתחת לתמיכה - הזדמנות קנייה";
+    } else if (nearBuy) {
+      badgeClass = "hot";
+      badgeText = "🔥 קרוב לתמיכה - הזדמנות קנייה";
+    } else if (hitHigh) {
+      badgeClass = "hit";
+      badgeText = "✓ מעל ההתנגדות";
+    } else if (nearSell) {
+      badgeClass = "sell-zone";
+      badgeText = "🎯 קרוב להתנגדות";
+    }
+    if (p.chart) badgeText += " 📈";
+
+    const markerRight = `calc(${markerPct}% - 7px)`;
+    const lowTag = p.support_projected ? "*" : "";
+    const highTag = p.resistance_projected ? "*" : "";
+
+    return `
+      <div class="card-target-line" style="margin-top:10px;">
+        <span class="target-badge ${badgeClass}"${chartAttrs}>${badgeText}</span>
+      </div>
+      <div class="card-target-line">
+        <span class="mono">${low}${lowTag}</span>
+        <div class="progress-track">
+          <div class="progress-fill" style="right:0; width:${markerPct}%"></div>
+          <span class="progress-marker" style="right:${markerRight};">📍</span>
+        </div>
+        <span class="mono">${high}${highTag}</span>
+      </div>`;
+  }
+
+  // only one side of the range is known
+  const target = high != null ? high : low;
+  const isAbove = high != null;
+  let progressPct = 0;
+  if (price != null && target > 0) {
+    progressPct = isAbove
+      ? Math.min(100, Math.max(0, (price / target) * 100))
+      : Math.min(100, Math.max(0, (target / Math.max(price, 0.01)) * 100));
+  }
+  const label = (isAbove ? "התנגדות (מכירה/שורט)" : "תמיכה (קנייה)") + (p.chart ? " 📈" : "");
+  return `
+    <div class="card-target-line" style="margin-top:10px;">
+      <span class="target-badge pending"${chartAttrs}>${label}</span>
+      <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+      <span class="mono">${target}</span>
+    </div>`;
+}
+
+function getLivePrice(p) {
+  const info = currentPrices[(p.ticker || "").trim()];
+  return info && info.price != null ? info.price : p.price;
+}
+function pctToSupport(p) {
+  const price = getLivePrice(p);
+  if (price == null || p.support == null) return 999;
+  return (price - p.support) / price * 100; // smaller = closer to support (buy zone)
+}
+function pctToResistance(p) {
+  const price = getLivePrice(p);
+  if (price == null || p.resistance == null) return 999;
+  return (p.resistance - price) / price * 100; // smaller = closer to resistance (sell/short zone)
+}
+
+let allTodayPreds = [];
+let sortMode = "score";
+let showTopOnly = true;
+let starredTickers = new Set();
+let starredSha = null;
+let chartDataByTicker = {};
+let companyDataByTicker = {};
+
+function sortPreds(preds, mode) {
+  const arr = [...preds];
+  if (mode === "upside") {
+    arr.sort((a, b) => (b.upside_pct ?? -999) - (a.upside_pct ?? -999));
+  } else if (mode === "analysts") {
+    arr.sort((a, b) => (b.analyst_count ?? 0) - (a.analyst_count ?? 0));
+  } else if (mode === "rsi") {
+    arr.sort((a, b) => Math.abs(50 - (b.rsi ?? 50)) - Math.abs(50 - (a.rsi ?? 50)));
+  } else if (mode === "volume") {
+    arr.sort((a, b) => (b.vol_ratio ?? 0) - (a.vol_ratio ?? 0));
+  } else if (mode === "near_support") {
+    arr.sort((a, b) => pctToSupport(a) - pctToSupport(b));
+  } else if (mode === "near_resistance") {
+    arr.sort((a, b) => pctToResistance(a) - pctToResistance(b));
+  } else {
+    arr.sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+  }
+  return arr;
+}
+
+function predictionCardHtml(p) {
+  const ticker = (p.ticker || "").trim();
+  const starred = starredTickers.has(ticker);
+  const info = currentPrices[ticker];
+  const price = info && info.price != null ? info.price : (p.price != null ? p.price : null);
+  const pct = info ? info.pct_change : null;
+  const pctClass = pct == null ? "flat" : (pct >= 0 ? "up" : "down");
+  const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+  if (p.company_name) companyDataByTicker[ticker] = { name: p.company_name, summary: p.business_summary };
+  const nameHtml = p.company_name
+    ? `<div class="card-name" data-action="show-company" data-ticker="${ticker}" style="cursor:pointer; text-decoration:underline dotted;">${p.company_name}</div>`
+    : "";
+
+  return `
+    <div class="stock-card">
+      <div class="card-view-only">
+        <div class="card-top">
+          <div class="card-id">
+            <div class="card-ticker mono">
+              <button class="star-btn" data-action="toggle-star" data-ticker="${ticker}" title="${starred ? "הסר ממעקב" : "הוסף למעקב"}" style="margin-left:3px;">${starred ? "⭐" : "☆"}</button>
+              ${ticker}${p.strong ? '<span class="hot-badge">🔥 חם</span>' : ""}
+            </div>
+            ${nameHtml}
+          </div>
+          <div class="card-price-block">
+            <div class="card-price mono">${price != null ? price.toFixed(2) : "—"}</div>
+            <div class="card-pct mono ${pctClass}">${pctText}</div>
+          </div>
+        </div>
+        ${rangeBarHtml(p, price)}
+        <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+          <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-dim);">
+            <span>🔮 חיזוי היום</span>
+            <span class="${p.predicted === "up" ? "prediction-dir-up" : "prediction-dir-down"}">
+              ${p.predicted === "up" ? "▲ עלייה" : "▼ ירידה"} · ${p.score}
+            </span>
+          </div>
+          ${convictionBarHtml(p.score)}
+          ${factorBadgesHtml(p)}
+        </div>
+      </div>
+    </div>`;
+}
+
+function attachStarEvents(container) {
+  container.querySelectorAll("button[data-action='toggle-star']").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleStar(e.currentTarget.dataset.ticker);
+    });
+  });
+  container.querySelectorAll("[data-action='show-chart']").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showChartModal(e.currentTarget.dataset.ticker);
+    });
+  });
+  container.querySelectorAll("[data-action='show-company']").forEach((el) => {
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      showCompanyModal(e.currentTarget.dataset.ticker);
+    });
+  });
+}
+
+function toggleStar(ticker) {
+  const t = (ticker || "").trim();
+  if (!t) return;
+  if (starredTickers.has(t)) starredTickers.delete(t);
+  else starredTickers.add(t);
+  renderPredictionsList(); // this also re-renders the starred section + hot pick stays as-is until next load
+  const hotCard = document.getElementById("hotPickCard");
+  if (hotCard.innerHTML) renderHotPick(allTodayPreds);
+  saveStarred();
+}
+
+function renderStarredSection() {
+  const section = document.getElementById("starredSection");
+  const list = document.getElementById("starredList");
+  const starred = allTodayPreds.filter(p => starredTickers.has((p.ticker || "").trim()));
+  if (!starred.length) {
+    section.classList.add("hidden");
+    return;
+  }
+  const sorted = [...starred].sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
+  list.innerHTML = sorted.map(p => predictionCardHtml(p)).join("");
+  attachStarEvents(list);
+  section.classList.remove("hidden");
+}
+
+let lastHotPick = null;
+let lastHotPickVolumeConfirmed = false;
+
+function renderHotPick(preds) {
+  const card = document.getElementById("hotPickCard");
+  // "hottest" = highest conviction that's also confirmed by a volume surge,
+  // falling back to plain highest conviction if nothing has a volume surge today
+  const withVolume = preds.filter(p => p.vol_ratio != null && p.vol_ratio >= 1.5);
+  const pool = withVolume.length ? withVolume : preds;
+  if (!pool.length) { card.innerHTML = ""; return; }
+  const hot = [...pool].sort((a, b) => Math.abs(b.score) - Math.abs(a.score))[0];
+  lastHotPick = hot;
+  lastHotPickVolumeConfirmed = withVolume.length > 0;
+  const hotTicker = (hot.ticker || "").trim();
+  const hotStarred = starredTickers.has(hotTicker);
+  const info = currentPrices[hotTicker];
+  const price = info && info.price != null ? info.price : (hot.price != null ? hot.price : null);
+  const pct = info ? info.pct_change : null;
+  const pctClass = pct == null ? "flat" : (pct >= 0 ? "up" : "down");
+  const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+  if (hot.company_name) companyDataByTicker[hotTicker] = { name: hot.company_name, summary: hot.business_summary };
+  const hotNameHtml = hot.company_name
+    ? `<div class="card-name" data-action="show-company" data-ticker="${hotTicker}" style="cursor:pointer; text-decoration:underline dotted;">${hot.company_name}</div>`
+    : "";
+
+  card.innerHTML = `
+    <div class="hot-pick-card">
+      <div class="hot-pick-label" id="hotPickWhyBtn" style="cursor:pointer;">🔥 המניה הכי חמה היום · <span style="text-decoration:underline;">למה נבחרה? 🔍</span></div>
+      <div class="card-top">
+        <div class="card-id">
+          <div class="card-ticker mono">
+            <button class="star-btn" data-action="toggle-star" data-ticker="${hotTicker}" title="${hotStarred ? "הסר ממעקב" : "הוסף למעקב"}" style="margin-left:3px;">${hotStarred ? "⭐" : "☆"}</button>
+            ${hot.ticker}
+          </div>
+          ${hotNameHtml}
+        </div>
+        <div class="card-price-block">
+          <div class="card-price mono">${price != null ? price.toFixed(2) : "—"}</div>
+          <div class="card-pct mono ${pctClass}">${pctText}</div>
+        </div>
+      </div>
+      ${rangeBarHtml(hot, price)}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-dim);">
+          <span>🔮 חיזוי היום</span>
+          <span class="${hot.predicted === "up" ? "prediction-dir-up" : "prediction-dir-down"}">
+            ${hot.predicted === "up" ? "▲ עלייה" : "▼ ירידה"} · ${hot.score}
+          </span>
+        </div>
+        ${convictionBarHtml(hot.score)}
+        ${factorBadgesHtml(hot)}
+      </div>
+    </div>
+  `;
+  attachStarEvents(card);
+  document.getElementById("hotPickWhyBtn").addEventListener("click", () => showHotPickExplanation());
+}
+
+function renderPredictionsList() {
+  const list = document.getElementById("predictionsList");
+  const sorted = sortPreds(allTodayPreds, sortMode);
+  const shown = showTopOnly ? sorted.slice(0, 10) : sorted;
+  document.getElementById("statPredictions").textContent = allTodayPreds.length;
+  document.getElementById("topToggleBtn").textContent = showTopOnly
+    ? "הצג רק Top 10"
+    : `הצג הכל (${allTodayPreds.length})`;
+
+  if (shown.length === 0) {
+    list.innerHTML = `<div class="predictions-empty">אין חיזויים חזקים כרגע</div>`;
+    renderStarredSection();
+    return;
+  }
+  list.innerHTML = shown.map(p => predictionCardHtml(p)).join("");
+  attachStarEvents(list);
+  renderStarredSection();
+}
+
+document.getElementById("sortSelect").addEventListener("change", (e) => {
+  sortMode = e.target.value;
+  renderPredictionsList();
+});
+document.getElementById("topToggleBtn").addEventListener("click", () => {
+  showTopOnly = !showTopOnly;
+  renderPredictionsList();
+});
+
+document.getElementById("recomputeBtn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("recomputeStatus");
+  if (!owner || !repo || !token) {
+    statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
+    return;
+  }
+  statusEl.innerHTML = `<div class="status">מפעיל ריצה חדשה בגיטהאב...</div>`;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/actions/workflows/check%20prices.yml/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ref: "main" }),
+      }
+    );
+    if (res.status === 204) {
+      statusEl.innerHTML = `<div class="status">✓ הופעל! זה ייקח כ-3 דקות עד שהנתונים המעודכנים יופיעו כאן.</div>`;
+    } else if (res.status === 403) {
+      statusEl.innerHTML = `<div class="status error">לטוקן אין הרשאת "Actions: Read and write" - צריך להוסיף אותה בהגדרות הטוקן בגיטהאב.</div>`;
+    } else {
+      statusEl.innerHTML = `<div class="status error">שגיאה (${res.status}) בהפעלת הריצה</div>`;
+    }
+  } catch (e) {
+    statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
+  }
+});
+
+async function loadPredictions() {
+  const section = document.getElementById("predictionsSection");
+  try {
+    await loadCurrentPrices();
+    const res = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/predictions.json?t=${Date.now()}`);
+    if (!res.ok) { section.classList.add("hidden"); return; }
+    const data = await res.json();
+    const history = data.history || [];
+    const acc = data.accuracy || {};
+
+    renderRegimeBadge(data.market_regime, data.market_breadth);
+
+    lastAccData = acc;
+    document.getElementById("statsRow").classList.remove("hidden");
+    document.getElementById("statAccuracy").textContent = acc.top10_accuracy != null
+      ? `${acc.top10_accuracy}%`
+      : (acc.overall != null ? `${acc.overall}%` : "—");
+
+    const today = new Date().toISOString().slice(0, 10);
+    // "strong" is the curated shortlist the engine already picked (top
+    // DAILY_TOP_PICKS_LIMIT by conviction, capped at 25) - NOT every stock
+    // that merely crossed the 1.5 breadth threshold, which can be hundreds
+    // on a strongly trending day and isn't a useful "watch these" list.
+    allTodayPreds = history.filter(p => p.date === today && p.strong === true);
+
+    latestPredictionsByTicker = {};
+    history.filter(p => p.date === today).forEach(p => { latestPredictionsByTicker[p.ticker] = p; });
+    if (rows.length) render(); // refresh watchlist cards with fresh prediction badges
+
+    renderHotPick(allTodayPreds);
+    renderPredictionsList();
+    section.classList.remove("hidden");
+    renderTrackRecord(history, acc);
+    renderPortfolioSim(data.portfolio_sim, acc);
+    renderFactorAnalysis(data.factor_analysis);
+    renderRrExperiment(acc, data.portfolio_sim, data.portfolio_sim_experimental);
+  } catch (e) {
+    section.classList.add("hidden");
+  }
+}
+
+function renderTrackRecord(history, acc) {
+  const section = document.getElementById("trackRecordSection");
+  const list = document.getElementById("trackList");
+  const summary = document.getElementById("top10Summary");
+
+  if (!acc || !acc.strong_total) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  if (acc.top10_total) {
+    summary.innerHTML = `מתוך <b class="mono">${acc.top10_total}</b> תחזיות Top 10 שנבדקו עד כה מול המחיר יום למחרת: ` +
+      `<b class="mono" style="color:var(--up);">${acc.top10_hits}</b> התממשו בכיוון הנכון ` +
+      `(<b class="mono" style="color:var(--up);">${acc.top10_accuracy}%</b> הצלחה).`;
+  } else {
+    summary.innerHTML = `עדיין אין תחזיות Top 10 שנבדקו - הבדיקה מתבצעת רק יום אחרי שהתחזית פורסמה.`;
+  }
+
+  const gradedStrong = history
+    .filter(p => p.strong && p.graded)
+    .sort((a, b) => {
+      if (a.date !== b.date) return a.date < b.date ? 1 : -1; // most recent day first
+      return Math.abs(b.score) - Math.abs(a.score); // within a day, true conviction order
+    })
+    .slice(0, 25);
+
+  // the tiles + summary below are computed from EXACTLY this displayed list,
+  // not a separate global average, so the percentage is always traceable to
+  // the rows shown right underneath it.
+  const shownHits = gradedStrong.filter(p => p.correct).length;
+  const shownMisses = gradedStrong.length - shownHits;
+  const shownRate = gradedStrong.length ? Math.round((shownHits / gradedStrong.length) * 1000) / 10 : null;
+
+  document.getElementById("trackHits").textContent = shownHits;
+  document.getElementById("trackMisses").textContent = shownMisses;
+  document.getElementById("trackRate").textContent = shownRate != null ? `${shownRate}%` : "—";
+
+  if (gradedStrong.length === 0) {
+    list.innerHTML = `<div class="predictions-empty">עדיין אין תחזיות חזקות שנבדקו</div>`;
+  } else {
+    list.innerHTML = `
+      <div style="font-size:11.5px; color:var(--text-faint); padding-bottom:8px;">
+        ${shownHits} הצלחות מתוך ${gradedStrong.length} התחזיות המוצגות למטה (${shownRate}%) - בדיוק אלה שנספרו בריבועים למעלה.
+        סה"כ נבדקו עד היום ${acc.strong_total} תחזיות חזקות (${acc.strong_only}% ממוצע כולל, כולל תחזיות ישנות יותר שלא מוצגות כאן).
+      </div>
+    ` + gradedStrong.map(p => {
+      const predArrow = p.predicted === "up" ? "▲" : "▼";
+      const actualArrow = p.actual_direction === "up" ? "▲" : "▼";
+      const actualClass = p.actual_direction === "up" ? "prediction-dir-up" : "prediction-dir-down";
+      const actualPctText = p.actual_pct_change != null
+        ? `${p.actual_pct_change >= 0 ? "+" : ""}${p.actual_pct_change}%`
+        : "—";
+      return `
+        <div class="track-row" style="flex-direction:column; align-items:stretch; gap:5px;">
+          <div style="display:flex; justify-content:space-between;">
+            <span class="t-ticker mono">${p.ticker}</span>
+            <span class="mono" style="color:var(--text-faint);">${p.date}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:var(--text-dim);">
+              חיזוי: ${predArrow} ${p.score} &nbsp;→&nbsp; בפועל:
+              <span class="mono ${actualClass}" style="font-weight:700;">${actualArrow} ${actualPctText}</span>
+            </span>
+            <span class="track-outcome ${p.correct ? "correct" : "wrong"}">${p.correct ? "✅ הצליח" : "❌ פספס"}</span>
+          </div>
+        </div>`;
+    }).join("");
+  }
+  section.classList.remove("hidden");
+}
+
+let lastDailyPnlEntry = null;
+
+function renderPortfolioSim(sim, acc) {
+  const section = document.getElementById("portfolioSimSection");
+  if (!sim || !sim.daily_log || !sim.daily_log.length) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  const accVal = acc && acc.top10_up_accuracy != null ? acc.top10_up_accuracy : null;
+  document.getElementById("top10AccuracyValue").textContent = accVal != null ? `${accVal}%` : "—";
+  document.getElementById("top10AccuracyValue").className = `index-value mono ${accVal == null ? "" : (accVal >= 50 ? "up" : "down")}`;
+  document.getElementById("top10AccuracyDetail").textContent = acc && acc.top10_up_total
+    ? `${acc.top10_up_hits}/${acc.top10_up_total} תחזיות`
+    : "";
+
+  const last = sim.daily_log[sim.daily_log.length - 1];
+  lastDailyPnlEntry = last;
+
+  const dailyClass = last.return_pct >= 0 ? "up" : "down";
+  document.getElementById("dailyPnlValue").className = `index-value mono ${dailyClass}`;
+  document.getElementById("dailyPnlValue").textContent = `${last.return_pct >= 0 ? "+" : ""}${last.return_pct}%`;
+  document.getElementById("dailyPnlDate").textContent = `${last.date} · ${last.tickers.length} מניות`;
+
+  document.getElementById("portfolioValue").textContent =
+    `₪${Math.round(sim.value).toLocaleString("en-US")}`;
+  const totalClass = sim.total_return_pct >= 0 ? "up" : "down";
+  document.getElementById("portfolioTotalReturn").className = `index-pct mono ${totalClass}`;
+  document.getElementById("portfolioTotalReturn").textContent =
+    `${sim.total_return_pct >= 0 ? "+" : ""}${sim.total_return_pct}% מההתחלה`;
+
+  const monthlyEl = document.getElementById("monthlyReturn");
+  monthlyEl.textContent = sim.monthly_return_pct != null ? `${sim.monthly_return_pct >= 0 ? "+" : ""}${sim.monthly_return_pct}%` : "—";
+  monthlyEl.className = `index-value mono ${sim.monthly_return_pct == null ? "" : (sim.monthly_return_pct >= 0 ? "up" : "down")}`;
+
+  const annualEl = document.getElementById("annualReturn");
+  annualEl.textContent = sim.annual_return_pct != null ? `${sim.annual_return_pct >= 0 ? "+" : ""}${sim.annual_return_pct}%` : "—";
+  annualEl.className = `index-value mono ${sim.annual_return_pct == null ? "" : (sim.annual_return_pct >= 0 ? "up" : "down")}`;
+
+  section.classList.remove("hidden");
+}
+
+function showAccuracyExplanation() {
+  const acc = lastAccData;
+  const overlay = document.getElementById("accExplainOverlay");
+  const body = document.getElementById("accExplainBody");
+  if (!acc) { return; }
+
+  let html = "";
+  if (acc.top10_accuracy != null) {
+    html += `
+      <p>הריבוע הזה מציג כרגע את הדיוק של <b>Top 10</b> - עשר המניות עם עוצמת החיזוי הגבוהה ביותר בכל יום (לפי ציון, קבוע - לא תלוי במיון שבחרת ברשימה).</p>
+      <p><b class="mono" style="color:var(--up);">${acc.top10_hits}</b> מתוך <b class="mono">${acc.top10_total}</b> תחזיות Top 10 שכבר ניתן היה לבדוק (יום אחרי הפרסום) התממשו בכיוון הנכון = <b class="mono" style="color:var(--up);">${acc.top10_accuracy}%</b>.</p>`;
+  } else {
+    html += `
+      <p>עדיין אין תחזיות Top 10 שניתן היה לבדוק (צריך יום מלא לעבור מאז הפרסום) - לכן הריבוע מציג במקום זאת את הדיוק על <b>כל השוק</b> שנותח (ארה"ב + ישראל יחד, לא רק המניות המצומצמות).</p>
+      <p><b class="mono">${acc.total_graded}</b> תחזיות נבדקו בסה"כ עד כה, מהן <b class="mono">${Math.round(acc.total_graded * acc.overall / 100)}</b> התממשו בכיוון הנכון = <b class="mono">${acc.overall}%</b>.</p>
+      <p style="font-size:11.5px; color:var(--text-faint); margin-top:10px;">
+        לשם השוואה: מתוך המניות המצומצמות (25) בלבד, ${acc.strong_hits} מתוך ${acc.strong_total} הצליחו (${acc.strong_only}%) - זה מספר שונה כי הוא מסתכל רק על תת-הקבוצה הזו, לא על כל השוק. ברגע שיהיו תחזיות Top 10 שנבדקו, הריבוע הזה יעבור להציג אותן במקום.
+      </p>`;
+  }
+  body.innerHTML = html;
+  overlay.classList.remove("hidden");
+}
+document.getElementById("statAccuracyTile").addEventListener("click", () => showAccuracyExplanation());
+document.getElementById("accExplainCloseBtn").addEventListener("click", () => {
+  document.getElementById("accExplainOverlay").classList.add("hidden");
+});
+document.getElementById("accExplainOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "accExplainOverlay") document.getElementById("accExplainOverlay").classList.add("hidden");
+});
+
+function renderFactorAnalysis(analysis) {
+  const section = document.getElementById("factorAnalysisSection");
+  if (!analysis || !analysis.factors || !analysis.factors.length) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  document.getElementById("factorAnalysisSummary").innerHTML =
+    `בסיס השוואה: <b class="mono">${analysis.baseline}%</b> הצלחה על <b class="mono">${analysis.baseline_n}</b> תחזיות שנבדקו בסה"כ (כל השוק - ארה"ב וישראל יחד, לא רק המניות המצומצמות). ` +
+    `כל טריגר מוצג רק אחרי לפחות ${analysis.min_sample} מקרים, כדי לא להסיק ממדגם קטן מדי. "מהבסיס" = כמה יותר/פחות טוב הטריגר הזה לעומת הממוצע הכללי.`;
+
+  const list = document.getElementById("factorAnalysisList");
+  list.innerHTML = analysis.factors.map(f => {
+    const edgeClass = f.edge >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+    const edgeText = `${f.edge >= 0 ? "+" : ""}${f.edge}`;
+    return `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:600;">${f.label}</span>
+          <span class="mono ${edgeClass}" style="font-weight:700;">${f.hit_rate}%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>n=${f.n}</span>
+          <span class="mono ${edgeClass}">${edgeText} מהבסיס</span>
+        </div>
+      </div>`;
+  }).join("");
+
+  section.classList.remove("hidden");
+}
+
+function renderRrExperiment(acc, realSim, expSim) {
+  const section = document.getElementById("rrExperimentSection");
+  const hasAcc = acc && (acc.top10_up_total || acc.top10_experimental_up_total);
+  const hasSim = (realSim && realSim.daily_log && realSim.daily_log.length)
+    || (expSim && expSim.daily_log && expSim.daily_log.length);
+  if (!hasAcc && !hasSim) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  const fmtAcc = (val, n) => val != null ? `${val}% <span style="font-size:10px; color:var(--text-faint);">(n=${n})</span>` : "—";
+  document.getElementById("rrCurrentAccuracy").innerHTML = fmtAcc(acc.top10_up_accuracy, acc.top10_up_total || 0);
+  document.getElementById("rrExpAccuracy").innerHTML = fmtAcc(acc.top10_experimental_up_accuracy, acc.top10_experimental_up_total || 0);
+
+  const fmtSim = (sim) => {
+    if (!sim || sim.total_return_pct == null) return "—";
+    const cls = sim.total_return_pct >= 0 ? "up" : "down";
+    return `<span class="${cls === "up" ? "prediction-dir-up" : "prediction-dir-down"}">${sim.total_return_pct >= 0 ? "+" : ""}${sim.total_return_pct}%</span>`;
+  };
+  document.getElementById("rrCurrentPortfolio").innerHTML = fmtSim(realSim);
+  document.getElementById("rrExpPortfolio").innerHTML = fmtSim(expSim);
+
+  section.classList.remove("hidden");
+}
+
+function showDailyPnl(show) {
+  document.getElementById("dailyPnlOverlay").classList.toggle("hidden", !show);
+  if (!show || !lastDailyPnlEntry) return;
+  const body = document.getElementById("dailyPnlBody");
+  const rows = [...lastDailyPnlEntry.tickers].sort((a, b) => (b.pct_change ?? -999) - (a.pct_change ?? -999));
+  body.innerHTML = `
+    <p style="margin-bottom:12px;">תאריך ההמלצה: <b class="mono">${lastDailyPnlEntry.date}</b> · תוצאה נבדקה מול המחיר בבדיקה הבאה.</p>
+    ${rows.map(t => {
+      const cls = t.pct_change == null ? "" : (t.pct_change >= 0 ? "prediction-dir-up" : "prediction-dir-down");
+      const txt = t.pct_change == null ? "—" : `${t.pct_change >= 0 ? "+" : ""}${t.pct_change}%`;
+      return `<div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border);">
+        <span class="mono" style="font-weight:700;">${t.ticker}</span>
+        <span class="mono ${cls}" style="font-weight:600;">${txt}</span>
+      </div>`;
+    }).join("")}
+    <p style="margin-top:12px; font-size:11.5px; color:var(--text-faint);">
+      ממוצע שווה-משקל בין המניות האלה = השינוי היומי של התיק המדומה (${lastDailyPnlEntry.return_pct >= 0 ? "+" : ""}${lastDailyPnlEntry.return_pct}%).
+    </p>`;
+}
+document.getElementById("dailyPnlTile").addEventListener("click", () => showDailyPnl(true));
+document.getElementById("dailyPnlCloseBtn").addEventListener("click", () => showDailyPnl(false));
+document.getElementById("dailyPnlOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "dailyPnlOverlay") showDailyPnl(false);
+});
+
+function buildChartSvg(chart) {
+  const closes = chart.closes || [];
+  const n = closes.length;
+  if (n < 2) return `<p style="color:var(--text-dim); font-size:13px;">אין מספיק נתונים לגרף.</p>`;
+
+  const pivotHighs = (chart.pivot_highs || []).filter(i => i >= 0 && i < n);
+  const pivotLows = (chart.pivot_lows || []).filter(i => i >= 0 && i < n);
+  const allPivots = [
+    ...pivotHighs.map(i => ({ idx: i, price: closes[i], type: "high" })),
+    ...pivotLows.map(i => ({ idx: i, price: closes[i], type: "low" })),
+  ].sort((a, b) => a.idx - b.idx);
+
+  const refValues = [chart.resistance, chart.support].filter(v => v != null);
+  const values = closes.concat(refValues);
+  const minV = Math.min(...values);
+  const maxV = Math.max(...values);
+  const pad = (maxV - minV) * 0.08 || Math.max(1, minV * 0.02);
+  const yMin = minV - pad;
+  const yMax = maxV + pad;
+  const decimals = maxV < 20 ? 2 : (maxV < 200 ? 1 : 0);
+
+  const W = 320, H = 210;
+  const ML = 40, MR = 8, MT = 10, MB = 20;
+  const xFor = (i) => ML + (i / (n - 1)) * (W - ML - MR);
+  const yFor = (v) => MT + (1 - (v - yMin) / (yMax - yMin || 1)) * (H - MT - MB);
+
+  // find which specific historical pivot became the final resistance/support
+  // (there won't be a match when the level is "projected" - no real pivot qualifies)
+  const EPS = 0.015;
+  const resPivot = !chart.resistance_projected
+    ? allPivots.find(p => p.type === "high" && Math.abs(p.price - chart.resistance) < EPS)
+    : null;
+  const supPivot = !chart.support_projected
+    ? allPivots.find(p => p.type === "low" && Math.abs(p.price - chart.support) < EPS)
+    : null;
+
+  const linePoints = closes.map((c, i) => `${xFor(i).toFixed(1)},${yFor(c).toFixed(1)}`).join(" ");
+  const zigzagPoints = allPivots.map(p => `${xFor(p.idx).toFixed(1)},${yFor(p.price).toFixed(1)}`).join(" ");
+
+  // y-axis gridlines + price labels
+  const gridCount = 4;
+  let gridLines = "";
+  for (let g = 0; g <= gridCount; g++) {
+    const v = yMin + (g / gridCount) * (yMax - yMin);
+    const y = yFor(v).toFixed(1);
+    gridLines += `<line x1="${ML}" y1="${y}" x2="${W - MR}" y2="${y}" stroke="var(--border)" stroke-width="0.6" />`;
+    gridLines += `<text x="${ML - 4}" y="${(+y + 3).toFixed(1)}" font-size="8" text-anchor="end" fill="var(--text-faint)" font-family="monospace">${v.toFixed(decimals)}</text>`;
+  }
+
+  const dots = allPivots.map(p => {
+    const isHigh = p.type === "high";
+    const color = isHigh ? "var(--down)" : "var(--up)";
+    const cx = xFor(p.idx).toFixed(1);
+    const cy = yFor(p.price).toFixed(1);
+    const isChosen = (isHigh && p === resPivot) || (!isHigh && p === supPivot);
+    const ring = isChosen
+      ? `<circle cx="${cx}" cy="${cy}" r="6" fill="none" stroke="${color}" stroke-width="1.3" />`
+      : "";
+    const labelY = isHigh ? (+cy - 7).toFixed(1) : (+cy + 11).toFixed(1);
+    return `${ring}
+      <circle cx="${cx}" cy="${cy}" r="3" fill="${color}" stroke="var(--panel)" stroke-width="0.7" />
+      <text x="${cx}" y="${labelY}" font-size="7.5" text-anchor="middle" fill="${color}" font-family="monospace">${p.price.toFixed(decimals)}</text>`;
+  }).join("");
+
+  const resY = chart.resistance != null ? yFor(chart.resistance).toFixed(1) : null;
+  const supY = chart.support != null ? yFor(chart.support).toFixed(1) : null;
+  const todayX = xFor(n - 1).toFixed(1);
+
+  return `
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block;">
+      ${gridLines}
+      ${resY != null ? `<line x1="${ML}" y1="${resY}" x2="${W - MR}" y2="${resY}" stroke="var(--down)" stroke-width="1" stroke-dasharray="4,3" opacity="0.85" />` : ""}
+      ${supY != null ? `<line x1="${ML}" y1="${supY}" x2="${W - MR}" y2="${supY}" stroke="var(--up)" stroke-width="1" stroke-dasharray="4,3" opacity="0.85" />` : ""}
+      <polyline points="${linePoints}" fill="none" stroke="var(--text-faint)" stroke-width="1.3" opacity="0.55" />
+      <polyline points="${zigzagPoints}" fill="none" stroke="var(--gold)" stroke-width="1.4" stroke-dasharray="2,2" opacity="0.9" />
+      <line x1="${todayX}" y1="${MT}" x2="${todayX}" y2="${H - MB}" stroke="var(--text-faint)" stroke-width="0.7" stroke-dasharray="2,3" opacity="0.6" />
+      ${dots}
+      <text x="${ML}" y="${H - 4}" font-size="8" text-anchor="start" fill="var(--text-faint)">כ-${n} ימי מסחר אחרונים</text>
+      <text x="${W - MR}" y="${H - 4}" font-size="8" text-anchor="end" fill="var(--text-faint)">היום ←</text>
+    </svg>
+    <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-top:8px; color:var(--text-dim);">
+      <span><span style="color:var(--down);">▬▬</span> התנגדות: <b class="mono">${chart.resistance}</b>${chart.resistance_projected ? " (מוערך)" : ""}</span>
+      <span><span style="color:var(--up);">▬▬</span> תמיכה: <b class="mono">${chart.support}</b>${chart.support_projected ? " (מוערך)" : ""}</span>
+    </div>
+    <div style="font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
+      העיגול המודגש (⭕) מסביב לנקודה מראה איזו נקודת שיא/שפל היסטורית ספציפית נבחרה כרמת התמיכה/ההתנגדות הנוכחית - זו הנקודה הכי קרובה למחיר של היום, מהצד הרלוונטי.
+    </div>`;
+}
+
+function showCompanyModal(ticker) {
+  const t = (ticker || "").trim();
+  const c = companyDataByTicker[t];
+  document.getElementById("companyTitle").textContent = `🏢 ${c && c.name ? c.name : t}`;
+  const body = document.getElementById("companyBody");
+  if (c && c.summary) {
+    body.innerHTML = `<p>${c.summary}</p>`;
+  } else if (c && c.name) {
+    body.innerHTML = `<p style="color:var(--text-faint);">אין כרגע תקציר פעילות זמין למניה הזו (זמין רק למניות המצומצמות/מסומנות).</p>`;
+  } else {
+    body.innerHTML = `<p style="color:var(--text-faint);">אין כרגע מידע זמין על החברה.</p>`;
+  }
+  document.getElementById("companyOverlay").classList.remove("hidden");
+}
+document.getElementById("companyCloseBtn").addEventListener("click", () => {
+  document.getElementById("companyOverlay").classList.add("hidden");
+});
+document.getElementById("companyOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "companyOverlay") document.getElementById("companyOverlay").classList.add("hidden");
+});
+
+function showChartModal(ticker) {
+  const t = (ticker || "").trim();
+  const chart = chartDataByTicker[t];
+  document.getElementById("chartTitle").textContent = `📈 ${t} - נקודות תמיכה/התנגדות`;
+  const body = document.getElementById("chartBody");
+  body.innerHTML = chart
+    ? buildChartSvg(chart)
+    : `<p style="color:var(--text-dim); font-size:13px;">אין כרגע נתוני גרף זמינים למניה הזו.</p>`;
+  document.getElementById("chartOverlay").classList.remove("hidden");
+}
+document.getElementById("chartCloseBtn").addEventListener("click", () => {
+  document.getElementById("chartOverlay").classList.add("hidden");
+});
+document.getElementById("chartOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "chartOverlay") document.getElementById("chartOverlay").classList.add("hidden");
+});
+
+/* mirrors compute_prediction_score in stock_alerts.py, so the exact same
+   factors/points can be shown to the user in plain language - if the
+   backend formula changes, this needs to be updated to match. */
+function explainScoreBreakdown(p, marketRegime) {
+  const items = [];
+  let trendScore = 0, reversionScore = 0;
+
+  if (p.ma_trend === "golden") {
+    trendScore += 1.5;
+    items.push({ cat: "trend", label: "מגמת ממוצעים חיובית (חצייה זהובה)", pts: 1.5 });
+  } else if (p.ma_trend === "death") {
+    trendScore -= 1.5;
+    items.push({ cat: "trend", label: "מגמת ממוצעים שלילית (חצייה שחורה)", pts: -1.5 });
+  }
+
+  if (p.macd_bullish != null) {
+    const v = p.macd_bullish ? 1.2 : -1.2;
+    trendScore += v;
+    items.push({ cat: "trend", label: p.macd_bullish ? "MACD חיובי" : "MACD שלילי", pts: v });
+  }
+
+  if (p.vol_ratio != null && p.run_up_30d != null && p.vol_ratio >= 1.5) {
+    const v = p.run_up_30d > 0 ? 1.0 : -1.0;
+    trendScore += v;
+    items.push({ cat: "trend", label: `נפח מסחר חריג (פי ${p.vol_ratio.toFixed(1)} מהרגיל) שמאשר את כיוון המגמה`, pts: v });
+  }
+
+  if (p.rsi != null) {
+    if (p.rsi <= 30) {
+      reversionScore += 1.5;
+      items.push({ cat: "reversion", label: `RSI נמוך (${p.rsi.toFixed(0)}) - סימן לתשואת יתר, סיכוי לתיקון כלפי מעלה`, pts: 1.5 });
+    } else if (p.rsi >= 70) {
+      reversionScore -= 1.5;
+      items.push({ cat: "reversion", label: `RSI גבוה (${p.rsi.toFixed(0)}) - סימן לקניית יתר, סיכוי לתיקון כלפי מטה`, pts: -1.5 });
+    }
+  }
+
+  if (p.range_pos != null) {
+    if (p.range_pos >= 80 && trendScore <= 0) {
+      reversionScore -= 2;
+      items.push({ cat: "reversion", label: "קרוב לשיא של 52 השבועות, בלי אישור מגמה חיובי", pts: -2 });
+    } else if (p.range_pos <= 20 && trendScore >= 0) {
+      reversionScore += 2;
+      items.push({ cat: "reversion", label: "קרוב לשפל של 52 השבועות, בלי אישור מגמה שלילי", pts: 2 });
+    }
+  }
+
+  if (p.run_up_30d != null) {
+    const capped = Math.max(-40, Math.min(40, p.run_up_30d));
+    const v = -capped * 0.03;
+    reversionScore += v;
+    items.push({ cat: "reversion", label: `תזוזה מצטברת ב-30 יום (${p.run_up_30d >= 0 ? "+" : ""}${p.run_up_30d.toFixed(1)}%)`, pts: v });
+  }
+
+  if (p.price && p.support && p.resistance && p.resistance > p.support) {
+    const pos = (p.price - p.support) / (p.resistance - p.support);
+    if (pos <= 0.1 && !p.support_projected) {
+      reversionScore += 1.0;
+      items.push({ cat: "reversion", label: "המחיר קרוב מאוד לרמת התמיכה - סיכוי גבוה יותר לניתור", pts: 1.0 });
+    } else if (pos >= 0.9 && !p.resistance_projected) {
+      reversionScore -= 1.0;
+      items.push({ cat: "reversion", label: "המחיר קרוב מאוד לרמת ההתנגדות - סיכוי גבוה יותר לנסיגה", pts: -1.0 });
+    }
+  }
+
+  if (p.upside_pct != null) {
+    if (p.upside_pct >= 15) {
+      items.push({ cat: "fund", label: `אנליסטים רואים אפסייד גדול (+${p.upside_pct.toFixed(0)}%) מעל המחיר הנוכחי`, pts: 2 });
+    } else if (p.upside_pct <= -10) {
+      items.push({ cat: "fund", label: `המניה כבר נסחרת מעל מחיר היעד הממוצע (${p.upside_pct.toFixed(0)}%)`, pts: -2 });
+    }
+  }
+
+  if (p.short_pct != null && p.short_pct > 0) {
+    const v = Math.min(p.short_pct, 30) * 0.05;
+    items.push({ cat: "fund", label: `${p.short_pct.toFixed(0)}% מהמניה נמכרת בחסר - פוטנציאל לשורט-סקוויז`, pts: v });
+  }
+
+  if (p.recommendation_mean != null && (p.analyst_count || 0) >= 5) {
+    if (p.recommendation_mean <= 2.0) {
+      items.push({ cat: "fund", label: `המלצת אנליסטים ממוצעת חיובית (מבין ${p.analyst_count} אנליסטים)`, pts: 1.5 });
+    } else if (p.recommendation_mean >= 4.0) {
+      items.push({ cat: "fund", label: `המלצת אנליסטים ממוצעת שלילית (מבין ${p.analyst_count} אנליסטים)`, pts: -1.5 });
+    }
+  }
+
+  let regimeItem = null;
+  if (marketRegime && marketRegime.bullish != null) {
+    const sign = marketRegime.bullish ? 1 : -1;
+    const nudge = trendScore * sign * 0.15 + 0.3 * sign;
+    regimeItem = {
+      cat: "regime",
+      label: `מצב שוק כללי ${marketRegime.bullish ? "שורי" : "דובי"} - נדנוד קל לציון בהתאם`,
+      pts: nudge,
+    };
+  }
+
+  return { items, regimeItem };
+}
+
+function scoreItemRowHtml(item) {
+  const cls = item.pts >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+  const sign = item.pts >= 0 ? "+" : "";
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);">
+      <span style="font-size:12.5px;">${item.label}</span>
+      <span class="mono ${cls}" style="font-weight:700; flex-shrink:0; margin-right:10px;">${sign}${item.pts.toFixed(2)}</span>
+    </div>`;
+}
+
+function showHotPickExplanation() {
+  const p = lastHotPick;
+  const overlay = document.getElementById("hotPickExplainOverlay");
+  const body = document.getElementById("hotPickExplainBody");
+  if (!p) { return; }
+
+  const ticker = (p.ticker || "").trim();
+  document.getElementById("hotPickExplainTitle").textContent = `🔥 למה ${ticker} נבחרה למניה הכי חמה היום?`;
+
+  const { items, regimeItem } = explainScoreBreakdown(p, lastMarketRegime);
+  const trendItems = items.filter(i => i.cat === "trend");
+  const reversionItems = items.filter(i => i.cat === "reversion");
+  const fundItems = items.filter(i => i.cat === "fund");
+
+  const selectionNote = lastHotPickVolumeConfirmed
+    ? `היא נבחרה מבין המניות עם <b>נפח מסחר חריג היום</b> (סימן שהתנועה נתמכת בכניסת כסף אמיתית, לא רק תזוזת מחיר על נפח דליל) - ומביניהן, זו עם עוצמת החיזוי הגבוהה ביותר.`
+    : `אף מניה היום לא הציגה נפח מסחר חריג משמעותית מהרגיל, ולכן הבחירה התבססה על עוצמת החיזוי (ציון) הגבוהה ביותר מבין כל המניות שנותחו.`;
+
+  let html = `
+    <p>ציון סופי: <b class="mono ${p.predicted === "up" ? "prediction-dir-up" : "prediction-dir-down"}" style="font-size:15px;">${p.score}</b>
+    (${p.predicted === "up" ? "תחזית לעלייה ▲" : "תחזית לירידה ▼"})</p>
+    <p style="margin-bottom:14px;">${selectionNote}</p>`;
+
+  if (trendItems.length) {
+    html += `<p style="color:var(--text); font-weight:700; margin:12px 0 4px;">📈 גורמי מגמה (טרנד) - הימור עם הכיוון הקיים</p>`
+      + trendItems.map(scoreItemRowHtml).join("");
+  }
+  if (reversionItems.length) {
+    html += `<p style="color:var(--text); font-weight:700; margin:12px 0 4px;">↩️ גורמי תיקון-יתר - הימור נגד תזוזה מוגזמת</p>`
+      + reversionItems.map(scoreItemRowHtml).join("");
+  }
+  if (fundItems.length) {
+    html += `<p style="color:var(--text); font-weight:700; margin:12px 0 4px;">📊 פונדמנטלס</p>`
+      + fundItems.map(scoreItemRowHtml).join("");
+  }
+  if (regimeItem) {
+    html += `<p style="color:var(--text); font-weight:700; margin:12px 0 4px;">🌐 מצב שוק</p>`
+      + scoreItemRowHtml(regimeItem);
+  }
+  if (!items.length && !regimeItem) {
+    html += `<p style="color:var(--text-faint); margin-top:10px;">לא נמצאו גורמים משמעותיים מפורטים לפירוק - הציון נובע משילוב עדין של כמה מדדים קרובים לסף.</p>`;
+  }
+
+  const chart = chartDataByTicker[ticker];
+  if (chart) {
+    html += `<p style="color:var(--text); font-weight:700; margin:16px 0 6px;">📉 ניתוח טכני חזותי</p>` + buildChartSvg(chart);
+  }
+
+  html += `<p style="font-size:11px; color:var(--text-faint); margin-top:14px;">
+    זהו פירוק שקוף של הנוסחה האוטומטית בלבד - לא ייעוץ השקעות. הניקוד מבוסס על נתונים היסטוריים וסטטיסטיים ואינו מבטיח תוצאה עתידית.
+  </p>`;
+
+  body.innerHTML = html;
+  overlay.classList.remove("hidden");
+}
+document.getElementById("hotPickExplainCloseBtn").addEventListener("click", () => {
+  document.getElementById("hotPickExplainOverlay").classList.add("hidden");
+});
+document.getElementById("hotPickExplainOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "hotPickExplainOverlay") document.getElementById("hotPickExplainOverlay").classList.add("hidden");
+});
+
+function renderTickerTape() {
+  const wrap = document.getElementById("tapeWrap");
+  const track = document.getElementById("tapeTrack");
+  const items = rows.filter(r => currentPrices[(r.ticker || "").trim()]);
+  if (items.length === 0) { wrap.style.display = "none"; return; }
+  const build = () => items.map(r => {
+    const info = currentPrices[r.ticker.trim()];
+    const pct = info.pct_change;
+    const cls = pct == null ? "" : (pct >= 0 ? "tape-up" : "tape-down");
+    const arrow = pct == null ? "" : (pct >= 0 ? "▲" : "▼");
+    return `<span class="tape-item"><span class="tape-ticker">${r.ticker}</span>
+      <span class="tape-price">${info.price.toFixed(2)}</span>
+      <span class="${cls}">${arrow} ${pct != null ? Math.abs(pct).toFixed(1) + "%" : ""}</span></span>`;
+  }).join("");
+  track.innerHTML = build() + build(); // duplicate for seamless loop
+  wrap.style.display = "block";
+}
+
+function updateHitStats() {
+  let hit = 0;
+  rows.forEach(r => {
+    const info = currentPrices[(r.ticker || "").trim()];
+    if (!info) return;
+    const hitHigh = r.target_high && info.price >= r.target_high;
+    const hitLow = r.target_low && info.price <= r.target_low;
+    if (hitHigh || hitLow) hit++;
+  });
+  document.getElementById("statTracked").textContent = rows.length;
+  document.getElementById("statHit").textContent = hit;
+  document.getElementById("statsRow").classList.remove("hidden");
+}
+
+/* ---------- starred stocks (⭐ מניות במעקב) load/save ---------- */
+async function loadStarred() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/starred.json`,
+      { headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" } }
+    );
+    if (res.status === 404) {
+      starredTickers = new Set();
+      starredSha = null;
+      return;
+    }
+    if (!res.ok) return; // non-critical feature, fail silently rather than blocking the whole app
+    const data = await res.json();
+    const arr = JSON.parse(base64ToUtf8(data.content));
+    starredTickers = new Set(Array.isArray(arr) ? arr : []);
+    starredSha = data.sha;
+  } catch (e) {
+    starredTickers = new Set();
+    starredSha = null;
+  } finally {
+    renderStarredSection();
+  }
+}
+
+async function saveStarred() {
+  try {
+    const body = {
+      message: "עדכון מניות במעקב",
+      content: utf8ToBase64(JSON.stringify(Array.from(starredTickers), null, 2)),
+    };
+    if (starredSha) body.sha = starredSha;
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/starred.json`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || `שמירת מניה במעקב נכשלה (${res.status})`);
+    }
+    const data = await res.json();
+    starredSha = data.content.sha;
+  } catch (e) {
+    setStatus("error", e.message || "שמירת מניה במעקב נכשלה");
+  }
+}
+
+/* ---------- watchlist load/save ---------- */
+async function loadWatchlist() {
+  document.getElementById("loadingMsg").classList.remove("hidden");
+  document.getElementById("watchlistSection").classList.add("hidden");
+  document.getElementById("addBtn").classList.add("hidden");
+  setStatus(null, "");
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/watchlist.json`,
+      { headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" } }
+    );
+    if (!res.ok) throw new Error(`שגיאה בטעינה (${res.status}). בדוק שם משתמש, ריפו וטוקן.`);
+    const data = await res.json();
+    rows = JSON.parse(base64ToUtf8(data.content));
+    sha = data.sha;
+    await loadCurrentPrices();
+    renderTickerTape();
+    updateHitStats();
+    render();
+    document.getElementById("watchlistSection").classList.remove("hidden");
+    document.getElementById("addBtn").classList.remove("hidden");
+  } catch (e) {
+    setStatus("error", e.message || "שגיאה בטעינת הרשימה");
+  } finally {
+    document.getElementById("loadingMsg").classList.add("hidden");
+  }
+}
+
+async function saveWatchlist() {
+  const addBtn = document.getElementById("addBtn");
+  addBtn.disabled = true;
+  setStatus(null, "");
+  try {
+    const clean = rows.map(r => ({
+      ticker: (r.ticker || "").trim(),
+      name: (r.name || "").trim() || (r.ticker || "").trim(),
+      target_high: Number(r.target_high) || null,
+      target_low: Number(r.target_low) || null,
+    }));
+    const body = {
+      message: "עדכון רשימת מניות דרך הממשק",
+      content: utf8ToBase64(JSON.stringify(clean, null, 2)),
+      sha,
+    };
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/watchlist.json`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || `שמירה נכשלה (${res.status})`);
+    }
+    const data = await res.json();
+    sha = data.content.sha;
+    setStatus("ok", "נשמר בהצלחה ✓");
+  } catch (e) {
+    setStatus("error", e.message || "שמירה נכשלה");
+  } finally {
+    addBtn.disabled = false;
+  }
+}
+
+/* ---------- rendering: view + inline edit ---------- */
+function renderCurrentPriceLine(ticker) {
+  const info = currentPrices[(ticker || "").trim()];
+  if (!info || info.price == null) return { price: null, pct: null };
+  return { price: info.price, pct: info.pct_change };
+}
+
+function render() {
+  const container = document.getElementById("rowsContainer");
+  container.innerHTML = "";
+  document.getElementById("emptyMsg").classList.toggle("hidden", rows.length !== 0);
+
+  rows.forEach((row, idx) => {
+    const { price, pct } = renderCurrentPriceLine(row.ticker);
+    const pctClass = pct == null ? "flat" : (pct >= 0 ? "up" : "down");
+    const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+
+    const high = Number(row.target_high) || null;
+    const low = Number(row.target_low) || null;
+    const hitHigh = price != null && high && price >= high;
+    const hitLow = price != null && low && price <= low;
+    const hit = hitHigh || hitLow;
+
+    let targetLineHtml;
+    let isHot = false;
+    if (high && low) {
+      // full range: marker shows where current price sits between low and high
+      let markerPct = 50;
+      if (price != null && high > low) {
+        markerPct = Math.min(100, Math.max(0, ((price - low) / (high - low)) * 100));
+      }
+      isHot = markerPct <= 20 || hitLow;
+      const nearSellZone = markerPct >= 80 && !hitHigh;
+
+      let badgeClass = "pending";
+      let badgeText = "בטווח";
+      if (isHot) {
+        badgeClass = "hot";
+        badgeText = hitLow ? "🔥 מתחת ליעד - הזדמנות חמה" : "🔥 קרוב לתחתית - הזדמנות קנייה";
+      } else if (hitHigh) {
+        badgeClass = "hit";
+        badgeText = "✓ מעל היעד העליון";
+      } else if (nearSellZone) {
+        badgeClass = "sell-zone";
+        badgeText = "🎯 קרוב ליעד עליון";
+      }
+
+      const arrow = pct == null ? "●" : (pct >= 0 ? "▲" : "▼");
+      const arrowColor = pct == null ? "var(--text-faint)" : (pct >= 0 ? "var(--up)" : "var(--down)");
+      const markerRight = `calc(${markerPct}% - 7px)`;
+
+      targetLineHtml = `
+        <div class="card-target-line">
+          <span class="target-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="card-target-line">
+          <span class="mono">${low}</span>
+          <div class="progress-track">
+            <div class="progress-fill" style="right:0; width:${markerPct}%"></div>
+            <span class="progress-marker" style="right:${markerRight}; color:${arrowColor};">${arrow}</span>
+          </div>
+          <span class="mono">${high}</span>
+        </div>`;
+    } else if (high || low) {
+      const target = high || low;
+      const isAbove = !!high;
+      let progressPct = 0;
+      if (price != null && target > 0) {
+        progressPct = isAbove
+          ? Math.min(100, Math.max(0, (price / target) * 100))
+          : Math.min(100, Math.max(0, (target / Math.max(price, 0.01)) * 100));
+      }
+      targetLineHtml = `
+        <div class="card-target-line">
+          <span class="target-badge ${hit ? "hit" : "pending"}">${hit ? "✓ הגיע ליעד" : (isAbove ? "יעד: מעל" : "יעד: מתחת")}</span>
+          <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+          <span class="mono">${target}</span>
+        </div>`;
+    } else {
+      targetLineHtml = `
+        <div class="card-target-line">
+          <span class="target-badge pending">לא הוגדר טווח</span>
+        </div>`;
+    }
+
+    const isEditing = editingId === row._uid;
+    const div = document.createElement("div");
+    div.className = "stock-card" + (isEditing ? " editing" : "");
+    div.innerHTML = `
+      <div class="card-view-only">
+        <div class="card-top">
+          <div class="card-id">
+            <div class="card-ticker mono">${row.ticker || "?"}${isHot ? '<span class="hot-badge">🔥 חם</span>' : ""}</div>
+            <div class="card-name">${row.name || ""}</div>
+          </div>
+          <div class="card-price-block">
+            <div class="card-price mono">${price != null ? price.toFixed(2) : "—"}</div>
+            <div class="card-pct mono ${pctClass}">${pctText}</div>
+          </div>
+        </div>
+        ${targetLineHtml}
+        ${(() => {
+          const pred = latestPredictionsByTicker[(row.ticker || "").trim()];
+          if (!pred) return "";
+          const dirText = pred.predicted === "up" ? "▲ עלייה" : "▼ ירידה";
+          const dirClass = pred.predicted === "up" ? "prediction-dir-up" : "prediction-dir-down";
+          return `
+            <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
+              <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-dim);">
+                <span>🔮 חיזוי היום</span>
+                <span class="${dirClass}">${dirText} · ${pred.score}${pred.strong ? " 🔥" : ""}</span>
+              </div>
+              ${convictionBarHtml(pred.score)}
+              ${factorBadgesHtml(pred)}
+            </div>`;
+        })()}
+      </div>
+      <div class="card-actions">
+        <button class="icon-btn" data-action="toggle-edit" data-idx="${idx}">${isEditing ? "סגור" : "✏ ערוך"}</button>
+        <button class="icon-btn danger" data-action="delete" data-idx="${idx}">🗑 מחק</button>
+      </div>
+      <div class="edit-area">
+        <div class="field-row">
+          <div>
+            <label class="field-label">טיקר (Yahoo Finance)</label>
+            <input class="field-input mono" data-idx="${idx}" data-field="ticker" value="${row.ticker || ""}" placeholder="AAPL / TEVA.TA" />
+          </div>
+          <div>
+            <label class="field-label">שם לתצוגה</label>
+            <input class="field-input" data-idx="${idx}" data-field="name" value="${row.name || ""}" placeholder="Apple" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div>
+            <label class="field-label">יעד עליון (התראה כשעולה מעל)</label>
+            <input class="field-input mono" type="number" data-idx="${idx}" data-field="target_high" value="${row.target_high ?? ""}" placeholder="למשל 60" />
+          </div>
+          <div>
+            <label class="field-label">יעד תחתון (התראה כשיורד מתחת)</label>
+            <input class="field-input mono" type="number" data-idx="${idx}" data-field="target_low" value="${row.target_low ?? ""}" placeholder="למשל 40" />
+          </div>
+        </div>
+        <div class="range-labels">אפשר למלא רק אחד מהשניים, או את שניהם לטווח מלא</div>
+        <button class="btn-primary" data-action="save-all" style="margin-top:10px">💾 שמור שינויים</button>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll("input[data-field]").forEach((input) => {
+    input.addEventListener("input", (e) => {
+      const i = +e.target.dataset.idx;
+      rows[i][e.target.dataset.field] = e.target.value;
+    });
+  });
+  container.querySelectorAll("button[data-action='toggle-edit']").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const i = +e.target.dataset.idx;
+      editingId = editingId === rows[i]._uid ? null : rows[i]._uid;
+      render();
+    });
+  });
+  container.querySelectorAll("button[data-action='delete']").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      const i = +e.target.dataset.idx;
+      rows.splice(i, 1);
+      render();
+      saveWatchlist();
+    });
+  });
+  container.querySelectorAll("button[data-action='save-all']").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      editingId = null;
+      render();
+      saveWatchlist();
+    });
+
+  });
+}
+
+/* ---------- top-level controls ---------- */
+document.getElementById("gearBtn").addEventListener("click", () => {
+  showConfigPanel(document.getElementById("configOverlay").classList.contains("hidden"));
+});
+
+document.getElementById("configCloseBtn").addEventListener("click", () => showConfigPanel(false));
+document.getElementById("configOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "configOverlay") showConfigPanel(false); // click on the dim backdrop itself
+});
+
+document.getElementById("saveConfigBtn").addEventListener("click", () => {
+  owner = document.getElementById("cfgOwner").value.trim();
+  repo = document.getElementById("cfgRepo").value.trim();
+  token = document.getElementById("cfgToken").value.trim();
+  saveConfigToStorage({ owner, repo, token });
+  showConfigPanel(false);
+  document.getElementById("needConfigMsg").classList.add("hidden");
+  loadWatchlist().then(() => { ensureUids(); render(); });
+  loadPredictions();
+  loadStarred();
+});
+
+document.getElementById("addBtn").addEventListener("click", () => {
+  const uid = "new-" + Date.now();
+  rows.unshift({ ticker: "", name: "", target_high: null, target_low: null, _uid: uid });
+  editingId = uid;
+  render();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+/* assign stable uid to rows without one (loaded from server) */
+function ensureUids() {
+  rows.forEach(r => { if (!r._uid) r._uid = r.ticker + "-" + Math.random().toString(36).slice(2); });
+}
+
+/* ---------- light/dark theme toggle (per-device preference) ---------- */
+const THEME_KEY = "appThemePreference";
+function applyTheme(isLight) {
+  document.body.classList.toggle("light-theme", isLight);
+  document.getElementById("themeToggleBtn").textContent = isLight ? "☀️" : "🌙";
+}
+let themeIsLight = false;
+try { themeIsLight = localStorage.getItem(THEME_KEY) === "light"; } catch (e) {}
+applyTheme(themeIsLight);
+document.getElementById("themeToggleBtn").addEventListener("click", () => {
+  themeIsLight = !themeIsLight;
+  applyTheme(themeIsLight);
+  try { localStorage.setItem(THEME_KEY, themeIsLight ? "light" : "dark"); } catch (e) {}
+});
+
+/* ---------- legal consent gate (shown once per device) ---------- */
+const LEGAL_CONSENT_KEY = "legalConsentAcceptedV1";
+function showTos(show) {
+  document.getElementById("tosOverlay").classList.toggle("hidden", !show);
+}
+function showLegalGate(show) {
+  document.getElementById("legalOverlay").classList.toggle("hidden", !show);
+}
+document.getElementById("legalCheckbox").addEventListener("change", (e) => {
+  document.getElementById("legalAcceptBtn").disabled = !e.target.checked;
+});
+document.getElementById("legalAcceptBtn").addEventListener("click", () => {
+  try { localStorage.setItem(LEGAL_CONSENT_KEY, "1"); } catch (e) {}
+  showLegalGate(false);
+});
+document.getElementById("openTosLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  showTos(true);
+});
+document.getElementById("footerTosLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  showTos(true);
+});
+document.getElementById("tosCloseBtn").addEventListener("click", () => showTos(false));
+document.getElementById("tosOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "tosOverlay") showTos(false); // click on the dim backdrop itself
+});
+let legalAlreadyAccepted = false;
+try { legalAlreadyAccepted = localStorage.getItem(LEGAL_CONSENT_KEY) === "1"; } catch (e) {}
+if (!legalAlreadyAccepted) showLegalGate(true);
+
+/* ---------- init ---------- */
+const cfg = loadConfig();
+if (cfg && cfg.owner && cfg.repo && cfg.token) {
+  owner = cfg.owner; repo = cfg.repo; token = cfg.token;
+  document.getElementById("cfgOwner").value = owner;
+  document.getElementById("cfgRepo").value = repo;
+  document.getElementById("cfgToken").value = token;
+  loadWatchlist().then(() => { ensureUids(); render(); });
+  loadPredictions();
+  loadStarred();
+} else {
+  showConfigPanel(true);
+  document.getElementById("needConfigMsg").classList.remove("hidden");
+}
+</script>
+</body>
+</html>
