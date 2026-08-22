@@ -59421,5 +59421,12 @@
         "edge": -7.6
       }
     ]
+  },
+  "portfolio_sim_experimental": {
+    "start_value": 100000,
+    "currency": "ILS",
+    "value": 100000.0,
+    "last_processed_date": null,
+    "daily_log": []
   }
 }
