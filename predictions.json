@@ -58744,5 +58744,82 @@
     "value": 100000.0,
     "last_processed_date": null,
     "daily_log": []
+  },
+  "monthly_portfolio": {
+    "start_date": "2026-08-24",
+    "next_refresh_date": "2026-09-23",
+    "holdings": [
+      {
+        "ticker": "ACHR",
+        "entry_date": "2026-08-24",
+        "entry_price": 6.119999885559082,
+        "entry_score": 7.0,
+        "warned": false
+      },
+      {
+        "ticker": "CHRW",
+        "entry_date": "2026-08-24",
+        "entry_price": 142.32000732421875,
+        "entry_score": 7.66,
+        "warned": false
+      },
+      {
+        "ticker": "DAR",
+        "entry_date": "2026-08-24",
+        "entry_price": 62.56880187988281,
+        "entry_score": 7.12,
+        "warned": false
+      },
+      {
+        "ticker": "EQIX",
+        "entry_date": "2026-08-24",
+        "entry_price": 1059.0699462890625,
+        "entry_score": 7.07,
+        "warned": false
+      },
+      {
+        "ticker": "LVS",
+        "entry_date": "2026-08-24",
+        "entry_price": 47.0,
+        "entry_score": 7.68,
+        "warned": false
+      },
+      {
+        "ticker": "MSTR",
+        "entry_date": "2026-08-24",
+        "entry_price": 120.77999877929688,
+        "entry_score": 7.32,
+        "warned": false
+      },
+      {
+        "ticker": "SLB",
+        "entry_date": "2026-08-24",
+        "entry_price": 53.689998626708984,
+        "entry_score": 7.05,
+        "warned": false
+      },
+      {
+        "ticker": "TMUS",
+        "entry_date": "2026-08-24",
+        "entry_price": 184.03770446777344,
+        "entry_score": 7.3,
+        "warned": false
+      },
+      {
+        "ticker": "VICI",
+        "entry_date": "2026-08-24",
+        "entry_price": 26.78499984741211,
+        "entry_score": 8.31,
+        "warned": false
+      },
+      {
+        "ticker": "XNDU",
+        "entry_date": "2026-08-24",
+        "entry_price": 10.40999984741211,
+        "entry_score": 7.43,
+        "warned": false
+      }
+    ],
+    "history": []
   }
 }
