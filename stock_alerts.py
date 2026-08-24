@@ -1071,7 +1071,7 @@ def manage_monthly_portfolio(store, today_entries):
             })
             mp["history"] = mp["history"][-24:]  # keep ~2 years of monthly cycles
 
-        new_top10 = [e for e in today_entries if e.get("top10")]
+        new_top10 = [e for e in today_entries if e.get("top10") and e.get("predicted") == "up"]
         print(f"manage_monthly_portfolio: found {len(new_top10)} top10 entries among today's {len(today_entries)}")
         mp["holdings"] = [
             {
