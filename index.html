@@ -411,7 +411,7 @@
         <p>תגית בראש העמוד שמראה אם השוק הרחב (S&amp;P 500) נמצא במגמת עלייה (שורי) או ירידה (דובי). <b>לחיצה עליה</b> פותחת הסבר מפורט - כולל הנתונים המדויקים שעליהם מבוססת הקביעה. מתחתיה 4 ריבועים עם שערים עדכניים (S&amp;P 500, מדד ת"א 125, דולר/שקל, ביטקוין), מתעדכנים כל 15 דקות, בירוק לעלייה ואדום לירידה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">4 האריחים הכחולים</p>
-        <p><b>אחוז הצלחת חיזוי</b> (לחיצה עליו פותחת הסבר מדויק - Top 10 ברגע שיש, אחרת הדיוק על כל השוק) - מתוך התחזיות ב-Top 10 שכבר ניתן היה לבדוק (יום אחרי הפרסום), כמה התממשו בכיוון הנכון.<br>
+        <p><b>אחוז הצלחת חיזוי</b> (לחיצה עליו פותחת הסבר מדויק) - מציג את הדיוק של יום המסחר האחרון שכבר ניתן היה לבדוק (יומי, לא ממוצע מצטבר!) בקרב תחזיות Top 10; אם עדיין אין Top 10 שנבדק, מוצג הדיוק על כל השוק. הממוצע המצטבר לאורך זמן מוצג בנפרד בריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-₪100,000 למטה.<br>
         <b>תחזיות חזקות היום</b> - כמה מניות נכנסו לרשימה המצומצמת של היום (עד 25).<br>
         <b>מניות במעקב</b> - כמה מניות יש לך ברשימה הידנית "המניות שלי".<br>
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
@@ -495,8 +495,8 @@
       תיק מדומה: משקיע ₪100,000 בחלוקה שווה בין מניות ה-Top 10 שהומלצו לעלייה בכל יום (לפי עוצמת האות, קבוע - לא מושפע מהמיון שבחרת ברשימה למטה), ומתעדכן יום אחרי יום לפי הביצוע בפועל. הערכה בלבד - ללא עמלות/מרווחים, וללא המרות מטבע.
     </div>
     <div class="indices-row" style="grid-template-columns: 1fr; margin-bottom:8px;">
-      <div class="index-tile">
-        <div class="index-label">📡 הערכה חיה - Top 10 של היום (לפי מחיר עכשווי, מתעדכן כל 15 דק')</div>
+      <div class="index-tile" id="liveEstimateTile" style="cursor:pointer;">
+        <div class="index-label">📡 הערכה חיה - Top 10 של היום (לפי מחיר עכשווי, מתעדכן כל 15 דק') ℹ️</div>
         <div class="index-value mono" id="liveEstimateValue">—</div>
         <div class="index-pct" id="liveEstimateDetail" style="color:var(--text-faint);"></div>
       </div>
@@ -541,30 +541,9 @@
   </div>
 
   <div id="rrExperimentSection" class="hidden">
-    <div class="section-title">⚖️ ניסוי: משקל לפי יחס סיכוי/סיכון</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      השוואה בין השיטה הנוכחית (Top 10 לפי עוצמת חיזוי בלבד) לשיטה ניסיונית שמעדיפה מניות עם פוטנציאל רווח גדול משמעותית מהסיכון (עד ההתנגדות לעומת עד התמיכה), עם הגבלה של עד 50% מהתיק מאותו סקטור כדי למנוע ריכוזיות. <b>עדיין לא הוחלף שום דבר בפועל</b> - זו השוואה בלבד, לצפייה עד שיצטבר מספיק נתונים.
-    </div>
-    <div class="indices-row" style="grid-template-columns: repeat(2, 1fr);">
-      <div class="index-tile">
-        <div class="index-label">שיטה נוכחית - הצלחה</div>
-        <div class="index-value mono" id="rrCurrentAccuracy">—</div>
-      </div>
-      <div class="index-tile">
-        <div class="index-label">ניסיוני - הצלחה</div>
-        <div class="index-value mono" id="rrExpAccuracy">—</div>
-      </div>
-    </div>
-    <div class="indices-row" style="grid-template-columns: repeat(2, 1fr); margin-top:8px;">
-      <div class="index-tile">
-        <div class="index-label">שיטה נוכחית - תיק מדומה</div>
-        <div class="index-value mono" id="rrCurrentPortfolio">—</div>
-      </div>
-      <div class="index-tile">
-        <div class="index-label">ניסיוני - תיק מדומה</div>
-        <div class="index-value mono" id="rrExpPortfolio">—</div>
-      </div>
-    </div>
+    <div class="section-title">🧮 השוואת נוסחאות (Top 10)</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;" id="formulaComparisonNote"></div>
+    <div id="formulaComparisonList"></div>
   </div>
 
   <div id="monthlyPortfolioSection" class="hidden">
@@ -572,7 +551,7 @@
       📅 תיק חודשי <span id="monthlyPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      במקום מסחר יומי (שהעמלות שלו יכולות לבלוע את הרווח), התיק הזה בוחר Top 10 פעם ב-30 יום ומחזיק אותן. אם אחת המניות נשברת טכנית באמצע החודש (יורדת חד, שוברת תמיכה, או שהאיתות מתהפך) - תקבל התראה דחופה נפרדת בטלגרם עם המלצה לשקול מכירה מהירה.
+      במקום מסחר יומי (שהעמלות שלו יכולות לבלוע את הרווח), התיק הזה בוחר Top 10 פעם ב-30 יום ומחזיק אותן. אם אחת המניות נשברת טכנית באמצע החודש (יורדת חד, שוברת תמיכה, או שהאיתות מתהפך) - תקבל התראה דחופה נפרדת בטלגרם עם המלצה לשקול מכירה מהירה. יש גם שכבת <b>איתות מקדים</b> (⚠️) שמתריעה מוקדם יותר, על היחלשות מומנטום (דיברגנס RSI/MACD/OBV או ADX נחלש) - עוד לפני שבירה טכנית מלאה, לא בהכרח סימן למכור.
     </div>
     <div id="monthlyPortfolioSummary" style="font-size:13px; color:var(--text-dim); margin-bottom:10px;"></div>
     <div class="predictions-panel hidden" id="monthlyPortfolioPanel"><div id="monthlyPortfolioList"></div></div>
@@ -600,6 +579,16 @@
     </div>
     <div id="recomputeStatus"></div>
     <div id="predictionsList"></div>
+  </div>
+
+  <div class="modal-overlay hidden" id="liveEstimateOverlay" style="z-index:150;">
+    <div class="panel modal-box" id="liveEstimatePanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">📡 פירוט הערכה חיה</h2>
+        <button id="liveEstimateCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="liveEstimateBody" style="font-size:13.5px; color:var(--text-dim); line-height:1.7;"></div>
+    </div>
   </div>
 
   <div class="modal-overlay hidden" id="dailyPnlOverlay" style="z-index:150;">
@@ -750,12 +739,18 @@
 </div>
 
 <script>
-const APP_VERSION = "4.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "4.5"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "4.5", items: [
+    "ריבוע 'אחוז הצלחת חיזוי' (העליון, ליד המדדים) הפך ליומי - מציג את הדיוק של יום המסחר האחרון שנבדק, ולא ממוצע מצטבר של כל הימים (שנשאר מוצג בנפרד, בריבוע 'אחוז הצלחה Top 10' שבתוך סימולציית ה-₪100,000).",
+    "ריבוע '📡 הערכה חיה' הפך ללחיץ - מציג פירוט של כל אחת מ-10 המניות ומה היא עושה כרגע, בדיוק כמו שיש לריבוע הרשמי 'רווח/הפסד יומי'.",
+    "נוספה שכבת אינדיקטורים מקדימים (leading, לא lagging): דיברגנס RSI/MACD/OBV ו-ADX נחלש. התיק החודשי מקבל עכשיו התראת 'איתות מקדים' (⚠️) על היחלשות מומנטום, לפני שבירה טכנית מלאה - בנוסף (לא במקום) להתראת האזהרה הקיימת.",
+    "נוסף ניסוי מקביל שלישי לבחירת Top 10: נוסחה שמנוכה כשיש דיברגנס מקדים שסותר את הכיוון החזוי. סקשן 'השוואת נוסחאות' מציג את שלוש הנוסחאות (נוכחית, יחס סיכוי/סיכון, אינדיקטורים מקדימים) זו לצד זו - עדיין רק למעקב, בלי להחליף שום דבר בפועל.",
+  ]},
   { version: "4.4", items: [
     "תוקן פורמט מחירים בתיק החודשי - הוצגו קודם עם עשרות ספרות אחרי הנקודה (בעיית עיגול), עכשיו מעוגל ל-2 ספרות כמו בכל מקום אחר.",
     "נוסף ריבוע '📡 הערכה חיה' בסימולציית ה-₪100,000 - מראה את התשואה המשוערת של ה-Top 10 של היום לפי המחיר החי, בלי לחכות לבדיקה הרשמית של מחר.",
@@ -1396,8 +1391,8 @@ async function loadPredictions() {
 
     lastAccData = acc;
     document.getElementById("statsRow").classList.remove("hidden");
-    document.getElementById("statAccuracy").textContent = acc.top10_accuracy != null
-      ? `${acc.top10_accuracy}%`
+    document.getElementById("statAccuracy").textContent = acc.top10_accuracy_daily != null
+      ? `${acc.top10_accuracy_daily}%`
       : (acc.overall != null ? `${acc.overall}%` : "—");
 
     const today = new Date().toISOString().slice(0, 10);
@@ -1417,7 +1412,7 @@ async function loadPredictions() {
     renderTrackRecord(history, acc);
     renderPortfolioSim(data.portfolio_sim, acc);
     renderFactorAnalysis(data.factor_analysis);
-    renderRrExperiment(acc, data.portfolio_sim, data.portfolio_sim_experimental);
+    renderFormulaComparison(data.formula_comparison);
     renderMonthlyPortfolio(data.monthly_portfolio, currentPrices);
   } catch (e) {
     section.classList.add("hidden");
@@ -1496,22 +1491,25 @@ function renderTrackRecord(history, acc) {
 }
 
 let lastDailyPnlEntry = null;
+let lastLiveEstimate = null;
 
 function computeLiveTop10Estimate() {
   const today = new Date().toISOString().slice(0, 10);
   const candidates = allTodayPreds.filter(p => p.top10 && p.predicted === "up" && p.date === today && p.price);
   if (!candidates.length) return null;
-  const changes = candidates.map(p => {
+  const details = candidates.map(p => {
     const live = currentPrices[(p.ticker || "").trim()];
     const currentPrice = live && live.price != null ? live.price : p.price;
-    return (currentPrice - p.price) / p.price * 100;
+    const pct = (currentPrice - p.price) / p.price * 100;
+    return { ticker: p.ticker, entryPrice: p.price, currentPrice, pct };
   });
-  const avg = changes.reduce((a, b) => a + b, 0) / changes.length;
-  return { avg, n: changes.length };
+  const avg = details.reduce((a, d) => a + d.pct, 0) / details.length;
+  return { avg, n: details.length, details };
 }
 
 function renderLiveEstimate() {
   const est = computeLiveTop10Estimate();
+  lastLiveEstimate = est;
   const valueEl = document.getElementById("liveEstimateValue");
   const detailEl = document.getElementById("liveEstimateDetail");
   if (!est) {
@@ -1522,8 +1520,32 @@ function renderLiveEstimate() {
   const cls = est.avg >= 0 ? "prediction-dir-up" : "prediction-dir-down";
   valueEl.className = `index-value mono ${cls}`;
   valueEl.textContent = `${est.avg >= 0 ? "+" : ""}${est.avg.toFixed(2)}%`;
-  detailEl.textContent = `ממוצע על ${est.n} מניות · לא רשמי, מתעדכן בכל טעינת דף - הערך הרשמי נעול רק אחרי בדיקה מול המחיר של יום המסחר הבא`;
+  detailEl.textContent = `ממוצע על ${est.n} מניות · לחיצה לפירוט לפי מניה · לא רשמי, מתעדכן בכל טעינת דף`;
 }
+
+function showLiveEstimateDetail(show) {
+  document.getElementById("liveEstimateOverlay").classList.toggle("hidden", !show);
+  if (!show || !lastLiveEstimate) return;
+  const body = document.getElementById("liveEstimateBody");
+  const rows = [...lastLiveEstimate.details].sort((a, b) => b.pct - a.pct);
+  body.innerHTML = `
+    <p style="margin-bottom:12px;">מחירים חיים, לא רשמי - יכול להתהפך במהלך היום. הערך הרשמי (בריבועים שמתחת) נעול רק אחרי בדיקה מול המחיר של יום המסחר הבא.</p>
+    ${rows.map(d => {
+      const cls = d.pct >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+      return `<div style="display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border);">
+        <span class="mono" style="font-weight:700;">${d.ticker}</span>
+        <span class="mono ${cls}" style="font-weight:600;">${d.pct >= 0 ? "+" : ""}${d.pct.toFixed(2)}%</span>
+      </div>`;
+    }).join("")}
+    <p style="margin-top:12px; font-size:11.5px; color:var(--text-faint);">
+      ממוצע שווה-משקל בין המניות האלה = הערכת התשואה החיה (${lastLiveEstimate.avg >= 0 ? "+" : ""}${lastLiveEstimate.avg.toFixed(2)}%).
+    </p>`;
+}
+document.getElementById("liveEstimateTile").addEventListener("click", () => showLiveEstimateDetail(true));
+document.getElementById("liveEstimateCloseBtn").addEventListener("click", () => showLiveEstimateDetail(false));
+document.getElementById("liveEstimateOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "liveEstimateOverlay") showLiveEstimateDetail(false);
+});
 
 function renderPortfolioSim(sim, acc) {
   renderLiveEstimate();
@@ -1580,10 +1602,13 @@ function showAccuracyExplanation() {
   if (!acc) { return; }
 
   let html = "";
-  if (acc.top10_accuracy != null) {
+  if (acc.top10_accuracy_daily != null) {
     html += `
-      <p>הריבוע הזה מציג כרגע את הדיוק של <b>Top 10</b> - עשר המניות עם עוצמת החיזוי הגבוהה ביותר בכל יום (לפי ציון, קבוע - לא תלוי במיון שבחרת ברשימה).</p>
-      <p><b class="mono" style="color:var(--up);">${acc.top10_hits}</b> מתוך <b class="mono">${acc.top10_total}</b> תחזיות Top 10 שכבר ניתן היה לבדוק (יום אחרי הפרסום) התממשו בכיוון הנכון = <b class="mono" style="color:var(--up);">${acc.top10_accuracy}%</b>.</p>`;
+      <p>הריבוע הזה מציג את הדיוק <b>היומי</b> (לא ממוצע מצטבר!) של <b>Top 10</b> - עשר המניות עם עוצמת החיזוי הגבוהה ביותר, ביום המסחר האחרון שכבר ניתן היה לבדוק (לפי ציון, קבוע - לא תלוי במיון שבחרת ברשימה).</p>
+      <p>ביום <b class="mono">${acc.top10_daily_date}</b>: <b class="mono" style="color:var(--up);">${acc.top10_daily_hits}</b> מתוך <b class="mono">${acc.top10_daily_total}</b> תחזיות Top 10 התממשו בכיוון הנכון = <b class="mono" style="color:var(--up);">${acc.top10_accuracy_daily}%</b>.</p>
+      <p style="font-size:11.5px; color:var(--text-faint); margin-top:10px;">
+        זה שונה מהריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-₪100,000 למטה, שמציג ממוצע מצטבר על כל הימים שנבדקו עד כה (<b class="mono">${acc.top10_accuracy != null ? acc.top10_accuracy + "%" : "—"}</b> על <b class="mono">${acc.top10_total || 0}</b> תחזיות בסה"כ) - שני המספרים תקינים, הם פשוט עונים על שאלות שונות.
+      </p>`;
   } else {
     html += `
       <p>עדיין אין תחזיות Top 10 שניתן היה לבדוק (צריך יום מלא לעבור מאז הפרסום) - לכן הריבוע מציג במקום זאת את הדיוק על <b>כל השוק</b> שנותח (ארה"ב + ישראל יחד, לא רק המניות המצומצמות).</p>
@@ -1634,27 +1659,40 @@ function renderFactorAnalysis(analysis) {
   section.classList.remove("hidden");
 }
 
-function renderRrExperiment(acc, realSim, expSim) {
+function renderFormulaComparison(fc) {
   const section = document.getElementById("rrExperimentSection");
-  const hasAcc = acc && (acc.top10_up_total || acc.top10_experimental_up_total);
-  const hasSim = (realSim && realSim.daily_log && realSim.daily_log.length)
-    || (expSim && expSim.daily_log && expSim.daily_log.length);
-  if (!hasAcc && !hasSim) {
+  if (!fc || !fc.formulas || !fc.formulas.length) {
+    section.classList.add("hidden");
+    return;
+  }
+  const hasAnyData = fc.formulas.some(f => f.accuracy != null || f.total_return_pct != null);
+  if (!hasAnyData) {
     section.classList.add("hidden");
     return;
   }
 
-  const fmtAcc = (val, n) => val != null ? `${val}% <span style="font-size:10px; color:var(--text-faint);">(n=${n})</span>` : "—";
-  document.getElementById("rrCurrentAccuracy").innerHTML = fmtAcc(acc.top10_up_accuracy, acc.top10_up_total || 0);
-  document.getElementById("rrExpAccuracy").innerHTML = fmtAcc(acc.top10_experimental_up_accuracy, acc.top10_experimental_up_total || 0);
+  document.getElementById("formulaComparisonNote").textContent = fc.note || "";
 
-  const fmtSim = (sim) => {
-    if (!sim || sim.total_return_pct == null) return "—";
-    const cls = sim.total_return_pct >= 0 ? "up" : "down";
-    return `<span class="${cls === "up" ? "prediction-dir-up" : "prediction-dir-down"}">${sim.total_return_pct >= 0 ? "+" : ""}${sim.total_return_pct}%</span>`;
-  };
-  document.getElementById("rrCurrentPortfolio").innerHTML = fmtSim(realSim);
-  document.getElementById("rrExpPortfolio").innerHTML = fmtSim(expSim);
+  const list = document.getElementById("formulaComparisonList");
+  list.innerHTML = fc.formulas.map(f => {
+    const accCls = f.accuracy == null ? "" : (f.accuracy >= 50 ? "prediction-dir-up" : "prediction-dir-down");
+    const accText = f.accuracy != null
+      ? `${f.accuracy}% <span style="font-size:10px; color:var(--text-faint);">(n=${f.total || 0})</span>`
+      : "—";
+    const retCls = f.total_return_pct == null ? "" : (f.total_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
+    const retText = f.total_return_pct != null ? `${f.total_return_pct >= 0 ? "+" : ""}${f.total_return_pct}%` : "—";
+    return `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:600;">${f.label}</span>
+          <span class="mono ${accCls}" style="font-weight:700;">${accText}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>תיק מדומה מצטבר</span>
+          <span class="mono ${retCls}">${retText}</span>
+        </div>
+      </div>`;
+  }).join("");
 
   section.classList.remove("hidden");
 }
@@ -1679,6 +1717,7 @@ function renderMonthlyPortfolio(mp, prices) {
     const entryPriceText = h.entry_price != null ? h.entry_price.toFixed(2) : "—";
     const currentPriceText = current != null ? current.toFixed(2) : "—";
     const warnBadge = h.warned ? `<span class="track-outcome wrong">🚨 הופעלה אזהרה</span>` : "";
+    const earlyWarnBadge = (!h.warned && h.early_warned) ? `<span class="track-outcome" style="background:rgba(230,180,40,0.15); color:#c99a1f;">⚠️ איתות מקדים</span>` : "";
     return `
       <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
         <div style="display:flex; justify-content:space-between;">
@@ -1687,7 +1726,7 @@ function renderMonthlyPortfolio(mp, prices) {
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <span class="mono ${cls}" style="font-weight:700;">מחיר נוכחי: ${currentPriceText} (${pctText})</span>
-          ${warnBadge}
+          ${warnBadge}${earlyWarnBadge}
         </div>
       </div>`;
   }).join("");

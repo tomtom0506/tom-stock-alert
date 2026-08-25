@@ -422,26 +422,132 @@ def send_starred_report(today_entries):
 # Uses only signals knowable BEFORE a move happens (not post-event facts like
 # "beat earnings" or "M&A rumor" - those are only known in hindsight).
 
-def compute_rsi(closes, period=14):
+def compute_rsi_series(closes, period=14):
+    """Full RSI series (not just the latest value) - needed so divergence
+    checks below can compare RSI at two different past points in time."""
     delta = closes.diff()
     gain = delta.clip(lower=0)
     loss = -delta.clip(upper=0)
     avg_gain = gain.rolling(period).mean()
     avg_loss = loss.rolling(period).mean()
     rs = avg_gain / avg_loss.replace(0, np.nan)
-    rsi = 100 - (100 / (1 + rs))
-    valid = rsi.dropna()
+    return 100 - (100 / (1 + rs))
+
+
+def compute_rsi(closes, period=14):
+    valid = compute_rsi_series(closes, period).dropna()
     return float(valid.iloc[-1]) if len(valid) else None
+
+
+def compute_macd_series(closes):
+    ema12 = closes.ewm(span=12, adjust=False).mean()
+    ema26 = closes.ewm(span=26, adjust=False).mean()
+    macd_line = ema12 - ema26
+    signal_line = macd_line.ewm(span=9, adjust=False).mean()
+    return macd_line, signal_line
 
 
 def compute_macd_bullish(closes):
     if len(closes) < 26:
         return None
-    ema12 = closes.ewm(span=12, adjust=False).mean()
-    ema26 = closes.ewm(span=26, adjust=False).mean()
-    macd_line = ema12 - ema26
-    signal_line = macd_line.ewm(span=9, adjust=False).mean()
+    macd_line, signal_line = compute_macd_series(closes)
     return bool(macd_line.iloc[-1] > signal_line.iloc[-1])
+
+
+def compute_obv(closes, volumes):
+    """On-Balance Volume: running total of volume, added on up days and
+    subtracted on down days - a proxy for whether real participation is
+    confirming a price move or not."""
+    vol = volumes.reindex(closes.index).fillna(0) if volumes is not None else pd.Series(0, index=closes.index)
+    direction = np.sign(closes.diff().fillna(0))
+    return (direction * vol).cumsum()
+
+
+def compute_divergences(closes, rsi_series, macd_line, obv_series, pivot_highs_idx, pivot_lows_idx):
+    """LEADING (not lagging) indicators: compares the two most recent swing
+    pivots already found for support/resistance. If price sets a new higher
+    high but RSI/MACD/OBV do NOT confirm it with their own higher high, that's
+    a classic early warning that the up-move is losing strength BEFORE price
+    itself turns over (bearish divergence) - mirror logic for lower lows
+    (bullish divergence). This is a leading complement to the stop-loss /
+    support-break checks elsewhere, which only fire after the fact."""
+    result = {
+        "rsi_bearish_div": False, "rsi_bullish_div": False,
+        "macd_bearish_div": False, "macd_bullish_div": False,
+        "obv_bearish_div": False, "obv_bullish_div": False,
+    }
+    n = len(closes)
+
+    def valid_pair(idx_list):
+        cands = [i for i in idx_list if 0 <= i < n]
+        return cands[-2:] if len(cands) >= 2 else None
+
+    highs2 = valid_pair(pivot_highs_idx)
+    if highs2:
+        i1, i2 = highs2
+        if closes.iloc[i2] > closes.iloc[i1]:  # price: higher high
+            if pd.notna(rsi_series.iloc[i1]) and pd.notna(rsi_series.iloc[i2]) and rsi_series.iloc[i2] < rsi_series.iloc[i1]:
+                result["rsi_bearish_div"] = True
+            if pd.notna(macd_line.iloc[i1]) and pd.notna(macd_line.iloc[i2]) and macd_line.iloc[i2] < macd_line.iloc[i1]:
+                result["macd_bearish_div"] = True
+            if pd.notna(obv_series.iloc[i1]) and pd.notna(obv_series.iloc[i2]) and obv_series.iloc[i2] < obv_series.iloc[i1]:
+                result["obv_bearish_div"] = True
+
+    lows2 = valid_pair(pivot_lows_idx)
+    if lows2:
+        i1, i2 = lows2
+        if closes.iloc[i2] < closes.iloc[i1]:  # price: lower low
+            if pd.notna(rsi_series.iloc[i1]) and pd.notna(rsi_series.iloc[i2]) and rsi_series.iloc[i2] > rsi_series.iloc[i1]:
+                result["rsi_bullish_div"] = True
+            if pd.notna(macd_line.iloc[i1]) and pd.notna(macd_line.iloc[i2]) and macd_line.iloc[i2] > macd_line.iloc[i1]:
+                result["macd_bullish_div"] = True
+            if pd.notna(obv_series.iloc[i1]) and pd.notna(obv_series.iloc[i2]) and obv_series.iloc[i2] > obv_series.iloc[i1]:
+                result["obv_bullish_div"] = True
+
+    return result
+
+
+def compute_adx(highs, lows, closes, period=14):
+    """Wilder's ADX - how STRONG the current trend is (not its direction).
+    A declining ADX means the trend (up or down) is losing steam even while
+    price hasn't reversed yet - another leading signal, distinct from the
+    divergence checks above."""
+    try:
+        highs = highs.dropna()
+        lows = lows.dropna()
+        closes_local = closes.dropna()
+        n = min(len(highs), len(lows), len(closes_local))
+        if n < period * 3:
+            return None, None
+        highs = highs.iloc[-n:].reset_index(drop=True)
+        lows = lows.iloc[-n:].reset_index(drop=True)
+        c = closes_local.iloc[-n:].reset_index(drop=True)
+
+        prev_close = c.shift(1)
+        tr = pd.concat([highs - lows, (highs - prev_close).abs(), (lows - prev_close).abs()], axis=1).max(axis=1)
+        up_move = highs.diff()
+        down_move = -lows.diff()
+        plus_dm = pd.Series(np.where((up_move > down_move) & (up_move > 0), up_move, 0.0))
+        minus_dm = pd.Series(np.where((down_move > up_move) & (down_move > 0), down_move, 0.0))
+
+        atr = tr.ewm(alpha=1 / period, adjust=False).mean()
+        plus_di = 100 * plus_dm.ewm(alpha=1 / period, adjust=False).mean() / atr.replace(0, np.nan)
+        minus_di = 100 * minus_dm.ewm(alpha=1 / period, adjust=False).mean() / atr.replace(0, np.nan)
+        dx = (plus_di - minus_di).abs() / (plus_di + minus_di).replace(0, np.nan) * 100
+        adx_series = dx.ewm(alpha=1 / period, adjust=False).mean().dropna()
+
+        if len(adx_series) < 2:
+            return None, None
+        adx_now = float(adx_series.iloc[-1])
+        if not np.isfinite(adx_now):
+            return None, None
+        lookback = 6 if len(adx_series) >= 6 else len(adx_series) - 1
+        adx_prev = float(adx_series.iloc[-1 - lookback])
+        weakening = bool(np.isfinite(adx_prev) and adx_now < adx_prev)
+        return round(adx_now, 1), weakening
+    except Exception as e:
+        print(f"ADX calc failed: {type(e).__name__}: {e}")
+        return None, None
 
 
 def compute_support_resistance(closes, price):
@@ -526,9 +632,11 @@ def build_chart_payload(closes, factors):
     }
 
 
-def compute_technical_factors(closes, volumes):
+def compute_technical_factors(closes, volumes, highs=None, lows=None):
     """Everything derivable from price/volume history alone - no network
-    calls per ticker, so this is cheap enough to run on the whole universe."""
+    calls per ticker, so this is cheap enough to run on the whole universe.
+    highs/lows are optional (only needed for ADX) - they come from data
+    already downloaded for closes/volumes, no extra network cost."""
     closes = closes.dropna()
     n = len(closes)
     if n < 60:
@@ -580,6 +688,28 @@ def compute_technical_factors(closes, volumes):
         factors.update(compute_support_resistance(closes, price))
     except Exception as e:
         print(f"Support/resistance calc failed for this ticker: {type(e).__name__}: {e}")
+
+    # --- leading-indicator layer (divergences + ADX) - see compute_divergences
+    # and compute_adx docstrings. Wrapped defensively so a failure here never
+    # takes down the whole technical-factors calc for a ticker. ---
+    try:
+        rsi_series = compute_rsi_series(closes)
+        macd_line, _ = compute_macd_series(closes)
+        obv_series = compute_obv(closes, volumes)
+        factors.update(compute_divergences(
+            closes, rsi_series, macd_line, obv_series,
+            factors.get("_pivot_highs_idx", []), factors.get("_pivot_lows_idx", []),
+        ))
+    except Exception as e:
+        print(f"Divergence calc failed for this ticker: {type(e).__name__}: {e}")
+
+    if highs is not None and lows is not None:
+        try:
+            adx, adx_weakening = compute_adx(highs, lows, closes)
+            factors["adx"] = adx
+            factors["adx_weakening"] = adx_weakening
+        except Exception as e:
+            print(f"ADX attach failed for this ticker: {type(e).__name__}: {e}")
 
     return factors
 
@@ -920,6 +1050,18 @@ def recompute_accuracy(store):
     top10_exp_graded = [e for e in graded if e.get("top10_experimental")]
     top10_exp_up_graded = [e for e in top10_exp_graded if e.get("predicted") == "up"]
 
+    # EXPERIMENTAL comparison group C (see compute_leading_adjusted_score).
+    top10_leading_graded = [e for e in graded if e.get("top10_leading")]
+    top10_leading_up_graded = [e for e in top10_leading_graded if e.get("predicted") == "up"]
+
+    # DAILY (not cumulative) Top 10 accuracy - only the most recently graded
+    # prediction-date's entries, so the headline tile reflects "how did
+    # yesterday's Top 10 do", not an all-time average. The cumulative number
+    # is kept separately (top10_accuracy above/below) for the boxes that are
+    # meant to show the running track record.
+    top10_daily_date = max((e["date"] for e in top10_graded), default=None)
+    top10_graded_daily = [e for e in top10_graded if e["date"] == top10_daily_date] if top10_daily_date else []
+
     def calc(subset):
         if not subset:
             return None
@@ -945,6 +1087,15 @@ def recompute_accuracy(store):
         "top10_experimental_total": len(top10_exp_graded),
         "top10_experimental_up_accuracy": calc(top10_exp_up_graded),
         "top10_experimental_up_total": len(top10_exp_up_graded),
+        "top10_leading_accuracy": calc(top10_leading_graded),
+        "top10_leading_hits": sum(1 for e in top10_leading_graded if e["correct"]),
+        "top10_leading_total": len(top10_leading_graded),
+        "top10_leading_up_accuracy": calc(top10_leading_up_graded),
+        "top10_leading_up_total": len(top10_leading_up_graded),
+        "top10_accuracy_daily": calc(top10_graded_daily),
+        "top10_daily_hits": sum(1 for e in top10_graded_daily if e["correct"]),
+        "top10_daily_total": len(top10_graded_daily),
+        "top10_daily_date": top10_daily_date,
         "us": calc([e for e in graded if not is_israeli(e["ticker"])]),
         "il": calc([e for e in graded if is_israeli(e["ticker"])]),
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -1076,7 +1227,7 @@ def manage_monthly_portfolio(store, today_entries):
         mp["holdings"] = [
             {
                 "ticker": e["ticker"], "entry_date": today, "entry_price": e.get("price"),
-                "entry_score": e["score"], "warned": False,
+                "entry_score": e["score"], "warned": False, "early_warned": False,
             }
             for e in new_top10 if e.get("price")
         ]
@@ -1101,6 +1252,31 @@ def manage_monthly_portfolio(store, today_entries):
             continue
         price = current["price"]
         pct_from_entry = (price - h["entry_price"]) / h["entry_price"] * 100
+
+        # --- leading (early) warning layer: momentum divergences / ADX
+        # weakening. Fires BEFORE any hard technical break, so it's advisory
+        # only - doesn't set h["warned"] (which would stop the hard checks
+        # below) and fires at most once per holding via its own flag. This
+        # is the "alert before the fall, not just after" layer that was
+        # missing until now. ---
+        if not h.get("early_warned"):
+            leading_signal = None
+            if current.get("rsi_bearish_div"):
+                leading_signal = "דיברגנס שלילי ב-RSI - המחיר עשה שיא גבוה יותר בלי אישור מ-RSI (איתות מקדים להיחלשות מומנטום)"
+            elif current.get("macd_bearish_div"):
+                leading_signal = "דיברגנס שלילי ב-MACD - שיא במחיר בלי אישור מ-MACD"
+            elif current.get("obv_bearish_div"):
+                leading_signal = "דיברגנס שלילי ב-OBV - שיא במחיר בלי אישור בנפח המסחר"
+            elif current.get("adx_weakening") and current.get("adx") is not None and current["adx"] < 25:
+                leading_signal = f"עוצמת המגמה נחלשת (ADX={current['adx']})"
+            if leading_signal:
+                h["early_warned"] = True
+                send_telegram_message_chunked(
+                    f"⚠️ איתות מקדים - תיק חודשי: {h['ticker']}",
+                    [f"{leading_signal}\nמחיר כניסה: {h['entry_price']} | מחיר נוכחי: {price} ({pct_from_entry:+.1f}%)\n"
+                     f"התרעה מוקדמת בלבד - אין עדיין שבירה טכנית מלאה, רק היחלשות מומנטום. לא בהכרח למכור, אבל שווה לשים לב."],
+                    sep="\n",
+                )
 
         warning_reason = None
         if pct_from_entry <= MONTHLY_STOP_LOSS_PCT:
@@ -1199,6 +1375,48 @@ def update_portfolio_simulation(store, flag_key="top10", sim_key="portfolio_sim"
     sim["annual_return_pct"] = _compound_period_return(sim["daily_log"], 365)
 
 
+def build_formula_comparison(store):
+    """Side-by-side report of every formula being tracked (the real one +
+    all EXPERIMENTAL comparison groups), so a decision to actually swap the
+    live formula can be based on data instead of a gut feeling about the
+    last day or two. Per the agreed process: review this whenever useful,
+    but only ACT on it (replace the real formula) at most about once a
+    month, and only sooner if there's a clear, real problem with the
+    current one - not in response to normal day-to-day noise."""
+    acc = store.get("accuracy") or {}
+
+    def sim_stats(key):
+        sim = store.get(key) or {}
+        return {
+            "total_return_pct": sim.get("total_return_pct"),
+            "monthly_return_pct": sim.get("monthly_return_pct"),
+            "value": sim.get("value"),
+        }
+
+    store["formula_comparison"] = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "note": "השוואה בלבד לצורך מעקב - שינוי בפועל של הנוסחה הראשית נשקל לכל היותר פעם בחודש (לא בתגובה לתנודה של יום-יומיים), אלא אם מתגלה בעיה ברורה וממשית.",
+        "formulas": [
+            {
+                "key": "current", "label": "נוסחה נוכחית (עוצמת חיזוי)",
+                "accuracy": acc.get("top10_up_accuracy"), "total": acc.get("top10_up_total"),
+                **sim_stats("portfolio_sim"),
+            },
+            {
+                "key": "risk_reward", "label": "ניסיונית - יחס סיכוי/סיכון",
+                "accuracy": acc.get("top10_experimental_up_accuracy"), "total": acc.get("top10_experimental_up_total"),
+                **sim_stats("portfolio_sim_experimental"),
+            },
+            {
+                "key": "leading", "label": "ניסיונית - מותאמת אינדיקטורים מקדימים",
+                "accuracy": acc.get("top10_leading_up_accuracy"), "total": acc.get("top10_leading_up_total"),
+                **sim_stats("portfolio_sim_leading"),
+            },
+        ],
+    }
+    return store["formula_comparison"]
+
+
 def compute_risk_reward_score(entry):
     """EXPERIMENTAL (parallel comparison only - see EXPERIMENT_TOP10_RISK_REWARD
     and the top10_experimental flag below). Weights conviction by how much
@@ -1222,6 +1440,29 @@ def compute_risk_reward_score(entry):
     rr_ratio = reward / max(risk, 0.5)  # floor the denominator so a near-zero stop distance doesn't blow up
     rr_ratio = max(0.2, min(rr_ratio, 5.0))  # cap both directions
     return abs(score) * rr_ratio
+
+
+def compute_leading_adjusted_score(entry):
+    """EXPERIMENTAL (comparison formula C - tracked in parallel exactly like
+    compute_risk_reward_score above, under its own top10_leading flag/
+    accuracy/portfolio-sim). Same base conviction score, but discounted when
+    a leading-indicator divergence CONTRADICTS the predicted direction (an
+    early sign the move may already be running out of steam) or when ADX
+    shows the trend actively weakening. The bet: fewer false positives on
+    picks that look strong on the surface but are already quietly losing
+    momentum underneath."""
+    score = abs(entry.get("score", 0))
+    predicted = entry.get("predicted")
+    contradicting_div = False
+    if predicted == "up" and (entry.get("rsi_bearish_div") or entry.get("macd_bearish_div") or entry.get("obv_bearish_div")):
+        contradicting_div = True
+    elif predicted == "down" and (entry.get("rsi_bullish_div") or entry.get("macd_bullish_div") or entry.get("obv_bullish_div")):
+        contradicting_div = True
+    if contradicting_div:
+        score *= 0.5
+    if entry.get("adx_weakening") and entry.get("adx") is not None and entry["adx"] < 20:
+        score *= 0.85
+    return score
 
 
 MAX_PICKS_PER_SECTOR = 5  # 50% of a 10-pick list - keeps the experiment from concentrating in one sector
@@ -1277,10 +1518,12 @@ def run_predictions(store):
             try:
                 closes = data[symbol]["Close"] if len(batch) > 1 else _flatten_close_series(data["Close"])
                 volumes = data[symbol]["Volume"] if len(batch) > 1 else _flatten_close_series(data["Volume"])
+                highs = data[symbol]["High"] if len(batch) > 1 else _flatten_close_series(data["High"])
+                lows = data[symbol]["Low"] if len(batch) > 1 else _flatten_close_series(data["Low"])
             except Exception:
                 continue
             try:
-                tf = compute_technical_factors(closes, volumes)
+                tf = compute_technical_factors(closes, volumes, highs, lows)
                 if tf:
                     technical[symbol] = tf
                     chart_data_by_ticker[symbol] = build_chart_payload(closes.dropna(), tf)
@@ -1372,6 +1615,13 @@ def run_predictions(store):
     experimental_tickers = {e["ticker"] for e in experimental_top10}
     for entry in today_entries:
         entry["top10_experimental"] = entry["ticker"] in experimental_tickers
+
+    # --- EXPERIMENT C (also parallel, also doesn't touch the real picks):
+    # same breadth pool, ranked by the leading-indicator-adjusted score. ---
+    leading_top10 = select_diversified_top10(breadth, compute_leading_adjusted_score)
+    leading_tickers = {e["ticker"] for e in leading_top10}
+    for entry in today_entries:
+        entry["top10_leading"] = entry["ticker"] in leading_tickers
 
     for entry in today_entries:
         ticker = entry["ticker"]
@@ -1476,6 +1726,8 @@ def main():
         grade_pending_predictions(prediction_store)
         update_portfolio_simulation(prediction_store)
         update_portfolio_simulation(prediction_store, "top10_experimental", "portfolio_sim_experimental")
+        update_portfolio_simulation(prediction_store, "top10_leading", "portfolio_sim_leading")
+        build_formula_comparison(prediction_store)
 
         last_factor_run = (prediction_store.get("factor_analysis") or {}).get("updated_at", "")[:10]
         if last_factor_run != today_str:
