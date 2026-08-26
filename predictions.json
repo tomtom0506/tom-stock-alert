@@ -65001,7 +65001,7 @@
       "support": 14.15,
       "support_projected": false,
       "top10_experimental": false,
-      "actual_price": 14.2505,
+      "actual_price": 14.251,
       "actual_pct_change": 0.32,
       "actual_direction": "up",
       "correct": false,
@@ -66083,8 +66083,8 @@
       "support": 176.61,
       "support_projected": false,
       "top10_experimental": false,
-      "actual_price": 183.915,
-      "actual_pct_change": -0.82,
+      "actual_price": 183.92,
+      "actual_pct_change": -0.81,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-08-26"
@@ -119238,7 +119238,7 @@
     "top10_daily_date": "2026-08-25",
     "us": 48.1,
     "il": 54.7,
-    "updated_at": "2026-08-26T03:08:52.320005+00:00"
+    "updated_at": "2026-08-26T04:05:25.487642+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -119725,7 +119725,7 @@
     "daily_log": []
   },
   "formula_comparison": {
-    "updated_at": "2026-08-26T03:08:52.320799+00:00",
+    "updated_at": "2026-08-26T04:05:25.488530+00:00",
     "note": "השוואה בלבד לצורך מעקב - שינוי בפועל של הנוסחה הראשית נשקל לכל היותר פעם בחודש (לא בתגובה לתנודה של יום-יומיים), אלא אם מתגלה בעיה ברורה וממשית.",
     "formulas": [
       {
