@@ -465,6 +465,9 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">המניות שלי</p>
         <p>רשימה ידנית שאתה בונה בעצמך - לכל מניה אפשר להגדיר יעד עליון (מכירה) ו/או תחתון (קנייה), ולקבל התראת טלגרם כשהמחיר חוצה אותם. עריכה/מחיקה בכפתורים שבתחתית כל כרטיס, והוספת מניה חדשה בכפתור הצהוב הקבוע למטה.</p>
 
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💼 התיק שלי</p>
+        <p>האחזקות האמיתיות שלך (ולא תחזיות) - טיקר וכמות יחידות, נערך ידנית עם הכפתור "נהל אחזקות" (או שלח לי צילום מסך ואני אעדכן בשבילך). מציג מחיר, שינוי יומי, שווי ב-₪ ומשקל יחסי בתיק לכל אחזקה, ורווח/הפסד מצטבר להיום לכל התיק. אחזקות שלא הצלחתי לקבל להן מחיר (בעיקר קרנות נאמנות/מדדים ישראליים שאין להן טיקר סחיר) מוצגות בנפרד ולא נכללות בחישוב. יש גם השוואה מול ה-Top 10 של המערכת ל"מי ניחש טוב יותר היום" - זו לא תחרות רשמית, רק כדי לראות את התמונה. המדד המצטבר ("מדד תיק") ממשיך להצטבר גם אם מוחלפת אחזקה - מכירת מניה וקנייה של אחרת לא מוחקת את מה שהרווחת קודם.</p>
+
       </div>
     </div>
   </div>
@@ -672,6 +675,37 @@
 
   <div class="loading hidden" id="loadingMsg">טוען...</div>
 
+  <div id="myPortfolioSection" class="hidden">
+    <div class="section-title">💼 התיק שלי</div>
+    <div id="myPortfolioSummary" style="font-size:13px; color:var(--text-dim); margin-bottom:10px;"></div>
+    <div id="myPortfolioCompare" style="margin-bottom:14px;"></div>
+    <div id="myPortfolioList"></div>
+    <div id="myPortfolioUnpriced" style="font-size:11.5px; color:var(--text-faint); margin-top:8px; line-height:1.6;"></div>
+    <button class="icon-btn" id="myPortfolioAddToggleBtn" style="margin-top:14px;">✏ נהל אחזקות</button>
+    <div id="myPortfolioEditArea" class="hidden" style="margin-top:12px;">
+      <div class="field-row">
+        <div>
+          <label class="field-label">טיקר (Yahoo Finance)</label>
+          <input class="field-input mono" id="mpTickerInput" placeholder="PLTR / AZRG.TA" />
+        </div>
+        <div>
+          <label class="field-label">שם לתצוגה (אופציונלי)</label>
+          <input class="field-input" id="mpNameInput" placeholder="Palantir" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div>
+          <label class="field-label">כמות יחידות</label>
+          <input class="field-input mono" type="number" step="any" id="mpQtyInput" placeholder="למשל 56" />
+        </div>
+      </div>
+      <button class="btn-primary" id="mpSaveHoldingBtn" style="margin-top:10px;">💾 שמור אחזקה</button>
+      <div id="myPortfolioEditStatus"></div>
+      <div style="margin-top:14px; font-size:11px; color:var(--text-faint);">אחזקות קיימות:</div>
+      <div id="myPortfolioEditList" style="margin-top:6px;"></div>
+    </div>
+  </div>
+
   <div id="watchlistSection" class="hidden">
     <div class="section-title">המניות שלי</div>
     <div id="rowsContainer"></div>
@@ -739,12 +773,18 @@
 </div>
 
 <script>
-const APP_VERSION = "4.5"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "4.6"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "4.6", items: [
+    "נוסף סקשן חדש '💼 התיק שלי' - האחזקות האמיתיות שלך (לא תחזיות): טיקר + כמות יחידות, נערך ידנית או דרך שיחה. מציג מחיר, שינוי יומי, שווי ב-₪ ומשקל יחסי לכל אחזקה, ורווח/הפסד מצטבר להיום לכל התיק.",
+    "נוסף מדד תיק מצטבר שממשיך להצטבר גם כשמחליפים אחזקה - מכירת מניה וקנייה של אחרת לא מוחקת את מה שהרווחת קודם.",
+    "נוספה השוואה '🆚 מי ניחש טוב יותר היום' בין התיק שלי לבין ה-Top 10 (הערכה חיה).",
+    "אחזקות שלא ניתן לקבל להן מחיר (בעיקר קרנות נאמנות/מדדים ישראליים ללא טיקר סחיר) מוצגות בנפרד ולא נכללות בחישוב השווי/משקל.",
+  ]},
   { version: "4.5", items: [
     "ריבוע 'אחוז הצלחת חיזוי' (העליון, ליד המדדים) הפך ליומי - מציג את הדיוק של יום המסחר האחרון שנבדק, ולא ממוצע מצטבר של כל הימים (שנשאר מוצג בנפרד, בריבוע 'אחוז הצלחה Top 10' שבתוך סימולציית ה-₪100,000).",
     "ריבוע '📡 הערכה חיה' הפך ללחיץ - מציג פירוט של כל אחת מ-10 המניות ומה היא עושה כרגע, בדיוק כמו שיש לריבוע הרשמי 'רווח/הפסד יומי'.",
@@ -1414,6 +1454,7 @@ async function loadPredictions() {
     renderFactorAnalysis(data.factor_analysis);
     renderFormulaComparison(data.formula_comparison);
     renderMonthlyPortfolio(data.monthly_portfolio, currentPrices);
+    renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
   } catch (e) {
     section.classList.add("hidden");
   }
@@ -2145,6 +2186,181 @@ async function saveStarred() {
   }
 }
 
+/* ---------- "התיק שלי" (my real holdings) load/save/render ---------- */
+let myHoldings = [];
+let myHoldingsSha = null;
+
+async function loadMyHoldings() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/my_portfolio.json`,
+      { headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" } }
+    );
+    if (res.status === 404) {
+      myHoldings = [];
+      myHoldingsSha = null;
+      return;
+    }
+    if (!res.ok) return; // non-critical, fail silently rather than blocking the whole app
+    const data = await res.json();
+    const arr = JSON.parse(base64ToUtf8(data.content));
+    myHoldings = Array.isArray(arr) ? arr : [];
+    myHoldingsSha = data.sha;
+  } catch (e) {
+    myHoldings = [];
+    myHoldingsSha = null;
+  } finally {
+    renderMyPortfolioEditList();
+  }
+}
+
+async function saveMyHoldings(statusElId) {
+  const statusEl = statusElId ? document.getElementById(statusElId) : null;
+  try {
+    const body = {
+      message: "עדכון התיק שלי דרך הממשק",
+      content: utf8ToBase64(JSON.stringify(myHoldings, null, 2)),
+    };
+    if (myHoldingsSha) body.sha = myHoldingsSha;
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/my_portfolio.json`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }
+    );
+    if (!res.ok) {
+      const errBody = await res.json().catch(() => ({}));
+      throw new Error(errBody.message || `שמירה נכשלה (${res.status})`);
+    }
+    const data = await res.json();
+    myHoldingsSha = data.content.sha;
+    if (statusEl) statusEl.innerHTML = `<div class="status ok">נשמר בהצלחה ✓ (המחיר יתעדכן בפעימה הבאה, עד 15 דק')</div>`;
+  } catch (e) {
+    if (statusEl) statusEl.innerHTML = `<div class="status error">${e.message || "שמירה נכשלה"}</div>`;
+  }
+}
+
+function renderMyPortfolioEditList() {
+  const list = document.getElementById("myPortfolioEditList");
+  if (!list) return;
+  if (!myHoldings.length) {
+    list.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">אין עדיין אחזקות.</div>`;
+    return;
+  }
+  list.innerHTML = myHoldings.map((h, i) => `
+    <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);">
+      <span style="font-size:12.5px;"><b class="mono">${h.ticker}</b>${h.name ? " · " + h.name : ""} · <span class="mono">${h.quantity}</span> יח'</span>
+      <button class="icon-btn danger" data-mp-del="${i}" style="padding:3px 9px; font-size:11px;">🗑</button>
+    </div>`).join("");
+  list.querySelectorAll("[data-mp-del]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      myHoldings.splice(+btn.dataset.mpDel, 1);
+      renderMyPortfolioEditList();
+      saveMyHoldings("myPortfolioEditStatus");
+    });
+  });
+}
+
+document.getElementById("myPortfolioAddToggleBtn").addEventListener("click", () => {
+  document.getElementById("myPortfolioEditArea").classList.toggle("hidden");
+});
+
+document.getElementById("mpSaveHoldingBtn").addEventListener("click", () => {
+  const ticker = document.getElementById("mpTickerInput").value.trim().toUpperCase();
+  const name = document.getElementById("mpNameInput").value.trim();
+  const quantity = Number(document.getElementById("mpQtyInput").value);
+  const statusEl = document.getElementById("myPortfolioEditStatus");
+  if (!ticker || !quantity || quantity <= 0) {
+    statusEl.innerHTML = `<div class="status error">חובה למלא טיקר וכמות יחידות חיובית</div>`;
+    return;
+  }
+  const existingIdx = myHoldings.findIndex(h => h.ticker === ticker);
+  const entry = { ticker, name: name || ticker, quantity };
+  if (existingIdx >= 0) myHoldings[existingIdx] = entry;
+  else myHoldings.push(entry);
+  document.getElementById("mpTickerInput").value = "";
+  document.getElementById("mpNameInput").value = "";
+  document.getElementById("mpQtyInput").value = "";
+  renderMyPortfolioEditList();
+  saveMyHoldings("myPortfolioEditStatus");
+});
+
+function renderMyPortfolio(snapshot, sim) {
+  const section = document.getElementById("myPortfolioSection");
+  if (!snapshot || !snapshot.rows || !snapshot.rows.length) {
+    section.classList.remove("hidden"); // still show it (empty state) so the "נהל אחזקות" button is reachable
+    document.getElementById("myPortfolioSummary").textContent = "אין עדיין אחזקות בתיק - הוסף אחת עם הכפתור 'נהל אחזקות' למטה.";
+    document.getElementById("myPortfolioCompare").innerHTML = "";
+    document.getElementById("myPortfolioList").innerHTML = "";
+    document.getElementById("myPortfolioUnpriced").innerHTML = "";
+    return;
+  }
+
+  const priced = snapshot.rows.filter(r => r.ok && r.pct_change != null);
+  const unpriced = snapshot.rows.filter(r => !r.ok);
+
+  const totalReturn = snapshot.weighted_return_pct;
+  const totalValue = snapshot.total_value_ils;
+  if (totalReturn != null && totalValue != null) {
+    const gainIls = totalValue * totalReturn / 100;
+    const cls = totalReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+    document.getElementById("myPortfolioSummary").innerHTML = `
+      שווי חלק התיק שמחיר עדכני קיים לו: <b class="mono">₪${totalValue.toLocaleString("he-IL", {maximumFractionDigits:0})}</b><br>
+      רווח/הפסד מצטבר להיום: <b class="mono ${cls}">${gainIls >= 0 ? "+" : ""}₪${gainIls.toLocaleString("he-IL", {maximumFractionDigits:0})} (${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%)</b>
+      ${sim && sim.total_return_pct != null ? `<br>מדד תיק מצטבר (ממשיך גם אם מוחלפת אחזקה): <b class="mono ${sim.total_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${sim.total_return_pct >= 0 ? "+" : ""}${sim.total_return_pct}%</b>` : ""}
+    `;
+  } else {
+    document.getElementById("myPortfolioSummary").textContent = "אין עדיין מספיק נתונים לחישוב רווח מצטבר.";
+  }
+
+  // "who guessed better today" - my weighted return vs the Top10 live estimate
+  const liveTop10 = computeLiveTop10Estimate();
+  if (totalReturn != null && liveTop10 && liveTop10.avg != null) {
+    const iWin = totalReturn >= liveTop10.avg;
+    document.getElementById("myPortfolioCompare").innerHTML = `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:6px;">
+        <div style="font-size:12.5px; font-weight:600; color:var(--text-dim);">🆚 מי ניחש טוב יותר היום?</div>
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span>התיק שלי ${iWin ? "🏆" : ""}</span>
+          <span class="mono ${totalReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span>Top 10 (הערכה חיה) ${!iWin ? "🏆" : ""}</span>
+          <span class="mono ${liveTop10.avg >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${liveTop10.avg >= 0 ? "+" : ""}${liveTop10.avg.toFixed(2)}%</span>
+        </div>
+      </div>`;
+  } else {
+    document.getElementById("myPortfolioCompare").innerHTML = "";
+  }
+
+  document.getElementById("myPortfolioList").innerHTML = priced.map(r => {
+    const cls = r.pct_change >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+    return `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:600;">${r.name || r.ticker} <span class="mono" style="font-size:11px; color:var(--text-faint);">${r.ticker}</span></span>
+          <span class="mono ${cls}" style="font-weight:700;">${r.pct_change >= 0 ? "+" : ""}${r.pct_change}%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>מחיר: <span class="mono">${r.price_native}</span> · שווי: <span class="mono">₪${r.value_ils.toLocaleString("he-IL", {maximumFractionDigits:0})}</span></span>
+          <span>משקל בתיק: <span class="mono">${r.weight_pct != null ? r.weight_pct + "%" : "—"}</span></span>
+        </div>
+      </div>`;
+  }).join("");
+
+  document.getElementById("myPortfolioUnpriced").innerHTML = unpriced.length
+    ? `⚠️ לא הצלחתי לקבל מחיר ל: ${unpriced.map(r => `${r.name || r.ticker} (${r.ticker})`).join(", ")} - בעיקר קרנות נאמנות/מדדים ישראליים שאין להן טיקר סחיר. לא נכללות בחישוב עד שיהיה טיקר תקין.`
+    : "";
+
+  section.classList.remove("hidden");
+}
+
 /* ---------- watchlist load/save ---------- */
 async function loadWatchlist() {
   document.getElementById("loadingMsg").classList.remove("hidden");
@@ -2415,6 +2631,7 @@ document.getElementById("saveConfigBtn").addEventListener("click", () => {
   loadWatchlist().then(() => { ensureUids(); render(); });
   loadPredictions();
   loadStarred();
+  loadMyHoldings();
 });
 
 document.getElementById("addBtn").addEventListener("click", () => {
@@ -2486,6 +2703,7 @@ if (cfg && cfg.owner && cfg.repo && cfg.token) {
   loadWatchlist().then(() => { ensureUids(); render(); });
   loadPredictions();
   loadStarred();
+  loadMyHoldings();
 } else {
   showConfigPanel(true);
   document.getElementById("needConfigMsg").classList.remove("hidden");

@@ -44,6 +44,7 @@ STATE_FILE = BASE_DIR / "state.json"
 CURRENT_PRICES_FILE = BASE_DIR / "current_prices.json"
 PREDICTIONS_FILE = BASE_DIR / "predictions.json"
 STARRED_FILE = BASE_DIR / "starred.json"
+MY_PORTFOLIO_FILE = BASE_DIR / "my_portfolio.json"
 
 SP500_CSV_URL = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
 
@@ -241,6 +242,112 @@ def run_watchlist_alerts(state, prediction_store=None):
         "prices": current_prices,
         "indices": get_market_indices(),
     })
+
+
+# ---------- "התיק שלי" (my real holdings, manually maintained) ----------
+
+def compute_my_portfolio_snapshot(holdings):
+    """For each holding, try to fetch a live price. A ticker that can't be
+    resolved at all (e.g. an Israeli mutual/index fund with no tradable
+    ticker on Yahoo Finance) is marked ok=False and excluded from the
+    value/weight/return math entirely - it is never silently included with
+    missing or wrong data, per the agreed rule."""
+    usdils_rate = None
+    try:
+        usdils_rate, _ = get_price_and_prev_close("ILS=X")
+    except Exception as e:
+        print(f"Error fetching USD/ILS rate for my-portfolio: {e}")
+
+    rows = []
+    for h in holdings:
+        ticker = (h.get("ticker") or "").strip()
+        qty = h.get("quantity")
+        if not ticker or not qty:
+            continue
+        try:
+            price, prev_close = get_price_and_prev_close(ticker)
+        except Exception as e:
+            print(f"my_portfolio: no price for {ticker}: {type(e).__name__}: {e}")
+            price, prev_close = None, None
+
+        if price is None:
+            rows.append({"ticker": ticker, "name": h.get("name") or ticker, "ok": False})
+            continue
+
+        # TASE tickers (.TA) are quoted by Yahoo in Agorot, not Shekels
+        # (1 Shekel = 100 Agorot) - divide by 100. Everything else is
+        # assumed USD and converted at the live USD/ILS rate.
+        israeli = is_israeli(ticker)
+        unit_price_ils = (price / 100.0) if israeli else price * (usdils_rate or 1.0)
+        value_ils = unit_price_ils * qty
+        pct_change = ((price - prev_close) / prev_close * 100) if prev_close else None
+
+        rows.append({
+            "ticker": ticker, "name": h.get("name") or ticker, "ok": True,
+            "price_native": round(price, 2),
+            "value_ils": round(value_ils, 2),
+            "pct_change": round(pct_change, 2) if pct_change is not None else None,
+        })
+
+    priced = [r for r in rows if r.get("ok") and r.get("pct_change") is not None]
+    total_value = sum(r["value_ils"] for r in priced)
+    for r in priced:
+        r["weight_pct"] = round(r["value_ils"] / total_value * 100, 1) if total_value else None
+
+    weighted_return = None
+    if total_value:
+        weighted_return = sum(r["value_ils"] * r["pct_change"] for r in priced) / total_value
+
+    return {
+        "rows": rows,
+        "total_value_ils": round(total_value, 2) if total_value else None,
+        "weighted_return_pct": round(weighted_return, 3) if weighted_return is not None else None,
+        "usdils_rate": usdils_rate,
+    }
+
+
+def update_my_portfolio(store):
+    """Tomer's real, manually-entered holdings (edited from the app or by
+    sending me a screenshot - see MY_PORTFOLIO_FILE), refreshed every run
+    (~15 min) alongside the watchlist. Tracks per-holding daily P&L plus a
+    compounding index ('my_portfolio_sim') so the running total is never
+    erased when a holding is sold and replaced with a new one - the index
+    just keeps compounding forward, the same way portfolio_sim does for
+    Top 10, and the new holding's returns simply join it going forward."""
+    holdings = load_json(MY_PORTFOLIO_FILE, [])
+    snapshot = compute_my_portfolio_snapshot(holdings)
+    store["my_portfolio_snapshot"] = {
+        **snapshot,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    sim = store.setdefault("my_portfolio_sim", {
+        "value": 100.0, "pending_date": None, "pending_return_pct": None, "daily_log": [],
+    })
+
+    if snapshot["weighted_return_pct"] is None:
+        return  # nothing priced right now (e.g. holdings list is empty) - leave the index untouched
+
+    today_str = date.today().isoformat()
+    pending_date = sim.get("pending_date")
+
+    if pending_date is None or pending_date == today_str:
+        # first run ever, or still the same day - keep refreshing the "live"
+        # return for today without compounding it into the index yet.
+        sim["pending_date"] = today_str
+        sim["pending_return_pct"] = snapshot["weighted_return_pct"]
+    else:
+        # a new day has started - lock in the last-seen return for the
+        # previous day, exactly once, then start tracking today fresh.
+        sim["value"] = sim["value"] * (1 + (sim["pending_return_pct"] or 0) / 100)
+        sim["daily_log"].append({
+            "date": pending_date, "return_pct": sim["pending_return_pct"], "value": round(sim["value"], 3),
+        })
+        sim["daily_log"] = sim["daily_log"][-90:]
+        sim["pending_date"] = today_str
+        sim["pending_return_pct"] = snapshot["weighted_return_pct"]
+
+    sim["total_return_pct"] = round((sim["value"] / 100 - 1) * 100, 2)
 
 
 # ---------- market-wide big-move alerts ----------
@@ -1710,6 +1817,11 @@ def main():
     prediction_store = load_prediction_store()
 
     run_watchlist_alerts(state, prediction_store)
+
+    try:
+        update_my_portfolio(prediction_store)
+    except Exception as e:
+        print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
 
     if not is_market_trading_day():
         print("Market hasn't traded today yet (weekend/holiday/pre-open) - "
