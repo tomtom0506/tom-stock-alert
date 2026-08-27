@@ -544,9 +544,11 @@
   </div>
 
   <div id="rrExperimentSection" class="hidden">
-    <div class="section-title">🧮 השוואת נוסחאות (Top 10)</div>
+    <div class="section-title" id="formulaComparisonToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+      🧮 השוואת נוסחאות (Top 10) <span id="formulaComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
+    </div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;" id="formulaComparisonNote"></div>
-    <div id="formulaComparisonList"></div>
+    <div class="predictions-panel hidden" id="formulaComparisonPanel"><div id="formulaComparisonList"></div></div>
   </div>
 
   <div id="monthlyPortfolioSection" class="hidden">
@@ -565,7 +567,9 @@
       <div class="section-title">⭐ מניות במעקב</div>
       <div id="starredList"></div>
     </div>
-    <div class="section-title">🔮 תחזיות ליום המסחר הבא</div>
+    <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+      🔮 תחזיות ליום המסחר הבא <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▾ הסתר פירוט</span>
+    </div>
     <div id="hotPickCard"></div>
     <div class="predictions-controls">
       <select id="sortSelect" class="sort-select">
@@ -581,7 +585,7 @@
       <button id="recomputeBtn" class="top-toggle-btn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
     </div>
     <div id="recomputeStatus"></div>
-    <div id="predictionsList"></div>
+    <div class="predictions-panel" id="predictionsListPanel"><div id="predictionsList"></div></div>
   </div>
 
   <div class="modal-overlay hidden" id="liveEstimateOverlay" style="z-index:150;">
@@ -676,10 +680,12 @@
   <div class="loading hidden" id="loadingMsg">טוען...</div>
 
   <div id="myPortfolioSection" class="hidden">
-    <div class="section-title">💼 התיק שלי</div>
+    <div class="section-title" id="myPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+      💼 התיק שלי <span id="myPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
+    </div>
     <div id="myPortfolioSummary" style="font-size:13px; color:var(--text-dim); margin-bottom:10px;"></div>
     <div id="myPortfolioCompare" style="margin-bottom:14px;"></div>
-    <div id="myPortfolioList"></div>
+    <div class="predictions-panel hidden" id="myPortfolioPanel"><div id="myPortfolioList"></div></div>
     <div id="myPortfolioUnpriced" style="font-size:11.5px; color:var(--text-faint); margin-top:8px; line-height:1.6;"></div>
     <button class="icon-btn" id="myPortfolioAddToggleBtn" style="margin-top:14px;">✏ נהל אחזקות</button>
     <div id="myPortfolioEditArea" class="hidden" style="margin-top:12px;">
@@ -707,9 +713,13 @@
   </div>
 
   <div id="watchlistSection" class="hidden">
-    <div class="section-title">המניות שלי</div>
-    <div id="rowsContainer"></div>
-    <div class="empty hidden" id="emptyMsg">אין עדיין מניות. הוסף אחת עם הכפתור למטה.</div>
+    <div class="section-title" id="watchlistToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+      המניות שלי <span id="watchlistArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
+    </div>
+    <div class="predictions-panel hidden" id="watchlistPanel">
+      <div id="rowsContainer"></div>
+      <div class="empty hidden" id="emptyMsg">אין עדיין מניות. הוסף אחת עם הכפתור למטה.</div>
+    </div>
   </div>
 
   <div id="statusMsg"></div>
@@ -773,12 +783,17 @@
 </div>
 
 <script>
-const APP_VERSION = "4.6"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "4.7"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "4.7", items: [
+    "בסקשן 'התיק שלי': המספר הבולט למעלה הוא עכשיו המדד המצטבר מאז תחילת המעקב (עם הערכה ב-₪), במקום שורה שנקראה בטעות 'מצטבר' אבל הייתה בעצם רווח יומי בלבד. השורה היומית נקראת עכשיו 'רווח/הפסד להיום' בלי לבלבל.",
+    "נוספה השוואה מצטברת (לצד היומית הקיימת) ב'🆚 מי ניחש טוב יותר' - התיק שלי מול תיק ה-₪100,000 האמיתי של Top 10, מאז תחילת המעקב.",
+    "ארבעה סקשנים הפכו למתקפלים (לחיצה על הכותרת) בדיוק כמו 'ביצועי תחזיות חזקות'/'ניתוח טריגרים': 'התיק שלי', 'השוואת נוסחאות', 'תחזיות ליום המסחר הבא' ו'המניות שלי'. כותרת 'התיק שלי' גם מתצבעת ירוק/אדום לפי המדד המצטבר, כדי שאפשר יהיה לסרוק מהר בלי לפתוח.",
+  ]},
   { version: "4.6", items: [
     "נוסף סקשן חדש '💼 התיק שלי' - האחזקות האמיתיות שלך (לא תחזיות): טיקר + כמות יחידות, נערך ידנית או דרך שיחה. מציג מחיר, שינוי יומי, שווי ב-₪ ומשקל יחסי לכל אחזקה, ורווח/הפסד מצטבר להיום לכל התיק.",
     "נוסף מדד תיק מצטבר שממשיך להצטבר גם כשמחליפים אחזקה - מכירת מניה וקנייה של אחרת לא מוחקת את מה שהרווחת קודם.",
@@ -872,6 +887,10 @@ function setupCollapsibleToggle(titleId, arrowId, panelId, openLabel, closeLabel
 setupCollapsibleToggle("trackRecordToggle", "trackRecordArrow", "trackListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("factorAnalysisToggle", "factorAnalysisArrow", "factorAnalysisPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("monthlyPortfolioToggle", "monthlyPortfolioArrow", "monthlyPortfolioPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("myPortfolioToggle", "myPortfolioArrow", "myPortfolioPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("formulaComparisonToggle", "formulaComparisonArrow", "formulaComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("predictionsToggle", "predictionsArrow", "predictionsListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("watchlistToggle", "watchlistArrow", "watchlistPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 document.getElementById("changelogCloseBtn").addEventListener("click", () => {
   document.getElementById("changelogOverlay").classList.add("hidden");
 });
@@ -1454,6 +1473,7 @@ async function loadPredictions() {
     renderFactorAnalysis(data.factor_analysis);
     renderFormulaComparison(data.formula_comparison);
     renderMonthlyPortfolio(data.monthly_portfolio, currentPrices);
+    lastPortfolioSimReal = data.portfolio_sim || null;
     renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
   } catch (e) {
     section.classList.add("hidden");
@@ -1533,6 +1553,7 @@ function renderTrackRecord(history, acc) {
 
 let lastDailyPnlEntry = null;
 let lastLiveEstimate = null;
+let lastPortfolioSimReal = null;
 
 function computeLiveTop10Estimate() {
   const today = new Date().toISOString().slice(0, 10);
@@ -2307,37 +2328,70 @@ function renderMyPortfolio(snapshot, sim) {
 
   const totalReturn = snapshot.weighted_return_pct;
   const totalValue = snapshot.total_value_ils;
+  const cumReturn = sim && sim.total_return_pct != null ? sim.total_return_pct : null;
+  const headerToggle = document.getElementById("myPortfolioToggle");
+
   if (totalReturn != null && totalValue != null) {
     const gainIls = totalValue * totalReturn / 100;
-    const cls = totalReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down";
-    document.getElementById("myPortfolioSummary").innerHTML = `
+    const dailyCls = totalReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+    let html = "";
+    if (cumReturn != null) {
+      const cumGainIls = totalValue * cumReturn / 100;
+      const cumCls = cumReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down";
+      html += `
+        <div style="font-size:15px; margin-bottom:6px;">מדד תיק מצטבר (מאז תחילת המעקב, ממשיך גם אם מוחלפת אחזקה):
+          <b class="mono ${cumCls}" style="font-size:16px;">${cumReturn >= 0 ? "+" : ""}${cumReturn}%</b>
+          <span class="mono ${cumCls}" style="font-size:12.5px;">(${cumGainIls >= 0 ? "+" : ""}₪${cumGainIls.toLocaleString("he-IL", {maximumFractionDigits:0})} משוער)</span>
+        </div>`;
+      headerToggle.style.color = cumReturn >= 0 ? "var(--up)" : "var(--down)";
+    } else {
+      headerToggle.style.color = "";
+    }
+    html += `
       שווי חלק התיק שמחיר עדכני קיים לו: <b class="mono">₪${totalValue.toLocaleString("he-IL", {maximumFractionDigits:0})}</b><br>
-      רווח/הפסד מצטבר להיום: <b class="mono ${cls}">${gainIls >= 0 ? "+" : ""}₪${gainIls.toLocaleString("he-IL", {maximumFractionDigits:0})} (${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%)</b>
-      ${sim && sim.total_return_pct != null ? `<br>מדד תיק מצטבר (ממשיך גם אם מוחלפת אחזקה): <b class="mono ${sim.total_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${sim.total_return_pct >= 0 ? "+" : ""}${sim.total_return_pct}%</b>` : ""}
+      רווח/הפסד להיום: <b class="mono ${dailyCls}">${gainIls >= 0 ? "+" : ""}₪${gainIls.toLocaleString("he-IL", {maximumFractionDigits:0})} (${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%)</b>
     `;
+    document.getElementById("myPortfolioSummary").innerHTML = html;
   } else {
-    document.getElementById("myPortfolioSummary").textContent = "אין עדיין מספיק נתונים לחישוב רווח מצטבר.";
+    document.getElementById("myPortfolioSummary").textContent = "אין עדיין מספיק נתונים לחישוב רווח.";
+    headerToggle.style.color = "";
   }
 
-  // "who guessed better today" - my weighted return vs the Top10 live estimate
+  // "who guessed better" - daily AND cumulative (since tracking started), my portfolio vs Top10
   const liveTop10 = computeLiveTop10Estimate();
+  let compareHtml = "";
   if (totalReturn != null && liveTop10 && liveTop10.avg != null) {
-    const iWin = totalReturn >= liveTop10.avg;
-    document.getElementById("myPortfolioCompare").innerHTML = `
+    const iWinDaily = totalReturn >= liveTop10.avg;
+    compareHtml += `
       <div class="track-row" style="flex-direction:column; align-items:stretch; gap:6px;">
         <div style="font-size:12.5px; font-weight:600; color:var(--text-dim);">🆚 מי ניחש טוב יותר היום?</div>
         <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>התיק שלי ${iWin ? "🏆" : ""}</span>
+          <span>התיק שלי ${iWinDaily ? "🏆" : ""}</span>
           <span class="mono ${totalReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%</span>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>Top 10 (הערכה חיה) ${!iWin ? "🏆" : ""}</span>
+          <span>Top 10 (הערכה חיה) ${!iWinDaily ? "🏆" : ""}</span>
           <span class="mono ${liveTop10.avg >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${liveTop10.avg >= 0 ? "+" : ""}${liveTop10.avg.toFixed(2)}%</span>
         </div>
       </div>`;
-  } else {
-    document.getElementById("myPortfolioCompare").innerHTML = "";
   }
+  if (cumReturn != null && lastPortfolioSimReal && lastPortfolioSimReal.total_return_pct != null) {
+    const realReturn = lastPortfolioSimReal.total_return_pct;
+    const iWinCum = cumReturn >= realReturn;
+    compareHtml += `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:6px; margin-top:8px;">
+        <div style="font-size:12.5px; font-weight:600; color:var(--text-dim);">🆚 ומי ניחש טוב יותר מאז תחילת המעקב?</div>
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span>התיק שלי ${iWinCum ? "🏆" : ""}</span>
+          <span class="mono ${cumReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${cumReturn >= 0 ? "+" : ""}${cumReturn}%</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span>Top 10 (תיק ₪100,000) ${!iWinCum ? "🏆" : ""}</span>
+          <span class="mono ${realReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${realReturn >= 0 ? "+" : ""}${realReturn}%</span>
+        </div>
+      </div>`;
+  }
+  document.getElementById("myPortfolioCompare").innerHTML = compareHtml;
 
   document.getElementById("myPortfolioList").innerHTML = priced.map(r => {
     const cls = r.pct_change >= 0 ? "prediction-dir-up" : "prediction-dir-down";
