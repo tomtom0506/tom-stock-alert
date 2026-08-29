@@ -190966,66 +190966,66 @@
         "ticker": "PLTR",
         "name": "Palantir",
         "ok": true,
-        "price_native": 186.16,
-        "value_ils": 10575.35,
-        "pct_change": 0.12,
-        "weight_pct": 10.8
+        "price_native": 186.29,
+        "value_ils": 10609.68,
+        "pct_change": 0.19,
+        "weight_pct": 10.7
       },
       {
         "ticker": "GOOGL",
         "name": "Alphabet",
         "ok": true,
-        "price_native": 345.89,
-        "value_ils": 15512.43,
-        "pct_change": 1.54,
+        "price_native": 346.59,
+        "value_ils": 15583.55,
+        "pct_change": 1.74,
         "weight_pct": 15.8
       },
       {
         "ticker": "ZVRA",
         "name": "Zevra Therapeutics",
         "ok": true,
-        "price_native": 11.68,
-        "value_ils": 23562.28,
-        "pct_change": -1.48,
-        "weight_pct": 24.0
+        "price_native": 11.56,
+        "value_ils": 23399.61,
+        "pct_change": -2.41,
+        "weight_pct": 23.7
       },
       {
         "ticker": "XLI",
         "name": "Industrial Select Sector SPDR",
         "ok": true,
-        "price_native": 177.04,
-        "value_ils": 15879.96,
-        "pct_change": -0.98,
-        "weight_pct": 16.2
+        "price_native": 177.14,
+        "value_ils": 15929.31,
+        "pct_change": -0.93,
+        "weight_pct": 16.1
       },
       {
         "ticker": "FTAL.TA",
         "name": "פתאל החזקות",
         "ok": true,
-        "price_native": 71190.0,
-        "value_ils": 14238.0,
-        "pct_change": -0.43,
+        "price_native": 71500.0,
+        "value_ils": 14300.0,
+        "pct_change": 2.67,
         "weight_pct": 14.5
       },
       {
         "ticker": "AZRG.TA",
         "name": "עזריאלי קבוצה",
         "ok": true,
-        "price_native": 39130.0,
-        "value_ils": 18391.1,
-        "pct_change": -2.59,
-        "weight_pct": 18.7
+        "price_native": 40170.0,
+        "value_ils": 18879.9,
+        "pct_change": 1.83,
+        "weight_pct": 19.1
       }
     ],
-    "total_value_ils": 98159.12,
-    "weighted_return_pct": -0.805,
-    "usdils_rate": 2.9899001121520996,
-    "updated_at": "2026-08-28T16:51:03.812000+00:00"
+    "total_value_ils": 98702.05,
+    "weighted_return_pct": 0.311,
+    "usdils_rate": 2.997499942779541,
+    "updated_at": "2026-08-29T00:52:59.620348+00:00"
   },
   "my_portfolio_sim": {
-    "value": 101.58086022,
-    "pending_date": "2026-08-28",
-    "pending_return_pct": -0.805,
+    "value": 100.76313429522901,
+    "pending_date": "2026-08-29",
+    "pending_return_pct": 0.311,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -191036,8 +191036,13 @@
         "date": "2026-08-27",
         "return_pct": 1.274,
         "value": 101.581
+      },
+      {
+        "date": "2026-08-28",
+        "return_pct": -0.805,
+        "value": 100.763
       }
     ],
-    "total_return_pct": 1.58
+    "total_return_pct": 0.76
   }
 }
