@@ -190966,37 +190966,37 @@
         "ticker": "PLTR",
         "name": "Palantir",
         "ok": true,
-        "price_native": 186.29,
-        "value_ils": 10609.68,
-        "pct_change": 0.19,
+        "price_native": 185.93,
+        "value_ils": 10589.18,
+        "pct_change": 4.75,
         "weight_pct": 10.7
       },
       {
         "ticker": "GOOGL",
         "name": "Alphabet",
         "ok": true,
-        "price_native": 346.59,
-        "value_ils": 15583.55,
-        "pct_change": 1.74,
-        "weight_pct": 15.8
+        "price_native": 340.65,
+        "value_ils": 15316.48,
+        "pct_change": -0.39,
+        "weight_pct": 15.4
       },
       {
         "ticker": "ZVRA",
         "name": "Zevra Therapeutics",
         "ok": true,
-        "price_native": 11.56,
-        "value_ils": 23399.61,
-        "pct_change": -2.41,
-        "weight_pct": 23.7
+        "price_native": 11.85,
+        "value_ils": 23976.25,
+        "pct_change": 0.94,
+        "weight_pct": 24.2
       },
       {
         "ticker": "XLI",
         "name": "Industrial Select Sector SPDR",
         "ok": true,
-        "price_native": 177.14,
-        "value_ils": 15929.31,
-        "pct_change": -0.93,
-        "weight_pct": 16.1
+        "price_native": 178.8,
+        "value_ils": 16078.59,
+        "pct_change": -0.85,
+        "weight_pct": 16.2
       },
       {
         "ticker": "FTAL.TA",
@@ -191005,7 +191005,7 @@
         "price_native": 71500.0,
         "value_ils": 14300.0,
         "pct_change": 2.67,
-        "weight_pct": 14.5
+        "weight_pct": 14.4
       },
       {
         "ticker": "AZRG.TA",
@@ -191014,18 +191014,18 @@
         "price_native": 40170.0,
         "value_ils": 18879.9,
         "pct_change": 1.83,
-        "weight_pct": 19.1
+        "weight_pct": 19.0
       }
     ],
-    "total_value_ils": 98702.05,
-    "weighted_return_pct": 0.311,
+    "total_value_ils": 99140.4,
+    "weighted_return_pct": 1.27,
     "usdils_rate": 2.997499942779541,
-    "updated_at": "2026-08-29T00:52:59.620348+00:00"
+    "updated_at": "2026-08-29T07:42:30.966676+00:00"
   },
   "my_portfolio_sim": {
     "value": 100.76313429522901,
     "pending_date": "2026-08-29",
-    "pending_return_pct": 0.311,
+    "pending_return_pct": 1.27,
     "daily_log": [
       {
         "date": "2026-08-26",
