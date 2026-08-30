@@ -190967,7 +190967,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 186.29,
-        "value_ils": 10609.68,
+        "value_ils": 10497.66,
         "pct_change": 0.19,
         "weight_pct": 10.7
       },
@@ -190976,25 +190976,25 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 346.59,
-        "value_ils": 15583.55,
+        "value_ils": 15419.01,
         "pct_change": 1.74,
-        "weight_pct": 15.8
+        "weight_pct": 15.7
       },
       {
         "ticker": "ZVRA",
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 11.56,
-        "value_ils": 23399.61,
+        "value_ils": 23152.54,
         "pct_change": -2.41,
-        "weight_pct": 23.7
+        "weight_pct": 23.6
       },
       {
         "ticker": "XLI",
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 177.14,
-        "value_ils": 15929.31,
+        "value_ils": 15761.12,
         "pct_change": -0.93,
         "weight_pct": 16.1
       },
@@ -191005,7 +191005,7 @@
         "price_native": 71500.0,
         "value_ils": 14300.0,
         "pct_change": 2.67,
-        "weight_pct": 14.5
+        "weight_pct": 14.6
       },
       {
         "ticker": "AZRG.TA",
@@ -191014,18 +191014,18 @@
         "price_native": 40170.0,
         "value_ils": 18879.9,
         "pct_change": 1.83,
-        "weight_pct": 19.1
+        "weight_pct": 19.3
       }
     ],
-    "total_value_ils": 98702.05,
-    "weighted_return_pct": 0.311,
-    "usdils_rate": 2.997499942779541,
-    "updated_at": "2026-08-30T21:38:28.847980+00:00"
+    "total_value_ils": 98010.23,
+    "weighted_return_pct": 0.317,
+    "usdils_rate": 2.9658501148223877,
+    "updated_at": "2026-08-30T23:55:01.583725+00:00"
   },
   "my_portfolio_sim": {
     "value": 101.07650764288717,
     "pending_date": "2026-08-30",
-    "pending_return_pct": 0.311,
+    "pending_return_pct": 0.317,
     "daily_log": [
       {
         "date": "2026-08-26",
