@@ -191020,11 +191020,11 @@
     "total_value_ils": 98702.05,
     "weighted_return_pct": 0.311,
     "usdils_rate": 2.997499942779541,
-    "updated_at": "2026-08-29T22:28:17.362469+00:00"
+    "updated_at": "2026-08-30T00:36:55.603063+00:00"
   },
   "my_portfolio_sim": {
-    "value": 100.76313429522901,
-    "pending_date": "2026-08-29",
+    "value": 101.07650764288717,
+    "pending_date": "2026-08-30",
     "pending_return_pct": 0.311,
     "daily_log": [
       {
@@ -191041,8 +191041,13 @@
         "date": "2026-08-28",
         "return_pct": -0.805,
         "value": 100.763
+      },
+      {
+        "date": "2026-08-29",
+        "return_pct": 0.311,
+        "value": 101.077
       }
     ],
-    "total_return_pct": 0.76
+    "total_return_pct": 1.08
   }
 }
