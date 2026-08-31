@@ -595,5 +595,7 @@
   "US_MARA_bigmove_2026-08-31": true,
   "US_EIX_bigmove_2026-08-31": true,
   "US_PCG_bigmove_2026-08-31": true,
-  "US_DPC_bigmove_2026-08-31": true
+  "US_DPC_bigmove_2026-08-31": true,
+  "US_STDN_bigmove_2026-08-31": true,
+  "US_ASST_bigmove_2026-08-31": true
 }
