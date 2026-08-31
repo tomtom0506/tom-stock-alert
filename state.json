@@ -578,5 +578,19 @@
   "US_SOLS_bigmove_2026-08-28": true,
   "US_IREN_bigmove_2026-08-28": true,
   "US_PYPL_bigmove_2026-08-28": true,
-  "US_INFQ_bigmove_2026-08-28": true
+  "US_INFQ_bigmove_2026-08-28": true,
+  "US_PSQL_bigmove_2026-08-31": true,
+  "US_ESTC_bigmove_2026-08-31": true,
+  "US_GAP_bigmove_2026-08-31": true,
+  "US_SOLS_bigmove_2026-08-31": true,
+  "US_SLS_bigmove_2026-08-31": true,
+  "US_RBRK_bigmove_2026-08-31": true,
+  "US_PYPL_bigmove_2026-08-31": true,
+  "US_IREN_bigmove_2026-08-31": true,
+  "US_KLRA_bigmove_2026-08-31": true,
+  "US_AXTI_bigmove_2026-08-31": true,
+  "US_AEHR_bigmove_2026-08-31": true,
+  "US_INFQ_bigmove_2026-08-31": true,
+  "US_MRVL_bigmove_2026-08-31": true,
+  "US_MARA_bigmove_2026-08-31": true
 }
