@@ -434,7 +434,7 @@
   "US_TGTX_bigmove_2026-08-21": true,
   "US_HUT_bigmove_2026-08-21": true,
   "US_INFQ_bigmove_2026-08-21": true,
-  "PLTR_above_180": true,
+  "PLTR_above_180": false,
   "US_SLS_bigmove_2026-08-21": true,
   "US_CVI_bigmove_2026-08-21": true,
   "US_VIRT_bigmove_2026-08-21": true,
@@ -608,5 +608,6 @@
   "US_PSQL_bigmove_2026-09-01": true,
   "US_KLRA_bigmove_2026-09-01": true,
   "US_CRK_bigmove_2026-09-01": true,
-  "US_PS_bigmove_2026-09-01": true
+  "US_PS_bigmove_2026-09-01": true,
+  "US_OSW_bigmove_2026-09-01": true
 }
