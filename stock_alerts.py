@@ -1157,6 +1157,14 @@ def recompute_accuracy(store):
     top10_exp_graded = [e for e in graded if e.get("top10_experimental")]
     top10_exp_up_graded = [e for e in top10_exp_graded if e.get("predicted") == "up"]
 
+    # BASELINE comparison group - pure original momentum-score ranking (see
+    # run_predictions). This is the "other end" of the formula_blend alpha
+    # from top10_experimental (risk/reward) - calibrate_formula_blend
+    # compares these two groups against each other, not against the real
+    # (blended) top10 numbers above, since the real numbers already mix them.
+    top10_orig_graded = [e for e in graded if e.get("top10_original")]
+    top10_orig_up_graded = [e for e in top10_orig_graded if e.get("predicted") == "up"]
+
     # EXPERIMENTAL comparison group C (see compute_leading_adjusted_score).
     top10_leading_graded = [e for e in graded if e.get("top10_leading")]
     top10_leading_up_graded = [e for e in top10_leading_graded if e.get("predicted") == "up"]
@@ -1194,6 +1202,11 @@ def recompute_accuracy(store):
         "top10_experimental_total": len(top10_exp_graded),
         "top10_experimental_up_accuracy": calc(top10_exp_up_graded),
         "top10_experimental_up_total": len(top10_exp_up_graded),
+        "top10_original_accuracy": calc(top10_orig_graded),
+        "top10_original_hits": sum(1 for e in top10_orig_graded if e["correct"]),
+        "top10_original_total": len(top10_orig_graded),
+        "top10_original_up_accuracy": calc(top10_orig_up_graded),
+        "top10_original_up_total": len(top10_orig_up_graded),
         "top10_leading_accuracy": calc(top10_leading_graded),
         "top10_leading_hits": sum(1 for e in top10_leading_graded if e["correct"]),
         "top10_leading_total": len(top10_leading_graded),
@@ -1483,14 +1496,14 @@ def update_portfolio_simulation(store, flag_key="top10", sim_key="portfolio_sim"
 
 
 def build_formula_comparison(store):
-    """Side-by-side report of every formula being tracked (the real one +
-    all EXPERIMENTAL comparison groups), so a decision to actually swap the
-    live formula can be based on data instead of a gut feeling about the
-    last day or two. Per the agreed process: review this whenever useful,
-    but only ACT on it (replace the real formula) at most about once a
-    month, and only sooner if there's a clear, real problem with the
-    current one - not in response to normal day-to-day noise."""
+    """Side-by-side report of every formula being tracked: the real (live)
+    selection - now a calibrated blend, see calibrate_formula_blend - plus
+    the two pure baseline endpoints it's blended between, plus the
+    leading-indicators experiment. Purely informational; calibrate_formula_
+    blend is what actually acts on this, automatically, on its own
+    schedule and guardrails."""
     acc = store.get("accuracy") or {}
+    alpha = (store.get("formula_blend") or {}).get("alpha", DEFAULT_FORMULA_ALPHA)
 
     def sim_stats(key):
         sim = store.get(key) or {}
@@ -1502,15 +1515,20 @@ def build_formula_comparison(store):
 
     store["formula_comparison"] = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
-        "note": "השוואה בלבד לצורך מעקב - שינוי בפועל של הנוסחה הראשית נשקל לכל היותר פעם בחודש (לא בתגובה לתנודה של יום-יומיים), אלא אם מתגלה בעיה ברורה וממשית.",
+        "note": f"הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha={alpha:.2f} לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
         "formulas": [
             {
-                "key": "current", "label": "נוסחה נוכחית (עוצמת חיזוי)",
+                "key": "current", "label": f"הנוסחה האמיתית (עירוב, alpha={alpha:.2f})",
                 "accuracy": acc.get("top10_up_accuracy"), "total": acc.get("top10_up_total"),
                 **sim_stats("portfolio_sim"),
             },
             {
-                "key": "risk_reward", "label": "ניסיונית - יחס סיכוי/סיכון",
+                "key": "original", "label": "בסיס - עוצמת חיזוי טהורה (ללא עירוב)",
+                "accuracy": acc.get("top10_original_up_accuracy"), "total": acc.get("top10_original_up_total"),
+                **sim_stats("portfolio_sim_original"),
+            },
+            {
+                "key": "risk_reward", "label": "בסיס - יחס סיכוי/סיכון טהור (ללא עירוב)",
                 "accuracy": acc.get("top10_experimental_up_accuracy"), "total": acc.get("top10_experimental_up_total"),
                 **sim_stats("portfolio_sim_experimental"),
             },
@@ -1522,6 +1540,79 @@ def build_formula_comparison(store):
         ],
     }
     return store["formula_comparison"]
+
+
+def calibrate_formula_blend(store):
+    """Bounded, evidence-gated, automatic monthly calibration of the real
+    Top10 formula's blend weight (alpha) between the two pure baselines
+    (original momentum-score vs risk/reward). This is deliberately NOT
+    unconstrained self-tuning:
+      - runs at most about once a month (CALIBRATION_INTERVAL_DAYS)
+      - requires a minimum sample size on BOTH baselines before trusting
+        the comparison at all (MIN_SAMPLE_FOR_CALIBRATION)
+      - requires a minimum accuracy-percentage-point gap before treating it
+        as real signal rather than noise (MIN_EFFECT_SIZE_PCT)
+      - moves alpha by at most MAX_MONTHLY_ALPHA_STEP in either direction
+        per calibration, so a single strong month can't swing the real
+        formula all the way to one extreme
+      - every calibration (or explicit no-op) is logged with the numbers
+        behind it, and a Telegram notice is sent either way."""
+    blend = store.setdefault("formula_blend", {
+        "alpha": DEFAULT_FORMULA_ALPHA, "last_calibrated": None, "history": [],
+    })
+
+    today = date.today()
+    last = blend.get("last_calibrated")
+    if last:
+        try:
+            days_since = (today - date.fromisoformat(last)).days
+        except ValueError:
+            days_since = CALIBRATION_INTERVAL_DAYS
+        if days_since < CALIBRATION_INTERVAL_DAYS:
+            return
+
+    acc = store.get("accuracy") or {}
+    orig_acc = acc.get("top10_original_up_accuracy")
+    orig_n = acc.get("top10_original_up_total") or 0
+    rr_acc = acc.get("top10_experimental_up_accuracy")
+    rr_n = acc.get("top10_experimental_up_total") or 0
+
+    if orig_acc is None or rr_acc is None or orig_n < MIN_SAMPLE_FOR_CALIBRATION or rr_n < MIN_SAMPLE_FOR_CALIBRATION:
+        return  # not enough data yet this cycle - try again next cycle, no changes, no log entry
+
+    old_alpha = blend["alpha"]
+    gap = rr_acc - orig_acc  # positive = risk/reward pulling ahead
+
+    if abs(gap) < MIN_EFFECT_SIZE_PCT:
+        new_alpha = old_alpha
+        note = (
+            f"אין הבדל מובהק החודש (יחס סיכוי/סיכון {rr_acc}% מול עוצמת חיזוי {orig_acc}%, "
+            f"פער {gap:+.1f} נק' - מתחת לסף {MIN_EFFECT_SIZE_PCT} נק') - המשקל נשאר {old_alpha:.2f}."
+        )
+    else:
+        direction = 1 if gap > 0 else -1
+        step = min(MAX_MONTHLY_ALPHA_STEP, abs(gap) / 100)
+        new_alpha = round(max(0.0, min(1.0, old_alpha + direction * step)), 3)
+        winner = "יחס סיכוי/סיכון" if gap > 0 else "עוצמת חיזוי טהורה"
+        note = (
+            f"{winner} ניצח החודש (יחס סיכוי/סיכון {rr_acc}% מול עוצמת חיזוי {orig_acc}%, n={rr_n}/{orig_n}) - "
+            f"המשקל (alpha) זז מ-{old_alpha:.2f} ל-{new_alpha:.2f} לטובת יחס סיכוי/סיכון."
+            if gap > 0 else
+            f"{winner} ניצח החודש (עוצמת חיזוי {orig_acc}% מול יחס סיכוי/סיכון {rr_acc}%, n={orig_n}/{rr_n}) - "
+            f"המשקל (alpha) זז מ-{old_alpha:.2f} ל-{new_alpha:.2f} לטובת עוצמת חיזוי טהורה."
+        )
+
+    blend["alpha"] = new_alpha
+    blend["last_calibrated"] = today.isoformat()
+    blend["history"].append({
+        "date": today.isoformat(), "old_alpha": old_alpha, "new_alpha": new_alpha,
+        "original_accuracy": orig_acc, "original_n": orig_n,
+        "risk_reward_accuracy": rr_acc, "risk_reward_n": rr_n, "note": note,
+    })
+    blend["history"] = blend["history"][-24:]
+
+    send_telegram_message_chunked("⚙️ כיול חודשי אוטומטי - נוסחת ה-Top 10", [note], sep="\n")
+    return blend
 
 
 def compute_risk_reward_score(entry):
@@ -1573,6 +1664,30 @@ def compute_leading_adjusted_score(entry):
 
 
 MAX_PICKS_PER_SECTOR = 5  # 50% of a 10-pick list - keeps the experiment from concentrating in one sector
+
+# --- real Top10 formula blend (see calibrate_formula_blend) ---
+DEFAULT_FORMULA_ALPHA = 1.0  # 0 = pure original momentum-score, 1 = pure risk/reward.
+# Starting at 1.0 (Aug 2026): risk/reward has clearly outperformed the original
+# formula on tracked data (51.7% vs 40% accuracy, +2.18% vs -7.42% simulated
+# portfolio) - see FORMULA_BLEND_FILE / formula_comparison for the live numbers.
+MIN_SAMPLE_FOR_CALIBRATION = 30  # per formula - below this, a month's comparison isn't trusted at all
+MIN_EFFECT_SIZE_PCT = 5.0  # minimum accuracy-percentage-point gap to act on - anything smaller is treated as noise
+MAX_MONTHLY_ALPHA_STEP = 0.15  # rate cap - alpha can move at most this much in a single calibration
+CALIBRATION_INTERVAL_DAYS = 28  # roughly monthly, deliberately not more often (no chasing the latest winner)
+
+
+def compute_blended_top10_score(entry, alpha, rank_a, rank_b):
+    """Higher-is-better score for the REAL Top10 selection, blending two
+    rankings by alpha (0 = pure original momentum-score, 1 = pure
+    risk/reward). Blending at the RANK level (not raw score values) avoids
+    scale-mismatch between the two formulas' very different score ranges.
+    alpha itself is set by calibrate_formula_blend, not by this function."""
+    ticker = entry["ticker"]
+    worst_rank = max(len(rank_a), len(rank_b), 1)
+    ra = rank_a.get(ticker, worst_rank)
+    rb = rank_b.get(ticker, worst_rank)
+    blended_rank = (1 - alpha) * ra + alpha * rb
+    return -blended_rank
 
 
 def select_diversified_top10(pool, key_fn, max_per_sector=MAX_PICKS_PER_SECTOR):
@@ -1711,13 +1826,49 @@ def run_predictions(store):
     curated = sorted(breadth, key=lambda e: abs(e["score"]), reverse=True)[:DAILY_TOP_PICKS_LIMIT]
     curated_tickers = {e["ticker"] for e in curated}
     starred_tickers = set(load_json(STARRED_FILE, []))
-    chart_eligible = curated_tickers | starred_tickers | monthly_tickers
 
-    # --- EXPERIMENT (parallel, doesn't touch the real curated/top10 picks
-    # above): same breadth pool, but ranked by risk/reward-weighted
-    # conviction instead of raw conviction. Tracked side by side under its
-    # own flag/accuracy/portfolio-sim so we can compare against the real
-    # numbers over time before ever considering making it the real logic. ---
+    # --- REAL Top10 selection: blended between the original momentum-score
+    # ranking and the risk/reward-weighted ranking, per formula_blend's
+    # alpha (see calibrate_formula_blend - adjusted monthly, gradually,
+    # only on clear evidence). This replaced a plain "top 10 by raw
+    # conviction" cut in Aug 2026 once tracked data showed risk/reward
+    # clearly winning; diversification (select_diversified_top10) now
+    # applies to the real picks too, same as it already did for the
+    # experimental ones below. ---
+    formula_alpha = (store.get("formula_blend") or {}).get("alpha", DEFAULT_FORMULA_ALPHA)
+    rank_a = {e["ticker"]: i for i, e in enumerate(sorted(breadth, key=lambda e: abs(e["score"]), reverse=True))}
+    rank_b = {e["ticker"]: i for i, e in enumerate(sorted(breadth, key=compute_risk_reward_score, reverse=True))}
+    real_top10 = select_diversified_top10(
+        breadth, lambda e: compute_blended_top10_score(e, formula_alpha, rank_a, rank_b),
+    )
+    real_top10_tickers = {e["ticker"] for e in real_top10}
+    for entry in today_entries:
+        entry["top10"] = entry["ticker"] in real_top10_tickers
+
+    # A blended-formula Top10 pick can in principle fall outside the top-25
+    # raw-conviction cut above (that's the whole point of blending toward
+    # risk/reward) - make sure it still gets "strong" treatment (news fetch,
+    # Telegram alert, chart data) rather than silently missing out.
+    missing_top10 = [e for e in real_top10 if e["ticker"] not in curated_tickers]
+    if missing_top10:
+        curated = curated + missing_top10
+        curated_tickers = curated_tickers | {e["ticker"] for e in missing_top10}
+
+    chart_eligible = curated_tickers | starred_tickers | monthly_tickers | real_top10_tickers
+
+    # --- baseline experiment: pure original momentum-score ranking (what
+    # "top10" used to mean before Aug 2026), kept as its own tracked line
+    # purely so calibrate_formula_blend always has a clean A/B comparison
+    # to calibrate against, even after the real formula becomes a blend. ---
+    original_top10 = select_diversified_top10(breadth, lambda e: abs(e["score"]))
+    original_tickers = {e["ticker"] for e in original_top10}
+    for entry in today_entries:
+        entry["top10_original"] = entry["ticker"] in original_tickers
+
+    # --- EXPERIMENT (still tracked in full, parallel to the real picks
+    # above): pure risk/reward ranking, no diversification cap difference,
+    # kept as its own tracked line so the blend's alpha can keep being
+    # calibrated against a clean, undiluted risk/reward baseline. ---
     experimental_top10 = select_diversified_top10(breadth, compute_risk_reward_score)
     experimental_tickers = {e["ticker"] for e in experimental_top10}
     for entry in today_entries:
@@ -1743,7 +1894,6 @@ def run_predictions(store):
 
     for idx, entry in enumerate(curated):
         entry["strong"] = True
-        entry["top10"] = idx < 10
         symbol = entry["ticker"]
         try:
             news_title, news_link = get_latest_news(symbol)
@@ -1839,6 +1989,8 @@ def main():
         update_portfolio_simulation(prediction_store)
         update_portfolio_simulation(prediction_store, "top10_experimental", "portfolio_sim_experimental")
         update_portfolio_simulation(prediction_store, "top10_leading", "portfolio_sim_leading")
+        update_portfolio_simulation(prediction_store, "top10_original", "portfolio_sim_original")
+        calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 
         last_factor_run = (prediction_store.get("factor_analysis") or {}).get("updated_at", "")[:10]
