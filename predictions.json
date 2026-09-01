@@ -208707,8 +208707,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Huntington Bancshares Incorporated",
-      "actual_price": 16.685,
-      "actual_pct_change": -1.39,
+      "actual_price": 16.69,
+      "actual_pct_change": -1.36,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-01"
@@ -258317,7 +258317,7 @@
     "top10_daily_date": "2026-08-31",
     "us": 46.2,
     "il": 53.4,
-    "updated_at": "2026-09-01T01:43:47.374464+00:00"
+    "updated_at": "2026-09-01T06:49:11.154937+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -258363,7 +258363,7 @@
   "portfolio_sim": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 92584.89378963737,
+    "value": 92584.890135,
     "last_processed_date": "2026-08-31",
     "daily_log": [
       {
@@ -258802,7 +258802,7 @@
   "portfolio_sim_experimental": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 102178.2011287494,
+    "value": 102178.20074069999,
     "last_processed_date": "2026-08-31",
     "daily_log": [
       {
@@ -259185,7 +259185,7 @@
   "portfolio_sim_leading": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 94285.98304561908,
+    "value": 94285.986282,
     "last_processed_date": "2026-08-31",
     "daily_log": [
       {
@@ -259335,7 +259335,7 @@
       {
         "date": "2026-08-31",
         "value_start": 94636.14,
-        "value_end": 94285.98,
+        "value_end": 94285.99,
         "return_pct": -0.37,
         "tickers": [
           {
@@ -259386,7 +259386,7 @@
     "annual_return_pct": -5.72
   },
   "formula_comparison": {
-    "updated_at": "2026-09-01T01:43:47.375544+00:00",
+    "updated_at": "2026-09-01T06:49:11.156263+00:00",
     "note": "השוואה בלבד לצורך מעקב - שינוי בפועל של הנוסחה הראשית נשקל לכל היותר פעם בחודש (לא בתגובה לתנודה של יום-יומיים), אלא אם מתגלה בעיה ברורה וממשית.",
     "formulas": [
       {
@@ -259396,7 +259396,7 @@
         "total": 70,
         "total_return_pct": -7.42,
         "monthly_return_pct": -7.43,
-        "value": 92584.89378963737
+        "value": 92584.890135
       },
       {
         "key": "risk_reward",
@@ -259405,7 +259405,7 @@
         "total": 60,
         "total_return_pct": 2.18,
         "monthly_return_pct": 2.18,
-        "value": 102178.2011287494
+        "value": 102178.20074069999
       },
       {
         "key": "leading",
@@ -259414,7 +259414,7 @@
         "total": 40,
         "total_return_pct": -5.71,
         "monthly_return_pct": -5.72,
-        "value": 94285.98304561908
+        "value": 94285.986282
       }
     ]
   },
@@ -259425,7 +259425,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 186.38,
-        "value_ils": 10570.19,
+        "value_ils": 10593.91,
         "pct_change": 0.05,
         "weight_pct": 10.8
       },
@@ -259434,17 +259434,17 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 339.35,
-        "value_ils": 15193.89,
+        "value_ils": 15227.99,
         "pct_change": -2.09,
-        "weight_pct": 15.5
+        "weight_pct": 15.6
       },
       {
         "ticker": "ZVRA",
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 11.74,
-        "value_ils": 23653.84,
-        "pct_change": 1.51,
+        "value_ils": 23706.93,
+        "pct_change": -0.93,
         "weight_pct": 24.2
       },
       {
@@ -259452,9 +259452,9 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 175.13,
-        "value_ils": 15682.37,
-        "pct_change": -1.13,
-        "weight_pct": 16.0
+        "value_ils": 15717.57,
+        "pct_change": -2.05,
+        "weight_pct": 16.1
       },
       {
         "ticker": "FTAL.TA",
@@ -259463,7 +259463,7 @@
         "price_native": 71190.0,
         "value_ils": 14238.0,
         "pct_change": -0.43,
-        "weight_pct": 14.6
+        "weight_pct": 14.5
       },
       {
         "ticker": "AZRG.TA",
@@ -259475,15 +259475,15 @@
         "weight_pct": 18.8
       }
     ],
-    "total_value_ils": 97729.39,
-    "weighted_return_pct": -0.685,
-    "usdils_rate": 2.9848999977111816,
-    "updated_at": "2026-09-01T01:42:38.894426+00:00"
+    "total_value_ils": 97875.5,
+    "weighted_return_pct": -1.423,
+    "usdils_rate": 2.9916000366210938,
+    "updated_at": "2026-09-01T06:47:34.587057+00:00"
   },
   "my_portfolio_sim": {
     "value": 100.70235126893611,
     "pending_date": "2026-09-01",
-    "pending_return_pct": -0.685,
+    "pending_return_pct": -1.423,
     "daily_log": [
       {
         "date": "2026-08-26",
