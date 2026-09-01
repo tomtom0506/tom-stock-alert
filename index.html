@@ -548,6 +548,7 @@
       🧮 השוואת נוסחאות (Top 10) <span id="formulaComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;" id="formulaComparisonNote"></div>
+    <div id="formulaSinceChangeBox" style="margin-bottom:12px;"></div>
     <div class="predictions-panel hidden" id="formulaComparisonPanel"><div id="formulaComparisonList"></div></div>
   </div>
 
@@ -783,12 +784,16 @@
 </div>
 
 <script>
-const APP_VERSION = "4.8"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "4.9"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "4.9", items: [
+    "נוספה תיבה '✨ מאז שינוי הנוסחה' בסקשן 'השוואת נוסחאות' - הצלחת Top 10 ותשואת התיק המדומה מחושבים רק מהיום שהנוסחה החדשה עלתה (1.9.2026), בלי שההיסטוריה הישנה (עם הנוסחה הפחות טובה) תדלל את המספר. המספרים המצטברים הכוללים נשארים בדיוק כמו שהיו, לצד זה - שום דבר לא נמחק.",
+    "בהשוואה 'מי ניחש טוב יותר מאז תחילת המעקב' (בתיק שלי) נוספה הערה מבהירה שהמספר של Top 10 שם עדיין כולל היסטוריה ישנה, עם הפניה למספר הנקי.",
+  ]},
   { version: "4.8", items: [
     "הנוסחה האמיתית של Top 10 הוחלפה מ'עוצמת חיזוי טהורה' לעירוב לטובת 'יחס סיכוי/סיכון', שהוכיחה ביצועים טובים משמעותית על נתונים אמיתיים (51.7% מול 40% הצלחה, +2.18% מול -7.42% בתיק המדומה). ה-Top 10 גם מקבל עכשיו את אותה הגבלת פיזור סקטורים שהייתה רק בניסויים.",
     "נוסף כיול חודשי אוטומטי (עם בלמים) - המשקל בין הנוסחה הטהורה ל'יחס סיכוי/סיכון' מתעדכן פעם בחודש בערך, רק אם יש הבדל מובהק וגדול מספיק (לא רעש), ובצעדים מוגבלים כדי שחודש חזק אחד לא יטה את הכל לקיצון. כל כיול מתועד ונשלחת עליו התראת טלגרם.",
@@ -1740,6 +1745,29 @@ function renderFormulaComparison(fc) {
 
   document.getElementById("formulaComparisonNote").textContent = fc.note || "";
 
+  const sinceBox = document.getElementById("formulaSinceChangeBox");
+  if (fc.since_change && fc.since_change.live_since) {
+    const sc = fc.since_change;
+    const accCls = sc.accuracy == null ? "" : (sc.accuracy >= 50 ? "prediction-dir-up" : "prediction-dir-down");
+    const accText = sc.accuracy != null ? `${sc.accuracy}% <span style="font-size:10px; color:var(--text-faint);">(n=${sc.total || 0})</span>` : "—";
+    const retCls = sc.portfolio_return_pct == null ? "" : (sc.portfolio_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
+    const retText = sc.portfolio_return_pct != null ? `${sc.portfolio_return_pct >= 0 ? "+" : ""}${sc.portfolio_return_pct}%` : "—";
+    sinceBox.innerHTML = `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px; border-color:var(--accent, #4a9eff);">
+        <div style="font-size:12px; font-weight:700; color:var(--text-dim);">✨ מאז שינוי הנוסחה (${sc.live_since}) - בלי היסטוריה ישנה מעורבבת</div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px;">הצלחת Top 10</span>
+          <span class="mono ${accCls}" style="font-weight:700;">${accText}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>תשואת תיק מדומה</span>
+          <span class="mono ${retCls}">${retText}</span>
+        </div>
+      </div>`;
+  } else {
+    sinceBox.innerHTML = "";
+  }
+
   const list = document.getElementById("formulaComparisonList");
   list.innerHTML = fc.formulas.map(f => {
     const accCls = f.accuracy == null ? "" : (f.accuracy >= 50 ? "prediction-dir-up" : "prediction-dir-down");
@@ -2394,6 +2422,7 @@ function renderMyPortfolio(snapshot, sim) {
           <span>Top 10 (תיק ₪100,000) ${!iWinCum ? "🏆" : ""}</span>
           <span class="mono ${realReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${realReturn >= 0 ? "+" : ""}${realReturn}%</span>
         </div>
+        <div style="font-size:10.5px; color:var(--text-faint); margin-top:2px;">מספר ה-Top 10 כאן כולל גם היסטוריה מלפני שינוי הנוסחה (1.9.2026) - המספר הנקי "מאז השינוי" נמצא בסקשן "השוואת נוסחאות".</div>
       </div>`;
   }
   document.getElementById("myPortfolioCompare").innerHTML = compareHtml;

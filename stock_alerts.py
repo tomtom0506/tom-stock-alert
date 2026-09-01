@@ -1177,6 +1177,16 @@ def recompute_accuracy(store):
     top10_daily_date = max((e["date"] for e in top10_graded), default=None)
     top10_graded_daily = [e for e in top10_graded if e["date"] == top10_daily_date] if top10_daily_date else []
 
+    # "SINCE FORMULA CHANGE" (v4.8, formula_blend.live_since) - a clean
+    # slice of the real top10_up numbers that excludes everything graded
+    # before the blend went live, so the headline "current formula" numbers
+    # aren't diluted by the old (worse-performing) formula's history. Kept
+    # ALONGSIDE top10_up_accuracy above, never replacing it.
+    formula_live_since = (store.get("formula_blend") or {}).get("live_since")
+    top10_up_since_change = (
+        [e for e in top10_up_graded if e["date"] >= formula_live_since] if formula_live_since else []
+    )
+
     def calc(subset):
         if not subset:
             return None
@@ -1216,6 +1226,9 @@ def recompute_accuracy(store):
         "top10_daily_hits": sum(1 for e in top10_graded_daily if e["correct"]),
         "top10_daily_total": len(top10_graded_daily),
         "top10_daily_date": top10_daily_date,
+        "top10_up_accuracy_since_formula_change": calc(top10_up_since_change),
+        "top10_up_total_since_formula_change": len(top10_up_since_change),
+        "formula_live_since": formula_live_since,
         "us": calc([e for e in graded if not is_israeli(e["ticker"])]),
         "il": calc([e for e in graded if is_israeli(e["ticker"])]),
         "updated_at": datetime.now(timezone.utc).isoformat(),
@@ -1504,6 +1517,8 @@ def build_formula_comparison(store):
     schedule and guardrails."""
     acc = store.get("accuracy") or {}
     alpha = (store.get("formula_blend") or {}).get("alpha", DEFAULT_FORMULA_ALPHA)
+    blend = store.get("formula_blend") or {}
+    live_since = blend.get("live_since")
 
     def sim_stats(key):
         sim = store.get(key) or {}
@@ -1513,9 +1528,29 @@ def build_formula_comparison(store):
             "value": sim.get("value"),
         }
 
+    # "since formula change" - a clean slice that excludes everything from
+    # before the blend went live (live_since), so the real formula's
+    # numbers aren't stuck being diluted by the old formula's worse
+    # historical track record. Kept ALONGSIDE the all-time cumulative
+    # numbers above, never replacing them - see chat: nothing gets deleted.
+    since_change = None
+    cutover_value = blend.get("portfolio_sim_value_at_cutover")
+    current_sim_value = (store.get("portfolio_sim") or {}).get("value")
+    portfolio_return_since_change = None
+    if cutover_value and current_sim_value is not None:
+        portfolio_return_since_change = round((current_sim_value / cutover_value - 1) * 100, 2)
+    if live_since:
+        since_change = {
+            "live_since": live_since,
+            "accuracy": acc.get("top10_up_accuracy_since_formula_change"),
+            "total": acc.get("top10_up_total_since_formula_change"),
+            "portfolio_return_pct": portfolio_return_since_change,
+        }
+
     store["formula_comparison"] = {
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "note": f"הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha={alpha:.2f} לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
+        "since_change": since_change,
         "formulas": [
             {
                 "key": "current", "label": f"הנוסחה האמיתית (עירוב, alpha={alpha:.2f})",
@@ -1542,6 +1577,20 @@ def build_formula_comparison(store):
     return store["formula_comparison"]
 
 
+def ensure_formula_blend_initialized(store):
+    """Makes sure formula_blend and its cutover markers exist as early as
+    possible in a run, so recompute_accuracy's 'since formula change'
+    numbers are always available (not just after calibrate_formula_blend
+    runs later). Cheap and idempotent - safe to call multiple times."""
+    blend = store.setdefault("formula_blend", {
+        "alpha": DEFAULT_FORMULA_ALPHA, "last_calibrated": None, "history": [],
+    })
+    blend.setdefault("live_since", date.today().isoformat())
+    if "portfolio_sim_value_at_cutover" not in blend:
+        blend["portfolio_sim_value_at_cutover"] = (store.get("portfolio_sim") or {}).get("value", 100000.0)
+    return blend
+
+
 def calibrate_formula_blend(store):
     """Bounded, evidence-gated, automatic monthly calibration of the real
     Top10 formula's blend weight (alpha) between the two pure baselines
@@ -1557,9 +1606,7 @@ def calibrate_formula_blend(store):
         formula all the way to one extreme
       - every calibration (or explicit no-op) is logged with the numbers
         behind it, and a Telegram notice is sent either way."""
-    blend = store.setdefault("formula_blend", {
-        "alpha": DEFAULT_FORMULA_ALPHA, "last_calibrated": None, "history": [],
-    })
+    blend = ensure_formula_blend_initialized(store)
 
     today = date.today()
     last = blend.get("last_calibrated")
@@ -1965,6 +2012,7 @@ def is_market_trading_day():
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
+    ensure_formula_blend_initialized(prediction_store)
 
     run_watchlist_alerts(state, prediction_store)
 
