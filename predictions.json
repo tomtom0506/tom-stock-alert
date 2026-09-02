@@ -232018,7 +232018,7 @@
       "adx_weakening": true,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 63.655,
+      "actual_price": 63.66,
       "actual_pct_change": 0.17,
       "actual_direction": "up",
       "correct": true,
@@ -235328,8 +235328,8 @@
       "adx_weakening": true,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 32.465,
-      "actual_pct_change": -1.59,
+      "actual_price": 32.47,
+      "actual_pct_change": -1.58,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-02"
@@ -238412,8 +238412,8 @@
       "adx_weakening": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 5.76,
-      "actual_pct_change": -0.52,
+      "actual_price": 5.72,
+      "actual_pct_change": -1.21,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-02"
@@ -257556,7 +257556,7 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "T. Rowe Price Group, Inc.",
-      "actual_price": 108.975,
+      "actual_price": 108.98,
       "actual_pct_change": -2.07,
       "actual_direction": "down",
       "correct": true,
@@ -293065,7 +293065,7 @@
     "formula_live_since": "2026-09-01",
     "us": 45.1,
     "il": 54.2,
-    "updated_at": "2026-09-02T00:27:13.175605+00:00"
+    "updated_at": "2026-09-02T04:58:11.225383+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -293111,7 +293111,7 @@
   "portfolio_sim": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 86925.59822136059,
+    "value": 86925.59979600001,
     "last_processed_date": "2026-09-01",
     "daily_log": [
       {
@@ -293598,7 +293598,7 @@
   "portfolio_sim_experimental": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 99383.38137595053,
+    "value": 99383.3839768,
     "last_processed_date": "2026-09-01",
     "daily_log": [
       {
@@ -294029,7 +294029,7 @@
   "portfolio_sim_leading": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 89280.18706387594,
+    "value": 89280.1862408,
     "last_processed_date": "2026-09-01",
     "daily_log": [
       {
@@ -294278,7 +294278,7 @@
     "annual_return_pct": -10.73
   },
   "formula_comparison": {
-    "updated_at": "2026-09-02T00:27:13.176978+00:00",
+    "updated_at": "2026-09-02T04:58:11.226956+00:00",
     "note": "הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha=1.00 לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
     "since_change": {
       "live_since": "2026-09-01",
@@ -294294,7 +294294,7 @@
         "total": 80,
         "total_return_pct": -13.07,
         "monthly_return_pct": -13.09,
-        "value": 86925.59822136059
+        "value": 86925.59979600001
       },
       {
         "key": "original",
@@ -294312,7 +294312,7 @@
         "total": 70,
         "total_return_pct": -0.62,
         "monthly_return_pct": -0.61,
-        "value": 99383.38137595053
+        "value": 99383.3839768
       },
       {
         "key": "leading",
@@ -294321,7 +294321,7 @@
         "total": 50,
         "total_return_pct": -10.72,
         "monthly_return_pct": -10.73,
-        "value": 89280.18706387594
+        "value": 89280.1862408
       }
     ]
   },
@@ -294332,7 +294332,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 179.92,
-        "value_ils": 10367.57,
+        "value_ils": 10384.66,
         "pct_change": -3.47,
         "weight_pct": 10.5
       },
@@ -294341,7 +294341,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 335.02,
-        "value_ils": 15240.73,
+        "value_ils": 15265.86,
         "pct_change": -1.28,
         "weight_pct": 15.4
       },
@@ -294350,7 +294350,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.06,
-        "value_ils": 24688.51,
+        "value_ils": 24729.21,
         "pct_change": 2.73,
         "weight_pct": 25.0
       },
@@ -294359,7 +294359,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 172.73,
-        "value_ils": 15715.67,
+        "value_ils": 15741.58,
         "pct_change": -1.37,
         "weight_pct": 15.9
       },
@@ -294382,15 +294382,15 @@
         "weight_pct": 18.8
       }
     ],
-    "total_value_ils": 98883.88,
-    "weighted_return_pct": 0.15,
-    "usdils_rate": 3.0327999591827393,
-    "updated_at": "2026-09-02T00:26:20.545925+00:00"
+    "total_value_ils": 98992.71,
+    "weighted_return_pct": 0.149,
+    "usdils_rate": 3.0378000736236572,
+    "updated_at": "2026-09-02T04:56:53.936759+00:00"
   },
   "my_portfolio_sim": {
     "value": 100.85340479583952,
     "pending_date": "2026-09-02",
-    "pending_return_pct": 0.15,
+    "pending_return_pct": 0.149,
     "daily_log": [
       {
         "date": "2026-08-26",
