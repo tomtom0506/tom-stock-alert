@@ -609,5 +609,11 @@
   "US_KLRA_bigmove_2026-09-01": true,
   "US_CRK_bigmove_2026-09-01": true,
   "US_PS_bigmove_2026-09-01": true,
-  "US_OSW_bigmove_2026-09-01": true
+  "US_OSW_bigmove_2026-09-01": true,
+  "US_FRVO_bigmove_2026-09-02": true,
+  "US_CRK_bigmove_2026-09-02": true,
+  "US_MMED_bigmove_2026-09-02": true,
+  "US_OSW_bigmove_2026-09-02": true,
+  "US_PS_bigmove_2026-09-02": true,
+  "US_PSQL_bigmove_2026-09-02": true
 }
