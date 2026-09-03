@@ -1,4 +1,35 @@
 {
-  "ticker": "ROCO",
-  "error": "אין מספיק היסטוריית מחיר לניתוח (טיקר חדש/לא סחיר?)"
+  "ticker": "APP",
+  "predicted_direction": "up",
+  "raw_score": 3.24,
+  "overall_score": 53.6,
+  "components": {
+    "original": 32.4,
+    "risk_reward": 64.8,
+    "leading_adjusted": 32.4,
+    "analyst": 84.8
+  },
+  "excluded_from_blend": [],
+  "price": 313.5799865722656,
+  "support": 303.76,
+  "resistance": 419.7,
+  "analyst_count": 31,
+  "sector": "Communication Services",
+  "short_pct": 3.9100002000000003,
+  "rs_rating": null,
+  "trend_template": {
+    "criteria_met": 0,
+    "criteria_total": 7,
+    "passes": false,
+    "multiplier": 0.6
+  },
+  "vcp": {
+    "vcp_detected": false,
+    "contractions": 7
+  },
+  "earnings": {
+    "date": "2026-11-04",
+    "days_away": 61
+  },
+  "checked_at": "2026-09-03T21:32:35.258289+00:00"
 }
