@@ -1,0 +1,46 @@
+name: Check Single Stock
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: "Ticker to analyze (בדוק מניה)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: check-stock
+  cancel-in-progress: true
+
+jobs:
+  check-stock:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Analyze ticker
+        env:
+          CHECK_TICKER: ${{ inputs.ticker }}
+        run: python check_stock.py "$CHECK_TICKER"
+
+      - name: Commit result (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stock_check_result.json
+          git diff --staged --quiet || git commit -m "בדוק מניה: ${{ inputs.ticker }}"
+          git fetch origin main
+          git merge -X ours --no-edit origin/main
+          git push origin HEAD:main
