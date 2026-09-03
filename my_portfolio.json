@@ -1,8 +1,37 @@
 [
-  { "ticker": "PLTR", "name": "Palantir", "quantity": 19 },
-  { "ticker": "GOOGL", "name": "Alphabet", "quantity": 15 },
-  { "ticker": "ZVRA", "name": "Zevra Therapeutics", "quantity": 675 },
-  { "ticker": "XLI", "name": "Industrial Select Sector SPDR", "quantity": 30 },
-  { "ticker": "FTAL.TA", "name": "פתאל החזקות", "quantity": 20 },
-  { "ticker": "AZRG.TA", "name": "עזריאלי קבוצה", "quantity": 47 }
+  {
+    "ticker": "PLTR",
+    "name": "Palantir",
+    "quantity": 19
+  },
+  {
+    "ticker": "GOOGL",
+    "name": "Alphabet",
+    "quantity": 15
+  },
+  {
+    "ticker": "ZVRA",
+    "name": "Zevra Therapeutics",
+    "quantity": 675
+  },
+  {
+    "ticker": "XLI",
+    "name": "Industrial Select Sector SPDR",
+    "quantity": 30
+  },
+  {
+    "ticker": "FTAL.TA",
+    "name": "פתאל החזקות",
+    "quantity": 20
+  },
+  {
+    "ticker": "AZRG.TA",
+    "name": "עזריאלי קבוצה",
+    "quantity": 47
+  },
+  {
+    "ticker": "ROCO",
+    "name": "Roco inc",
+    "quantity": 100
+  }
 ]
