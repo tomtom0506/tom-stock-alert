@@ -436,8 +436,11 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📅 תיק חודשי</p>
         <p>אלטרנטיבה לסימולציית ה-100,000 ₪ היומית: במקום להחליף מניות כל יום, הסקשן הזה בוחר Top 10 פעם ב-30 יום בלבד ומחזיק אותן - כדי לא "לאבד" רווח על עמלות קנייה/מכירה תכופות. אם מניה שנמצאת בתיק נשברת טכנית באמצע החודש (ירידה חדה, שבירת תמיכה, או שהאיתות מתהפך לשלילי) - תישלח לך התראה דחופה ונפרדת בטלגרם עם המלצה לשקול מכירה, במקום לחכות בשקט לרענון הבא.</p>
 
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">⚖️ ניסוי: משקל לפי יחס סיכוי/סיכון</p>
-        <p>סקשן השוואה בין השיטה הנוכחית (בחירת Top 10 לפי עוצמת חיזוי בלבד) לשיטה ניסיונית שמעדיפה מניות שבהן הפוטנציאל לרווח (עד ההתנגדות) גדול משמעותית מהסיכון (עד התמיכה) - לא רק "לאן זה הולך" אלא "כמה", עם הגבלה של עד 50% מהתיק מאותו סקטור (למניעת ריכוזיות מוגזמת בסקטור אחד). <b>זו השוואה בלבד</b> - שום דבר לא הוחלף בפועל, וכרגע אין עדיין מספיק ימים כדי להסיק מסקנה.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧮 השוואת נוסחאות</p>
+        <p>ה-Top 10 האמיתי נבחר היום לפי <b>עירוב מכויל</b> בין שתי שיטות בסיסיות: עוצמת חיזוי טהורה, ויחס סיכוי/סיכון (מניות שבהן הפוטנציאל לרווח עד ההתנגדות גדול משמעותית מהסיכון עד התמיכה) - עם הגבלה של עד 50% מהתיק מאותו סקטור. משקל העירוב (alpha) מתעדכן לבד פעם בחודש בערך, בצעדים קטנים ומוגבלים, ורק כשיש פער מובהק וגדול מספיק בין השיטות - לא בתגובה לתנודה של יום-יומיים. הסקשן מציג את הביצועים של ארבע השיטות זו לצד זו: הנוסחה האמיתית (העירוב), שתי הבסיסיות הטהורות, והניסיונית עם אינדיקטורים מקדימים. תיבת <b>"✨ מאז שינוי הנוסחה"</b> מציגה את הביצועים רק מהיום שהעירוב עלה לראשונה - כדי שהיסטוריה ישנה מהנוסחה הפחות טובה לא תדלל את התמונה הנוכחית.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
+        <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧪 ניתוח טריגרים - מה עובד ומה פחות</p>
         <p>בכל יום, המערכת בודקת את הדיוק של כל אחד מהטריגרים (Golden Cross, MACD, RSI קיצוני, נפח חריג, קרבה לתמיכה/התנגדות, אפסייד אנליסטים ועוד) מול <b>כל השוק</b> שנותח - לא רק המניות המצומצמות, אלא כל מניה בארה"ב ובישראל שיש לה תחזית שכבר נבדקה. כל טריגר מציג את אחוז ההצלחה שלו וכמה זה טוב/גרוע יותר מהממוצע הכללי ("מהבסיס"). זו בדיקה גולמית (לא ניסוי מבוקר - טריגרים חופפים ולא בלתי-תלויים), אבל היא נותנת כיוון אמיתי לאן שווה לחזק או להחליש במשקלי הנוסחה. עדכון הנוסחה עצמה נשאר תמיד להחלטה משותפת - המערכת לא משנה משקלים לבד.</p>
@@ -466,7 +469,7 @@
         <p>רשימה ידנית שאתה בונה בעצמך - לכל מניה אפשר להגדיר יעד עליון (מכירה) ו/או תחתון (קנייה), ולקבל התראת טלגרם כשהמחיר חוצה אותם. עריכה/מחיקה בכפתורים שבתחתית כל כרטיס, והוספת מניה חדשה בכפתור הצהוב הקבוע למטה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💼 התיק שלי</p>
-        <p>האחזקות האמיתיות שלך (ולא תחזיות) - טיקר וכמות יחידות, נערך ידנית עם הכפתור "נהל אחזקות" (או שלח לי צילום מסך ואני אעדכן בשבילך). מציג מחיר, שינוי יומי, שווי ב-₪ ומשקל יחסי בתיק לכל אחזקה, ורווח/הפסד מצטבר להיום לכל התיק. אחזקות שלא הצלחתי לקבל להן מחיר (בעיקר קרנות נאמנות/מדדים ישראליים שאין להן טיקר סחיר) מוצגות בנפרד ולא נכללות בחישוב. יש גם השוואה מול ה-Top 10 של המערכת ל"מי ניחש טוב יותר היום" - זו לא תחרות רשמית, רק כדי לראות את התמונה. המדד המצטבר ("מדד תיק") ממשיך להצטבר גם אם מוחלפת אחזקה - מכירת מניה וקנייה של אחרת לא מוחקת את מה שהרווחת קודם.</p>
+        <p>האחזקות האמיתיות שלך (ולא תחזיות) - טיקר וכמות יחידות, נערך ידנית עם הכפתור "נהל אחזקות" (או שלח לי צילום מסך ואני אעדכן בשבילך). מציג מחיר, שינוי יומי, שווי ב-₪ ומשקל יחסי בתיק לכל אחזקה. המספר הבולט למעלה הוא המדד המצטבר מאז תחילת המעקב; השורה "רווח/הפסד להיום" שמתחתיו היא רק היומי הנפרד. אחזקות שלא הצלחתי לקבל להן מחיר (בעיקר קרנות נאמנות/מדדים ישראליים שאין להן טיקר סחיר) מוצגות בנפרד ולא נכללות בחישוב. יש גם השוואה מול ה-Top 10 של המערכת ל"מי ניחש טוב יותר היום" - זו לא תחרות רשמית, רק כדי לראות את התמונה. המדד המצטבר ("מדד תיק") ממשיך להצטבר גם אם מוחלפת אחזקה - מכירת מניה וקנייה של אחרת לא מוחקת את מה שהרווחת קודם.</p>
 
       </div>
     </div>
@@ -535,6 +538,16 @@
     </div>
   </div>
 
+  <div id="benchmarkComparisonSection" class="hidden">
+    <div class="section-title" id="benchmarkComparisonToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+      📊 Top 10 מול התיק שלי ומול המדדים <span id="benchmarkComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
+    </div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
+      זו המטרה המרכזית שהמערכת נמדדת מולה כרגע: האם Top 10 באמת מנצח את התיק שלי ואת המדדים הגדולים. לכל אחד - תשואה (מתחילת המעקב, ומאז שינוי הנוסחה), שווי ₪100,000 מדומה (Buy&Hold למדדים), ומדדי סיכון.
+    </div>
+    <div class="predictions-panel hidden" id="benchmarkComparisonPanel"><div id="benchmarkComparisonList"></div></div>
+  </div>
+
   <div id="factorAnalysisSection" class="hidden">
     <div class="section-title" id="factorAnalysisToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🧪 ניתוח טריגרים - מה עובד ומה פחות <span id="factorAnalysisArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
@@ -569,7 +582,7 @@
       <div id="starredList"></div>
     </div>
     <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-      🔮 תחזיות ליום המסחר הבא <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▾ הסתר פירוט</span>
+      🔮 תחזיות ליום המסחר הבא <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div id="hotPickCard"></div>
     <div class="predictions-controls">
@@ -586,7 +599,7 @@
       <button id="recomputeBtn" class="top-toggle-btn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
     </div>
     <div id="recomputeStatus"></div>
-    <div class="predictions-panel" id="predictionsListPanel"><div id="predictionsList"></div></div>
+    <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
   </div>
 
   <div class="modal-overlay hidden" id="liveEstimateOverlay" style="z-index:150;">
@@ -784,12 +797,19 @@
 </div>
 
 <script>
-const APP_VERSION = "4.9"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.0", items: [
+    "נוסף סקשן חדש '📊 Top 10 מול התיק שלי ומול המדדים' - השוואה ישירה של תשואת Top 10, התיק שלי, S&P 500 ות\"א 125, כולל סימולציית Buy&Hold מקבילה של ₪100,000 בכל מדד (מתחילת המעקב), כדי להשוות שווי מול שווי ולא רק אחוז מול אחוז. שתי תקופות מוצגות לכל אחד: מתחילת המעקב, ומאז שינוי הנוסחה.",
+    "נוספו מדדי סיכון (Max Drawdown ותנודתיות יומית) לכל אחד מהמדדים בסקשן ההשוואה החדש - כדי שתשואה גבוהה עם ירידות חדות בדרך לא תיראה 'טובה' יותר מתשואה דומה עם דרך יציבה.",
+    "סקשן 'תחזיות ליום המסחר הבא' מתקפל כברירת מחדל עכשיו, בדיוק כמו כל שאר הסקשנים המתקפלים - לא נשאר פתוח אוטומטית.",
+    "תוקן טקסט ישן במדריך השימוש שעדיין תיאר את שיטת ה'ניסוי' הישנה מלפני v4.7 - עודכן להסביר את מנגנון העירוב המכויל בפועל, וגם תוקן ניסוח מבלבל בהסבר על 'התיק שלי' (רווח מצטבר מול יומי).",
+    "עודכן אייקון האפליקציה.",
+  ]},
   { version: "4.9", items: [
     "נוספה תיבה '✨ מאז שינוי הנוסחה' בסקשן 'השוואת נוסחאות' - הצלחת Top 10 ותשואת התיק המדומה מחושבים רק מהיום שהנוסחה החדשה עלתה (1.9.2026), בלי שההיסטוריה הישנה (עם הנוסחה הפחות טובה) תדלל את המספר. המספרים המצטברים הכוללים נשארים בדיוק כמו שהיו, לצד זה - שום דבר לא נמחק.",
     "בהשוואה 'מי ניחש טוב יותר מאז תחילת המעקב' (בתיק שלי) נוספה הערה מבהירה שהמספר של Top 10 שם עדיין כולל היסטוריה ישנה, עם הפניה למספר הנקי.",
@@ -899,6 +919,7 @@ setupCollapsibleToggle("factorAnalysisToggle", "factorAnalysisArrow", "factorAna
 setupCollapsibleToggle("monthlyPortfolioToggle", "monthlyPortfolioArrow", "monthlyPortfolioPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("myPortfolioToggle", "myPortfolioArrow", "myPortfolioPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("formulaComparisonToggle", "formulaComparisonArrow", "formulaComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("benchmarkComparisonToggle", "benchmarkComparisonArrow", "benchmarkComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("predictionsToggle", "predictionsArrow", "predictionsListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("watchlistToggle", "watchlistArrow", "watchlistPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 document.getElementById("changelogCloseBtn").addEventListener("click", () => {
@@ -1482,6 +1503,7 @@ async function loadPredictions() {
     renderPortfolioSim(data.portfolio_sim, acc);
     renderFactorAnalysis(data.factor_analysis);
     renderFormulaComparison(data.formula_comparison);
+    renderBenchmarkComparison(data.benchmark_comparison);
     renderMonthlyPortfolio(data.monthly_portfolio, currentPrices);
     lastPortfolioSimReal = data.portfolio_sim || null;
     renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
@@ -1785,6 +1807,50 @@ function renderFormulaComparison(fc) {
         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
           <span>תיק מדומה מצטבר</span>
           <span class="mono ${retCls}">${retText}</span>
+        </div>
+      </div>`;
+  }).join("");
+
+  section.classList.remove("hidden");
+}
+
+function renderBenchmarkComparison(bc) {
+  const section = document.getElementById("benchmarkComparisonSection");
+  if (!bc || !bc.entries) {
+    section.classList.add("hidden");
+    return;
+  }
+  const order = ["top10", "my_portfolio", "index_sim_sp500", "index_sim_ta125"];
+  const hasAnyData = order.some(k => bc.entries[k] && bc.entries[k].total_return_pct != null);
+  if (!hasAnyData) {
+    section.classList.add("hidden");
+    return;
+  }
+
+  const fmtPct = (v) => v == null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
+  const pctCls = (v) => v == null ? "" : (v >= 0 ? "prediction-dir-up" : "prediction-dir-down");
+  const fmtIls = (v) => v == null ? "—" : `₪${Math.round(v).toLocaleString("he-IL")}`;
+
+  const list = document.getElementById("benchmarkComparisonList");
+  list.innerHTML = order.filter(k => bc.entries[k]).map(k => {
+    const e = bc.entries[k];
+    return `
+      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:13px; font-weight:600;">${e.label}</span>
+          <span class="mono ${pctCls(e.total_return_pct)}" style="font-weight:700;">${fmtPct(e.total_return_pct)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>מאז שינוי הנוסחה${bc.since_formula_change ? " (" + bc.since_formula_change + ")" : ""}</span>
+          <span class="mono ${pctCls(e.return_since_formula_change_pct)}">${fmtPct(e.return_since_formula_change_pct)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>שווי ₪100,000 מדומה${k === "top10" ? "" : (k === "my_portfolio" ? "" : " (Buy&Hold)")}</span>
+          <span class="mono">${fmtIls(e.value)}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+          <span>Max Drawdown / תנודתיות</span>
+          <span class="mono">${e.max_drawdown_pct != null ? e.max_drawdown_pct.toFixed(2) + "%" : "—"} / ${e.volatility_pct != null ? e.volatility_pct.toFixed(2) + "%" : "—"}</span>
         </div>
       </div>`;
   }).join("");

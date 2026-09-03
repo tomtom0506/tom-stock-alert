@@ -1577,6 +1577,166 @@ def build_formula_comparison(store):
     return store["formula_comparison"]
 
 
+def compute_risk_metrics(daily_log, value_field="value_end"):
+    """Max drawdown (%, worst peak-to-trough drop) and volatility (%, std
+    dev of daily returns) computed from any sim's daily_log value history.
+    Shared by Top10, my-portfolio, and the index benchmark sims below, so
+    the return-% comparisons everywhere can be read alongside how bumpy
+    the ride was to get there - not just the destination. Returns Nones
+    if there isn't enough history yet (need at least 2 data points)."""
+    values = [d.get(value_field) for d in daily_log if d.get(value_field) is not None]
+    if len(values) < 2:
+        return {"max_drawdown_pct": None, "volatility_pct": None}
+
+    peak = values[0]
+    max_dd = 0.0
+    daily_returns = []
+    for i, v in enumerate(values):
+        if v > peak:
+            peak = v
+        if peak:
+            dd = (v - peak) / peak * 100
+            if dd < max_dd:
+                max_dd = dd
+        if i > 0 and values[i - 1]:
+            daily_returns.append((v - values[i - 1]) / values[i - 1] * 100)
+
+    if len(daily_returns) >= 2:
+        mean = sum(daily_returns) / len(daily_returns)
+        variance = sum((r - mean) ** 2 for r in daily_returns) / (len(daily_returns) - 1)
+        vol = variance ** 0.5
+    else:
+        vol = None
+
+    return {
+        "max_drawdown_pct": round(max_dd, 2),
+        "volatility_pct": round(vol, 2) if vol is not None else None,
+    }
+
+
+INDEX_BENCHMARKS = {
+    "index_sim_sp500": {"symbol": "^GSPC", "label": "S&P 500"},
+    "index_sim_ta125": {"symbol": "^TA125.TA", "label": 'מדד ת"א 125'},
+}
+
+
+def update_index_benchmark_sim(store, sim_key, symbol):
+    """Buy-and-hold benchmark: a nominal ₪100,000 invested once, on the
+    same day the Top10 ₪100,000 simulation (portfolio_sim) started, and
+    left untouched since - so it can be compared directly (in ₪, not just
+    %) against portfolio_sim. Like portfolio_sim itself, this tracks pure
+    % price movement of the index and applies it to a nominal ₪ figure -
+    it does not model real FX conversion, exactly the same simplification
+    already used for the Top10/my-portfolio sims (they mix ILS and USD
+    tickers and compound % returns only, not real currency amounts).
+    Rebuilt from full daily history each run rather than compounded
+    incrementally like portfolio_sim, since a single yfinance history call
+    is cheap and this avoids any drift from missed daily runs."""
+    portfolio_log = (store.get("portfolio_sim") or {}).get("daily_log") or []
+    if not portfolio_log:
+        return  # nothing to anchor the start date to yet
+    start_date_str = portfolio_log[0]["date"]
+
+    try:
+        hist = yf.Ticker(symbol).history(start=start_date_str)
+        closes = hist["Close"].dropna()
+    except Exception as e:
+        print(f"Error fetching index history for {symbol}: {e}")
+        return
+    if closes.empty:
+        return
+
+    start_price = float(closes.iloc[0])
+    if not start_price:
+        return
+
+    daily_log = []
+    for ts, close in closes.items():
+        value = 100000.0 * (float(close) / start_price)
+        daily_log.append({"date": ts.strftime("%Y-%m-%d"), "value_end": round(value, 2)})
+
+    sim = store.setdefault(sim_key, {})
+    sim["symbol"] = symbol
+    sim["start_value"] = 100000
+    sim["start_date"] = daily_log[0]["date"]
+    sim["value"] = daily_log[-1]["value_end"]
+    sim["daily_log"] = daily_log[-400:]
+    sim["total_return_pct"] = round((sim["value"] / 100000 - 1) * 100, 2)
+
+
+def build_benchmark_comparison(store):
+    """Direct comparison of Top10 vs my real portfolio vs the major market
+    indices, in both return-% and risk terms - the thing that actually
+    answers 'is the formula winning?'. Both time windows shown: since
+    tracking started, and since the formula change (see build_formula_
+    comparison for why that split matters), plus max drawdown/volatility
+    for each so a higher return that came with a much rougher ride is
+    visible, not hidden behind the headline %."""
+    portfolio_sim = store.get("portfolio_sim") or {}
+    my_sim = store.get("my_portfolio_sim") or {}
+    live_since = (store.get("formula_blend") or {}).get("live_since")
+
+    def value_at_or_after(daily_log, target_date, field):
+        if not target_date:
+            return None
+        for entry in daily_log:
+            if entry["date"] >= target_date:
+                return entry.get(field)
+        return None
+
+    entries = {}
+
+    top10_log = portfolio_sim.get("daily_log") or []
+    entries["top10"] = {
+        "label": "Top 10 (סימולציית ₪100,000)",
+        "value": portfolio_sim.get("value"),
+        "total_return_pct": portfolio_sim.get("total_return_pct"),
+        **compute_risk_metrics(top10_log, "value_end"),
+    }
+    cutover_top10 = value_at_or_after(top10_log, live_since, "value_end")
+    entries["top10"]["return_since_formula_change_pct"] = (
+        round((portfolio_sim["value"] / cutover_top10 - 1) * 100, 2)
+        if cutover_top10 and portfolio_sim.get("value") is not None else None
+    )
+
+    my_log = my_sim.get("daily_log") or []
+    entries["my_portfolio"] = {
+        "label": "התיק שלי",
+        "value": my_sim.get("value"),
+        "total_return_pct": my_sim.get("total_return_pct"),
+        **compute_risk_metrics(my_log, "value"),
+    }
+    cutover_my = value_at_or_after(my_log, live_since, "value")
+    entries["my_portfolio"]["return_since_formula_change_pct"] = (
+        round((my_sim["value"] / cutover_my - 1) * 100, 2)
+        if cutover_my and my_sim.get("value") is not None else None
+    )
+
+    for sim_key, meta in INDEX_BENCHMARKS.items():
+        sim = store.get(sim_key) or {}
+        log = sim.get("daily_log") or []
+        entry = {
+            "label": meta["label"],
+            "value": sim.get("value"),
+            "total_return_pct": sim.get("total_return_pct"),
+            **compute_risk_metrics(log, "value_end"),
+        }
+        cutover_val = value_at_or_after(log, live_since, "value_end")
+        entry["return_since_formula_change_pct"] = (
+            round((sim["value"] / cutover_val - 1) * 100, 2)
+            if cutover_val and sim.get("value") is not None else None
+        )
+        entries[sim_key] = entry
+
+    store["benchmark_comparison"] = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "since_date": top10_log[0]["date"] if top10_log else None,
+        "since_formula_change": live_since,
+        "entries": entries,
+    }
+    return store["benchmark_comparison"]
+
+
 def ensure_formula_blend_initialized(store):
     """Makes sure formula_blend and its cutover markers exist as early as
     possible in a run, so recompute_accuracy's 'since formula change'
@@ -2040,6 +2200,13 @@ def main():
         update_portfolio_simulation(prediction_store, "top10_original", "portfolio_sim_original")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
+
+        try:
+            update_index_benchmark_sim(prediction_store, "index_sim_sp500", "^GSPC")
+            update_index_benchmark_sim(prediction_store, "index_sim_ta125", "^TA125.TA")
+            build_benchmark_comparison(prediction_store)
+        except Exception as e:
+            print(f"Benchmark comparison update failed, continuing without it: {type(e).__name__}: {e}")
 
         last_factor_run = (prediction_store.get("factor_analysis") or {}).get("updated_at", "")[:10]
         if last_factor_run != today_str:
