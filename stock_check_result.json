@@ -1,4 +1,19 @@
 {
-  "ticker": "DATADOG",
-  "error": "אין מספיק היסטוריית מחיר לניתוח (טיקר חדש/לא סחיר?)"
+  "ticker": "APP",
+  "predicted_direction": "up",
+  "raw_score": 5.4,
+  "overall_score": 73.2,
+  "components": {
+    "original": 54.0,
+    "risk_reward": 100,
+    "leading_adjusted": 54.0,
+    "analyst": 84.8
+  },
+  "excluded_from_blend": [],
+  "price": 313.5799865722656,
+  "support": 303.76,
+  "resistance": 419.7,
+  "analyst_count": 31,
+  "sector": "Communication Services",
+  "checked_at": "2026-09-03T20:38:08.944376+00:00"
 }
