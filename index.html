@@ -797,12 +797,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.0.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.0.1", items: [
+    "תוקן באג בסקשן 'Top 10 מול התיק שלי ומול המדדים': שווי ₪100,000 המדומה של 'התיק שלי' הוצג שגוי (₪102 במקום ₪102,000-ומשהו) כי המדד הפנימי של התיק שלי בנוי על בסיס 100, לא ₪100,000 כמו Top 10 והמדדים - עכשיו מתורגם לאותה סקאלה לפני התצוגה. האחוזים (תשואה, Max Drawdown, תנודתיות) לא הושפעו - הם היו נכונים כל הזמן.",
+  ]},
   { version: "5.0", items: [
     "נוסף סקשן חדש '📊 Top 10 מול התיק שלי ומול המדדים' - השוואה ישירה של תשואת Top 10, התיק שלי, S&P 500 ות\"א 125, כולל סימולציית Buy&Hold מקבילה של ₪100,000 בכל מדד (מתחילת המעקב), כדי להשוות שווי מול שווי ולא רק אחוז מול אחוז. שתי תקופות מוצגות לכל אחד: מתחילת המעקב, ומאז שינוי הנוסחה.",
     "נוספו מדדי סיכון (Max Drawdown ותנודתיות יומית) לכל אחד מהמדדים בסקשן ההשוואה החדש - כדי שתשואה גבוהה עם ירידות חדות בדרך לא תיראה 'טובה' יותר מתשואה דומה עם דרך יציבה.",

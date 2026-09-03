@@ -1700,9 +1700,14 @@ def build_benchmark_comparison(store):
     )
 
     my_log = my_sim.get("daily_log") or []
+    # my_portfolio_sim tracks a base-100 index internally (not ₪100,000 like
+    # portfolio_sim/the index sims), so it's scaled by 1000 here to express
+    # it on the same ₪100,000-nominal basis as everything else being
+    # compared - otherwise this would show "₪102" instead of "₪102,000".
+    my_value_ils = my_sim.get("value") * 1000 if my_sim.get("value") is not None else None
     entries["my_portfolio"] = {
         "label": "התיק שלי",
-        "value": my_sim.get("value"),
+        "value": my_value_ils,
         "total_return_pct": my_sim.get("total_return_pct"),
         **compute_risk_metrics(my_log, "value"),
     }
