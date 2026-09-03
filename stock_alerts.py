@@ -2342,6 +2342,23 @@ def run_predictions(store):
     for entry in today_entries:
         entry["top10"] = entry["ticker"] in real_top10_tickers
 
+    # --- full breakdown for the actual Top 10, same fields "בדוק מניה"
+    # already shows for an ad-hoc lookup (analyst score, earnings date) -
+    # trend_template/vcp are already attached to every entry above via the
+    # factors copy loop, so only these two need computing here, and only
+    # for these 10 tickers (cheap - not the whole scanned universe). ---
+    for entry in today_entries:
+        if entry["ticker"] not in real_top10_tickers:
+            continue
+        entry["analyst_score"] = analyst_score_0_100(
+            entry.get("recommendation_mean"), entry.get("upside_pct")
+        )
+        try:
+            entry["earnings"] = get_upcoming_earnings_date(entry["ticker"])
+        except Exception as e:
+            print(f"Earnings lookup failed for {entry['ticker']}: {e}")
+            entry["earnings"] = None
+
     # A blended-formula Top10 pick can in principle fall outside the top-25
     # raw-conviction cut above (that's the whole point of blending toward
     # risk/reward) - make sure it still gets "strong" treatment (news fetch,

@@ -442,6 +442,9 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
         <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏆 פירוט מלא ל-Top 10</p>
+        <p>כל אחת מ-10 המניות שנבחרות בפועל מציגה עכשיו את אותן תגיות מידע שיש ב"בדוק מניה": <b>מגמת Minervini</b>, <b>RS Rating</b>, <b>ציון אנליסטים</b> (0-100, בנפרד מהציון הכולל), <b>VCP</b> (ניסיוני, מידע בלבד), ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי. שאר המניות שנסרקות לא מקבלות את הבדיקה הזו (חוץ ממגמת Minervini ו-RS Rating, שמחושבים לכולן ומשפיעים על הבחירה עצמה) - כדי לא להעמיס קריאות API מיותרות על כל השוק.</p>
+
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
         <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומשלב את שלוש הנוסחאות שמריצות את Top 10 (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת <b>דירוג אנליסטים</b> - לציון כולל אחד 1-100, עם פירוט לכל רכיב בנפרד. אם אין נתון אנליסטים לטיקר מסוים, הרכיב הזה פשוט לא נכלל בשקלול (לא מקבל ציון ניטרלי מזויף). לצד הציון מוצגים גם כתגיות מידע: <b>מגמת Minervini</b> (כמה מ-7 קריטריוני "מגמה בריאה" המניה עומדת בהם - זה גם מנכה מהציון עצמו, ראו למטה), <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול שאר השוק שנסרק), <b>VCP</b> (זיהוי ניסיוני של תבנית התכווצות - מידע בלבד, לא משפיע על הציון), <b>מכירה בחסר</b>, ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי (גם זו לא משפיעה על הציון - זה סיכון תזמון, לא כיוון). 10 הטיקרים האחרונים שנבדקו נשמרים בדפדפן - לחיצה על אחד מהם בהיסטוריה מציגה שוב את התוצאה השמורה, בלי להריץ בדיקה חדשה.</p>
 
@@ -817,12 +820,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.1.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.1.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.1.3", items: [
+    "כל אחת מ-10 המניות שבפועל נבחרות ל-Top 10 מציגה עכשיו את אותה תגיות מידע שיש ב'בדוק מניה': מגמת Minervini, RS Rating, ציון אנליסטים (0-100), VCP (ניסיוני), ואזהרת דוח כספי קרוב - חדש: ציון אנליסטים ובדיקת דוח כספי מחושבים כעת גם עבור 10 המניות הנבחרות (זול, לא נבדק לכל השוק).",
+  ]},
   { version: "5.1.2", items: [
     "'בדוק מניה' זוכר עכשיו את 10 הטיקרים האחרונים שנבדקו (נשמר בדפדפן המקומי, נשאר גם אחרי סגירת האתר). לחיצה על טיקר בהיסטוריה מציגה שוב את התוצאה השמורה שלו, בלי להריץ בדיקה חדשה בגיטהאב.",
   ]},
@@ -1335,9 +1341,41 @@ function predictionCardHtml(p) {
           </div>
           ${convictionBarHtml(p.score)}
           ${factorBadgesHtml(p)}
+          ${p.top10 ? topPickBreakdownHtml(p) : ""}
         </div>
       </div>
     </div>`;
+}
+
+function topPickBreakdownHtml(p) {
+  // same breakdown fields "בדוק מניה" shows for an ad-hoc lookup, here for
+  // an actual Top 10 pick - analyst_score/earnings are only computed for
+  // real Top10 entries (see run_predictions), trend_template/vcp are on
+  // every scanned ticker already.
+  const tags = [];
+  const tt = p.trend_template;
+  if (tt && tt.criteria_total) {
+    const ttColor = tt.passes ? "#5ee6a0" : "#ffb27a";
+    tags.push(`<span style="background:#1c2230; border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:3px 8px; font-size:10.5px;">Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
+  }
+  if (p.rs_rating != null) {
+    tags.push(`<span style="background:#1c2230; border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:3px 8px; font-size:10.5px;">RS: ${p.rs_rating.toFixed(0)}</span>`);
+  }
+  if (p.analyst_score != null) {
+    tags.push(`<span style="background:#1c2230; border:1px solid #ffd76a44; color:#ffd76a; border-radius:8px; padding:3px 8px; font-size:10.5px;">אנליסטים: ${p.analyst_score.toFixed(0)}</span>`);
+  }
+  if (p.vcp && p.vcp.vcp_detected) {
+    tags.push(`<span style="background:#1c2230; border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:3px 8px; font-size:10.5px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP</span>`);
+  }
+  const earn = p.earnings;
+  let earningsLine = "";
+  if (earn && earn.days_away != null && earn.days_away <= 14) {
+    earningsLine = `<div style="font-size:10.5px; color:#ffd76a; margin-top:6px;">⚠️ דוח כספי צפוי ב-${earn.date} (בעוד ${earn.days_away} ימים)</div>`;
+  }
+  if (!tags.length && !earningsLine) return "";
+  return `
+    <div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:5px;">${tags.join("")}</div>
+    ${earningsLine}`;
 }
 
 function attachStarEvents(container) {
