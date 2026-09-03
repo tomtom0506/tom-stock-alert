@@ -442,6 +442,9 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
         <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
+        <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומשלב את שלוש הנוסחאות שמריצות את Top 10 (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת <b>דירוג אנליסטים</b> - לציון כולל אחד 1-100, עם פירוט לכל רכיב בנפרד. אם אין נתון אנליסטים לטיקר מסוים, הרכיב הזה פשוט לא נכלל בשקלול (לא מקבל ציון ניטרלי מזויף).</p>
+
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧪 ניתוח טריגרים - מה עובד ומה פחות</p>
         <p>בכל יום, המערכת בודקת את הדיוק של כל אחד מהטריגרים (Golden Cross, MACD, RSI קיצוני, נפח חריג, קרבה לתמיכה/התנגדות, אפסייד אנליסטים ועוד) מול <b>כל השוק</b> שנותח - לא רק המניות המצומצמות, אלא כל מניה בארה"ב ובישראל שיש לה תחזית שכבר נבדקה. כל טריגר מציג את אחוז ההצלחה שלו וכמה זה טוב/גרוע יותר מהממוצע הכללי ("מהבסיס"). זו בדיקה גולמית (לא ניסוי מבוקר - טריגרים חופפים ולא בלתי-תלויים), אבל היא נותנת כיוון אמיתי לאן שווה לחזק או להחליש במשקלי הנוסחה. עדכון הנוסחה עצמה נשאר תמיד להחלטה משותפת - המערכת לא משנה משקלים לבד.</p>
 
@@ -600,6 +603,19 @@
     </div>
     <div id="recomputeStatus"></div>
     <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
+  </div>
+
+  <div id="checkStockSection">
+    <div class="section-title">🔍 בדוק מניה</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
+      ניתוח לפי דרישה לכל טיקר - לא קשור לרשימת המעקב היומית. מריץ את אותן שלוש הנוסחאות שמריצות את Top 10, בתוספת דירוג אנליסטים, ונותן ציון כולל 1-100. לוקח כדקה-שתיים (מפעיל ריצה חדשה בגיטהאב, לא מיידי).
+    </div>
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <input class="field-input mono" id="checkStockInput" placeholder="לדוגמה: NVDA / TEVA.TA" style="flex:1;" />
+      <button id="checkStockBtn" class="top-toggle-btn" style="white-space:nowrap;">בדוק מניה</button>
+    </div>
+    <div id="checkStockStatus"></div>
+    <div id="checkStockResult"></div>
   </div>
 
   <div class="modal-overlay hidden" id="liveEstimateOverlay" style="z-index:150;">
@@ -797,12 +813,16 @@
 </div>
 
 <script>
-const APP_VERSION = "5.0.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.1", items: [
+    "נוסף סקשן חדש '🔍 בדוק מניה' - הזנת טיקר/שם חברה + כפתור שמפעיל ריצה חד-פעמית בגיטהאב (workflow נפרד, לא קשור למעקב היומי אחר Top 10). הניתוח משלב את שלוש הנוסחאות הקיימות (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת דירוג אנליסטים חדש - לציון כולל אחד 1-100, עם פירוט לפי כל רכיב בנפרד.",
+    "נוסף workflow חדש בגיטהאב (check_stock.yml) וסקריפט check_stock.py ייעודי לניתוח חד-פעמי לפי דרישה.",
+  ]},
   { version: "5.0.1", items: [
     "תוקן באג בסקשן 'Top 10 מול התיק שלי ומול המדדים': שווי ₪100,000 המדומה של 'התיק שלי' הוצג שגוי (₪102 במקום ₪102,000-ומשהו) כי המדד הפנימי של התיק שלי בנוי על בסיס 100, לא ₪100,000 כמו Top 10 והמדדים - עכשיו מתורגם לאותה סקאלה לפני התצוגה. האחוזים (תשואה, Max Drawdown, תנודתיות) לא הושפעו - הם היו נכונים כל הזמן.",
   ]},
@@ -1465,6 +1485,126 @@ document.getElementById("recomputeBtn").addEventListener("click", async () => {
     } else {
       statusEl.innerHTML = `<div class="status error">שגיאה (${res.status}) בהפעלת הריצה</div>`;
     }
+  } catch (e) {
+    statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
+  }
+});
+
+let checkStockPollTimer = null;
+
+function renderCheckStockResult(data) {
+  const el = document.getElementById("checkStockResult");
+  if (!data) { el.innerHTML = ""; return; }
+  if (data.error) {
+    el.innerHTML = `<div class="status error" style="margin-top:8px;">${data.error}</div>`;
+    return;
+  }
+  const dirLabel = data.predicted_direction === "up" ? "עלייה 🔺" : "ירידה 🔻";
+  const dirCls = data.predicted_direction === "up" ? "prediction-dir-up" : "prediction-dir-down";
+  const labels = {
+    original: "ציון מקורי",
+    risk_reward: "יחס סיכוי/סיכון",
+    leading_adjusted: "אינדיקטורים מקדימים",
+    analyst: "דירוג אנליסטים",
+  };
+  const comps = data.components || {};
+  const excluded = new Set(data.excluded_from_blend || []);
+  const compRows = Object.keys(labels).map(k => {
+    const v = comps[k];
+    const isOut = excluded.has(k);
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-faint,#ffffff14);">
+        <span style="font-size:13px; ${isOut ? "color:var(--text-faint);" : ""}">${labels[k]}${isOut ? " (אין נתון - לא נכלל)" : ""}</span>
+        <span class="mono" style="font-weight:700; ${isOut ? "color:var(--text-faint);" : ""}">${v != null ? v.toFixed(1) : "—"}</span>
+      </div>`;
+  }).join("");
+
+  el.innerHTML = `
+    <div class="panel" style="margin-top:10px; padding:16px; border-radius:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+        <span style="font-size:20px; font-weight:800;">${data.ticker}</span>
+        <span style="font-size:15px;" class="${dirCls}">${dirLabel}</span>
+      </div>
+      <div style="text-align:center; margin:14px 0;">
+        <div style="font-size:44px; font-weight:800; background:linear-gradient(135deg,#ffd76a,#5ee6a0); -webkit-background-clip:text; background-clip:text; color:transparent;">
+          ${data.overall_score != null ? data.overall_score.toFixed(1) : "—"}
+        </div>
+        <div style="font-size:12px; color:var(--text-faint);">ציון כולל מתוך 100</div>
+      </div>
+      <div style="font-size:12px; color:var(--text-faint); display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span>מחיר: <span class="mono">${data.price ?? "—"}</span></span>
+        <span>תמיכה: <span class="mono">${data.support ?? "—"}</span></span>
+        <span>התנגדות: <span class="mono">${data.resistance ?? "—"}</span></span>
+      </div>
+      <div style="font-size:13px; font-weight:700; margin-bottom:4px;">פירוט לפי ניתוח:</div>
+      ${compRows}
+      ${data.checked_at ? `<div style="font-size:11px; color:var(--text-faint); margin-top:10px;">נבדק ב-${new Date(data.checked_at).toLocaleString("he-IL")}</div>` : ""}
+    </div>`;
+}
+
+document.getElementById("checkStockBtn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("checkStockStatus");
+  const resultEl = document.getElementById("checkStockResult");
+  const input = document.getElementById("checkStockInput");
+  const ticker = (input.value || "").trim().toUpperCase();
+  if (!ticker) {
+    statusEl.innerHTML = `<div class="status error">קודם תזין טיקר</div>`;
+    return;
+  }
+  if (!owner || !repo || !token) {
+    statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
+    return;
+  }
+  if (checkStockPollTimer) { clearInterval(checkStockPollTimer); checkStockPollTimer = null; }
+  resultEl.innerHTML = "";
+  const triggeredAt = Date.now();
+  statusEl.innerHTML = `<div class="status">מפעיל ניתוח ל-${ticker}...</div>`;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/actions/workflows/check_stock.yml/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ref: "main", inputs: { ticker } }),
+      }
+    );
+    if (res.status !== 204) {
+      statusEl.innerHTML = res.status === 403
+        ? `<div class="status error">לטוקן אין הרשאת "Actions: Read and write"</div>`
+        : `<div class="status error">שגיאה (${res.status}) בהפעלת הבדיקה</div>`;
+      return;
+    }
+    statusEl.innerHTML = `<div class="status">✓ הופעל! מחפש תוצאה כל כמה שניות (עד כ-2 דקות)...</div>`;
+
+    let attempts = 0;
+    const maxAttempts = 24; // ~2 minutes at 5s intervals
+    checkStockPollTimer = setInterval(async () => {
+      attempts++;
+      try {
+        const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/stock_check_result.json?t=${Date.now()}`);
+        if (r.ok) {
+          const data = await r.json();
+          const checkedAt = data.checked_at ? new Date(data.checked_at).getTime() : 0;
+          const tickerMatches = (data.ticker || "").toUpperCase() === ticker;
+          if ((data.error && tickerMatches) || (checkedAt > triggeredAt && tickerMatches)) {
+            clearInterval(checkStockPollTimer);
+            checkStockPollTimer = null;
+            statusEl.innerHTML = "";
+            renderCheckStockResult(data);
+            return;
+          }
+        }
+      } catch (e) { /* keep polling */ }
+      if (attempts >= maxAttempts) {
+        clearInterval(checkStockPollTimer);
+        checkStockPollTimer = null;
+        statusEl.innerHTML = `<div class="status error">לא הגיעה תוצאה תוך כדקתיים - בדוק ב-Actions בגיטהאב אם הריצה הצליחה, ונסה "רענן תוצאה" בעוד רגע.</div>`;
+      }
+    }, 5000);
   } catch (e) {
     statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
   }

@@ -1921,6 +1921,107 @@ def select_diversified_top10(pool, key_fn, max_per_sector=MAX_PICKS_PER_SECTOR):
     return selected
 
 
+def analyst_score_0_100(recommendation_mean, upside_pct):
+    """Converts whatever analyst data is available into a 0-100 score, same
+    direction as the other sub-scores used in the 'בדוק מניה' on-demand
+    check below (higher = more bullish case). recommendationMean (1=Strong
+    Buy..5=Strong Sell) is the primary signal when present; upside_pct
+    (mean target price vs current price) is used as a fallback for tickers
+    analysts cover with a price target but no formal rating. Returns None
+    if neither is available, so the caller can drop this component from
+    the blend rather than fabricate a neutral 50."""
+    if recommendation_mean is not None:
+        return round(max(0, min((5 - recommendation_mean) / 4 * 100, 100)), 1)
+    if upside_pct is not None:
+        return round(max(0, min(50 + upside_pct * 1.5, 100)), 1)
+    return None
+
+
+def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, market_regime):
+    """The 'בדוק מניה' on-demand analysis (see check_stock.py): reuses the
+    exact same scoring engines the daily Top10 pipeline uses
+    (compute_prediction_score, compute_risk_reward_score,
+    compute_leading_adjusted_score), adds a new analyst-rating component,
+    and blends all four into one 1-100 score - plus returns each sub-score
+    separately for the breakdown view.
+
+    Unlike the real Top10 selection (compute_blended_top10_score), this
+    can't blend at the RANK level - there's no universe to rank an ad-hoc
+    single ticker against. So each sub-score is independently normalized
+    to a 0-100 scale using a fixed ceiling (chosen from the formulas' own
+    typical ranges, not calibrated against tracked history the way the
+    real Top10 alpha is - there isn't a population of graded ad-hoc
+    lookups to calibrate against). Weights are fixed and equal (25% each)
+    for the same reason: this is a judgment call to revisit once there's
+    real usage data, not an evidence-gated calibration like the Top10
+    blend elsewhere in this file."""
+    factors = dict(technical_factors)
+    factors.update(fundamental_factors)
+    score = compute_prediction_score(factors, market_regime)
+    predicted = "up" if score >= 0 else "down"
+    entry = {"ticker": ticker, "score": score, "predicted": predicted, **factors}
+
+    rr_raw = compute_risk_reward_score(entry)
+    leading_raw = compute_leading_adjusted_score(entry)
+    analyst_raw = analyst_score_0_100(
+        fundamental_factors.get("recommendation_mean"),
+        fundamental_factors.get("upside_pct"),
+    )
+
+    original_norm = round(max(0, min(abs(score) / 10 * 100, 100)), 1)
+    rr_norm = round(max(0, min(rr_raw / 25 * 100, 100)), 1)
+    leading_norm = round(max(0, min(leading_raw / 10 * 100, 100)), 1)
+
+    components = {
+        "original": original_norm,
+        "risk_reward": rr_norm,
+        "leading_adjusted": leading_norm,
+        "analyst": analyst_raw,  # may be None - excluded from blend below if so
+    }
+    available = {k: v for k, v in components.items() if v is not None}
+    overall = round(sum(available.values()) / len(available), 1) if available else None
+
+    return {
+        "ticker": ticker,
+        "predicted_direction": predicted,
+        "raw_score": round(score, 2),
+        "overall_score": overall,
+        "components": components,
+        "excluded_from_blend": [k for k, v in components.items() if v is None],
+        "price": factors.get("price"),
+        "support": factors.get("support"),
+        "resistance": factors.get("resistance"),
+        "analyst_count": fundamental_factors.get("analyst_count"),
+        "sector": fundamental_factors.get("sector"),
+    }
+
+
+def analyze_single_ticker(ticker):
+    """Entry point for check_stock.py (the on-demand 'בדוק מניה' workflow).
+    Downloads fresh data for just this one ticker - independent of the
+    daily universe scan - and runs it through compute_single_ticker_score."""
+    ticker = ticker.strip().upper()
+    try:
+        data = yf.download(tickers=ticker, period=PRICE_HISTORY_PERIOD,
+                            group_by="ticker", threads=False, progress=False, auto_adjust=True)
+        closes = _flatten_close_series(data["Close"] if "Close" in data else data[ticker]["Close"])
+        volumes = _flatten_close_series(data["Volume"] if "Volume" in data else data[ticker]["Volume"])
+        highs = _flatten_close_series(data["High"] if "High" in data else data[ticker]["High"])
+        lows = _flatten_close_series(data["Low"] if "Low" in data else data[ticker]["Low"])
+    except Exception as e:
+        return {"ticker": ticker, "error": f"לא הצלחתי למשוך נתוני מחיר: {e}"}
+
+    tf = compute_technical_factors(closes, volumes, highs, lows)
+    if not tf:
+        return {"ticker": ticker, "error": "אין מספיק היסטוריית מחיר לניתוח (טיקר חדש/לא סחיר?)"}
+
+    fund = get_fundamental_factors(ticker)
+    market_regime = get_market_regime()
+    result = compute_single_ticker_score(ticker, tf, fund, market_regime)
+    result["checked_at"] = datetime.now(timezone.utc).isoformat()
+    return result
+
+
 def run_predictions(store):
     today = date.today().isoformat()
     already_predicted_today = any(e.get("date") == today for e in store["history"])
