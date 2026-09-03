@@ -647,5 +647,9 @@
   "US_CRCL_bigmove_2026-09-03": true,
   "US_HSAI_bigmove_2026-09-03": true,
   "US_VSXY_bigmove_2026-09-03": true,
-  "US_CIEN_bigmove_2026-09-03": true
+  "US_CIEN_bigmove_2026-09-03": true,
+  "US_SMMT_bigmove_2026-09-03": true,
+  "US_MSTR_bigmove_2026-09-03": true,
+  "US_BMNR_bigmove_2026-09-03": true,
+  "US_BTDR_bigmove_2026-09-03": true
 }
