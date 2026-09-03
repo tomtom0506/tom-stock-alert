@@ -443,7 +443,7 @@
         <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
-        <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומשלב את שלוש הנוסחאות שמריצות את Top 10 (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת <b>דירוג אנליסטים</b> - לציון כולל אחד 1-100, עם פירוט לכל רכיב בנפרד. אם אין נתון אנליסטים לטיקר מסוים, הרכיב הזה פשוט לא נכלל בשקלול (לא מקבל ציון ניטרלי מזויף). לצד הציון מוצגים גם כתגיות מידע: <b>מגמת Minervini</b> (כמה מ-7 קריטריוני "מגמה בריאה" המניה עומדת בהם - זה גם מנכה מהציון עצמו, ראו למטה), <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול שאר השוק שנסרק), <b>VCP</b> (זיהוי ניסיוני של תבנית התכווצות - מידע בלבד, לא משפיע על הציון), <b>מכירה בחסר</b>, ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי (גם זו לא משפיעה על הציון - זה סיכון תזמון, לא כיוון).</p>
+        <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומשלב את שלוש הנוסחאות שמריצות את Top 10 (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת <b>דירוג אנליסטים</b> - לציון כולל אחד 1-100, עם פירוט לכל רכיב בנפרד. אם אין נתון אנליסטים לטיקר מסוים, הרכיב הזה פשוט לא נכלל בשקלול (לא מקבל ציון ניטרלי מזויף). לצד הציון מוצגים גם כתגיות מידע: <b>מגמת Minervini</b> (כמה מ-7 קריטריוני "מגמה בריאה" המניה עומדת בהם - זה גם מנכה מהציון עצמו, ראו למטה), <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול שאר השוק שנסרק), <b>VCP</b> (זיהוי ניסיוני של תבנית התכווצות - מידע בלבד, לא משפיע על הציון), <b>מכירה בחסר</b>, ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי (גם זו לא משפיעה על הציון - זה סיכון תזמון, לא כיוון). 10 הטיקרים האחרונים שנבדקו נשמרים בדפדפן - לחיצה על אחד מהם בהיסטוריה מציגה שוב את התוצאה השמורה, בלי להריץ בדיקה חדשה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📐 מגמת Minervini ו-RS Rating בנוסחה עצמה</p>
         <p>שתי תוספות שנכנסו גם לנוסחת ההחלטות היומית (לא רק ל"בדוק מניה"): <b>Trend Template</b> (מבחן "מגמה בריאה" של מינרוויני - מחיר מעל ממוצעים 50/150/200 בסדר הנכון, ממוצע 200 עולה, מרחק בריא משפל/שיא 52 השבועות) פועל כ<b>מכפיל/עונש</b> על הציון הכולל, לא כעוד קול בשקלול - מניה שנכשלת במבחן המגמה מקבלת ניכוי, גם אם האינדיקטורים הקצרים שלה נראים טוב. <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול כל השוק שנסרק באותו יום) נכנס כתוספת עדינה ומוגבלת לציון - יתרון קל למניות שמובילות את השוק, לא הכרעה.</p>
@@ -618,6 +618,7 @@
       <button id="checkStockBtn" class="top-toggle-btn" style="white-space:nowrap;">בדוק מניה</button>
     </div>
     <div id="checkStockStatus"></div>
+    <div id="checkStockHistory"></div>
     <div id="checkStockResult"></div>
   </div>
 
@@ -816,12 +817,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.1.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.1.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.1.2", items: [
+    "'בדוק מניה' זוכר עכשיו את 10 הטיקרים האחרונים שנבדקו (נשמר בדפדפן המקומי, נשאר גם אחרי סגירת האתר). לחיצה על טיקר בהיסטוריה מציגה שוב את התוצאה השמורה שלו, בלי להריץ בדיקה חדשה בגיטהאב.",
+  ]},
   { version: "5.1.1", items: [
     "נוסף Minervini Trend Template לנוסחת ההחלטות עצמה (Top 10 ו'בדוק מניה' כאחד) - בודק 7 קריטריוני 'מגמה בריאה' (יחס למוצעים 50/150/200, מרחק משפל/שיא 52 השבועות) ופועל כמכפיל/עונש על הציון הכולל, לא כעוד קול בשקלול.",
     "נוסף RS Rating (אחוזון ביצועי 6 חודשים מול כל השוק שנסרק) כתוספת עדינה ומוגבלת לנוסחה, גם ב-Top 10 וגם ב'בדוק מניה' (מול הסריקה האחרונה שנשמרה).",
@@ -1502,6 +1506,55 @@ document.getElementById("recomputeBtn").addEventListener("click", async () => {
 
 let checkStockPollTimer = null;
 
+const CHECK_STOCK_HISTORY_KEY = "checkStockHistory";
+const CHECK_STOCK_HISTORY_MAX = 10;
+
+function loadCheckStockHistory() {
+  try {
+    const raw = localStorage.getItem(CHECK_STOCK_HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCheckStockHistory(result) {
+  let hist = loadCheckStockHistory();
+  hist = hist.filter(h => h.ticker !== result.ticker); // dedupe - re-checking a ticker moves it to the front, doesn't duplicate it
+  hist.unshift(result);
+  hist = hist.slice(0, CHECK_STOCK_HISTORY_MAX);
+  try {
+    localStorage.setItem(CHECK_STOCK_HISTORY_KEY, JSON.stringify(hist));
+  } catch (e) { /* storage full/unavailable - history just won't persist this time */ }
+  renderCheckStockHistory();
+}
+
+function renderCheckStockHistory() {
+  const el = document.getElementById("checkStockHistory");
+  const hist = loadCheckStockHistory();
+  if (!hist.length) { el.innerHTML = ""; return; }
+  el.innerHTML = `
+    <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">נבדקו לאחרונה (לחיצה מציגה את התוצאה השמורה, בלי בדיקה חדשה):</div>
+    <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
+      ${hist.map((h, i) => {
+        const dirColor = h.predicted_direction === "up" ? "#5ee6a0" : "#ff9a8a";
+        return `<button class="top-toggle-btn check-stock-history-chip" data-idx="${i}" style="font-size:12px; padding:5px 10px; border-color:${dirColor}55;">
+          ${h.ticker} <span class="mono" style="color:${dirColor};">${h.overall_score != null ? h.overall_score.toFixed(0) : "—"}</span>
+        </button>`;
+      }).join("")}
+    </div>`;
+  el.querySelectorAll(".check-stock-history-chip").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const h = loadCheckStockHistory()[Number(btn.dataset.idx)];
+      if (h) {
+        document.getElementById("checkStockInput").value = h.ticker;
+        document.getElementById("checkStockStatus").innerHTML = "";
+        renderCheckStockResult(h);
+      }
+    });
+  });
+}
+
 function renderCheckStockResult(data) {
   const el = document.getElementById("checkStockResult");
   if (!data) { el.innerHTML = ""; return; }
@@ -1635,6 +1688,7 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
             clearInterval(checkStockPollTimer);
             checkStockPollTimer = null;
             statusEl.innerHTML = "";
+            if (!data.error) saveCheckStockHistory(data);
             renderCheckStockResult(data);
             return;
           }
@@ -3046,6 +3100,7 @@ if (cfg && cfg.owner && cfg.repo && cfg.token) {
   showConfigPanel(true);
   document.getElementById("needConfigMsg").classList.remove("hidden");
 }
+renderCheckStockHistory();
 </script>
 </body>
 </html>
