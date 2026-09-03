@@ -739,6 +739,90 @@ def build_chart_payload(closes, factors):
     }
 
 
+def compute_trend_template(price, sma50, sma150, sma200, sma200_rising, year_high, year_low):
+    """Minervini Trend Template ('Stage 2 uptrend' check) - a trend-STRUCTURE
+    filter, not a directional signal like everything else in this file. The
+    other indicators (RSI/MACD/OBV/ADX) read short-term momentum; this reads
+    whether the stock is even in a healthy long-term uptrend to begin with.
+    Returns how many of the 7 classic criteria are met, so the caller can
+    apply it as a penalty on the overall score - a stock can look great on
+    short-term momentum while still being in a broken long-term trend
+    (Stage 4), where that momentum is much less trustworthy."""
+    criteria = []
+    if None not in (price, sma50, sma150, sma200):
+        criteria.append(price > sma150 and price > sma200)
+        criteria.append(sma150 > sma200)
+        criteria.append(price > sma50)
+        criteria.append(sma50 > sma150 and sma50 > sma200)
+    if sma200_rising is not None:
+        criteria.append(bool(sma200_rising))
+    if None not in (price, year_low):
+        criteria.append(price >= year_low * 1.25)
+    if None not in (price, year_high):
+        criteria.append(price >= year_high * 0.75)
+
+    if not criteria:
+        return {"criteria_met": None, "criteria_total": 0, "passes": None, "multiplier": 1.0}
+
+    met = sum(1 for c in criteria if c)
+    total = len(criteria)
+    frac = met / total
+    # full marks -> no discount at all; every criterion missed pulls the
+    # multiplier down toward 0.6, same shape as the other penalty-style
+    # adjustments in this file (compute_leading_adjusted_score above) -
+    # a nudge, not a hard veto, since Stage 2 is a useful lens but not
+    # infallible on its own.
+    multiplier = 0.6 + 0.4 * frac
+    return {"criteria_met": met, "criteria_total": total, "passes": met == total, "multiplier": round(multiplier, 3)}
+
+
+def detect_vcp_pattern(closes, volumes, pivot_highs_idx, pivot_lows_idx, lookback_days=150):
+    """EXPERIMENTAL / informational only - NOT folded into the score.
+    Rough heuristic for a Volatility Contraction Pattern: a sequence of
+    pullbacks (peak-to-trough) that get progressively shallower, ideally
+    alongside declining volume (buyers absorbing supply, sellers drying
+    up). This is a simplified read of the pattern (real VCP analysis looks
+    at more than just pullback depth) - treated as a flag to note and
+    watch, not a validated signal to size a formula weight around, unlike
+    the other factors here which have tracked accuracy behind them."""
+    events = sorted(
+        [(i, "high") for i in pivot_highs_idx] + [(i, "low") for i in pivot_lows_idx]
+    )
+    if closes is not None and len(closes) > 0:
+        cutoff = len(closes) - lookback_days
+        events = [(i, kind) for i, kind in events if i >= cutoff]
+
+    pullbacks = []  # (depth_pct, high_idx, low_idx)
+    last_high = None
+    for i, kind in events:
+        if kind == "high":
+            last_high = i
+        elif kind == "low" and last_high is not None:
+            high_price = float(closes.iloc[last_high])
+            low_price = float(closes.iloc[i])
+            if high_price > 0:
+                pullbacks.append((max(0.0, (high_price - low_price) / high_price * 100), last_high, i))
+            last_high = None
+
+    if len(pullbacks) < 2:
+        return {"vcp_detected": False, "contractions": 0}
+
+    depths = [p[0] for p in pullbacks]
+    contractions = sum(1 for i in range(1, len(depths)) if depths[i] < depths[i - 1])
+    is_contracting = contractions >= len(depths) - 1 and len(depths) >= 2  # every step shrinks
+
+    vol_ok = True
+    if volumes is not None and len(pullbacks) >= 2:
+        try:
+            first_vol = float(volumes.iloc[pullbacks[0][1]:pullbacks[0][2] + 1].mean())
+            last_vol = float(volumes.iloc[pullbacks[-1][1]:pullbacks[-1][2] + 1].mean())
+            vol_ok = last_vol < first_vol
+        except Exception:
+            vol_ok = True  # don't let a volume-alignment hiccup block detection on price alone
+
+    return {"vcp_detected": bool(is_contracting and vol_ok), "contractions": len(depths)}
+
+
 def compute_technical_factors(closes, volumes, highs=None, lows=None):
     """Everything derivable from price/volume history alone - no network
     calls per ticker, so this is cheap enough to run on the whole universe.
@@ -762,8 +846,11 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
     macd_bullish = compute_macd_bullish(closes)
 
     ma_trend = None
+    sma50 = sma150 = sma200 = None
+    sma200_rising = None
     if n >= 200:
         sma50 = float(closes.rolling(50).mean().iloc[-1])
+        sma150 = float(closes.rolling(150).mean().iloc[-1]) if n >= 150 else None
         sma200 = float(closes.rolling(200).mean().iloc[-1])
         if price > sma50 > sma200:
             ma_trend = "golden"
@@ -771,6 +858,13 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
             ma_trend = "death"
         else:
             ma_trend = "mixed"
+        sma200_series = closes.rolling(200).mean()
+        if len(sma200_series.dropna()) >= 21:
+            sma200_rising = bool(sma200_series.iloc[-1] > sma200_series.iloc[-21])
+
+    run_up_180d = None
+    if n >= 127:
+        run_up_180d = float((closes.iloc[-1] - closes.iloc[-127]) / closes.iloc[-127] * 100)
 
     vol_ratio = None
     if volumes is not None:
@@ -783,18 +877,35 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
 
     factors = {
         "price": price,
+        "year_high": year_high,
+        "year_low": year_low,
         "range_pos": range_pos,
         "run_up_30d": run_up_30d,
+        "run_up_180d": run_up_180d,
         "rsi": rsi,
         "macd_bullish": macd_bullish,
         "ma_trend": ma_trend,
+        "sma50": sma50,
+        "sma150": sma150,
+        "sma200": sma200,
+        "sma200_rising": sma200_rising,
         "vol_ratio": vol_ratio,
     }
+    factors["trend_template"] = compute_trend_template(
+        price, sma50, sma150, sma200, sma200_rising, year_high, year_low
+    )
 
     try:
         factors.update(compute_support_resistance(closes, price))
     except Exception as e:
         print(f"Support/resistance calc failed for this ticker: {type(e).__name__}: {e}")
+
+    try:
+        factors["vcp"] = detect_vcp_pattern(
+            closes, volumes, factors.get("_pivot_highs_idx", []), factors.get("_pivot_lows_idx", [])
+        )
+    except Exception as e:
+        print(f"VCP detection failed for this ticker: {type(e).__name__}: {e}")
 
     # --- leading-indicator layer (divergences + ADX) - see compute_divergences
     # and compute_adx docstrings. Wrapped defensively so a failure here never
@@ -992,6 +1103,16 @@ def compute_prediction_score(factors, market_regime):
             score += 1.5
         elif rec >= 4.0:
             score -= 1.5
+
+    # --- RS Rating: percentile rank (0-100) of this ticker's 6-month price
+    # performance against the full universe scanned that day (see
+    # run_predictions, where it's attached before this function runs).
+    # Gentle and capped like the other nudges above, not a dominant term -
+    # a stock outperforming everything else gets a modest tailwind, one
+    # near the bottom a modest headwind. Absent for the check_stock.py
+    # single-ticker path, which has no "today's universe" to rank against. ---
+    if factors.get("rs_rating") is not None:
+        score += (factors["rs_rating"] - 50) * 0.03
 
     # --- market regime: nudges the whole score, and additionally scales the
     # trend cluster specifically, since momentum strategies tend to work
@@ -1937,7 +2058,7 @@ def analyst_score_0_100(recommendation_mean, upside_pct):
     return None
 
 
-def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, market_regime):
+def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, market_regime, rs_reference=None):
     """The 'בדוק מניה' on-demand analysis (see check_stock.py): reuses the
     exact same scoring engines the daily Top10 pipeline uses
     (compute_prediction_score, compute_risk_reward_score,
@@ -1954,10 +2075,21 @@ def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, 
     lookups to calibrate against). Weights are fixed and equal (25% each)
     for the same reason: this is a judgment call to revisit once there's
     real usage data, not an evidence-gated calibration like the Top10
-    blend elsewhere in this file."""
+    blend elsewhere in this file.
+
+    rs_reference, if provided, is yesterday's/today's full-universe list of
+    6-month performances (see run_predictions) - lets this one-off lookup
+    get an RS Rating against a real recent market snapshot instead of
+    skipping the factor entirely."""
     factors = dict(technical_factors)
     factors.update(fundamental_factors)
+    if rs_reference and factors.get("run_up_180d") is not None:
+        below = sum(1 for p in rs_reference if p <= factors["run_up_180d"])
+        factors["rs_rating"] = round(below / len(rs_reference) * 100, 1)
+
     score = compute_prediction_score(factors, market_regime)
+    trend_multiplier = (factors.get("trend_template") or {}).get("multiplier", 1.0)
+    score = round(score * trend_multiplier, 2)
     predicted = "up" if score >= 0 else "down"
     entry = {"ticker": ticker, "score": score, "predicted": predicted, **factors}
 
@@ -1993,7 +2125,32 @@ def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, 
         "resistance": factors.get("resistance"),
         "analyst_count": fundamental_factors.get("analyst_count"),
         "sector": fundamental_factors.get("sector"),
+        "short_pct": factors.get("short_pct"),
+        "rs_rating": factors.get("rs_rating"),
+        "trend_template": factors.get("trend_template"),
+        "vcp": factors.get("vcp"),
     }
+
+
+def get_upcoming_earnings_date(ticker):
+    """Days until the next known earnings report, if yfinance has one on
+    file - shown as a standalone timing-risk flag on the 'בדוק מניה' card,
+    not folded into the score (a different kind of information: WHEN a
+    big, formula-independent price jump could happen, not which direction
+    the stock is leaning). Returns None on any failure/no data - this is a
+    nice-to-have, never worth failing the whole check over."""
+    try:
+        cal = yf.Ticker(ticker).get_earnings_dates(limit=4)
+        if cal is None or cal.empty:
+            return None
+        today = pd.Timestamp.now(tz=cal.index.tz)
+        future = cal[cal.index >= today]
+        if future.empty:
+            return None
+        next_date = future.index.min()
+        return {"date": next_date.strftime("%Y-%m-%d"), "days_away": (next_date - today).days}
+    except Exception:
+        return None
 
 
 def analyze_single_ticker(ticker):
@@ -2017,9 +2174,12 @@ def analyze_single_ticker(ticker):
 
     fund = get_fundamental_factors(ticker)
     market_regime = get_market_regime()
-    result = compute_single_ticker_score(ticker, tf, fund, market_regime)
+    rs_ref = (load_json(STATE_FILE, {}).get("rs_rating_reference") or {}).get("performances")
+    result = compute_single_ticker_score(ticker, tf, fund, market_regime, rs_reference=rs_ref)
+    result["earnings"] = get_upcoming_earnings_date(ticker)
     result["checked_at"] = datetime.now(timezone.utc).isoformat()
     return result
+
 
 
 def run_predictions(store):
@@ -2068,10 +2228,32 @@ def run_predictions(store):
 
     print(f"Technical factors computed for {len(technical)} tickers")
 
+    # --- RS Rating: percentile rank (0-100) of each ticker's 6-month price
+    # performance against the full universe scanned today - attached here,
+    # before any scoring, so it flows into compute_prediction_score exactly
+    # like every other factor. Tickers without enough history for
+    # run_up_180d (n < 127 trading days) simply don't get a rating. ---
+    perf_pairs = [(s, tf["run_up_180d"]) for s, tf in technical.items() if tf.get("run_up_180d") is not None]
+    if perf_pairs:
+        ranked = sorted(perf_pairs, key=lambda p: p[1])
+        total = len(ranked)
+        for rank, (symbol, _) in enumerate(ranked):
+            technical[symbol]["rs_rating"] = round(rank / max(total - 1, 1) * 100, 1)
+        # snapshot of the distribution so check_stock.py can rate a single
+        # ad-hoc ticker against "today's market" without re-scanning the
+        # whole universe itself
+        store["rs_rating_reference"] = {
+            "date": today,
+            "performances": [p[1] for p in perf_pairs],
+        }
+    print(f"RS Rating attached for {len(perf_pairs)} tickers")
+
     # stage 1: cheap technical-only score to decide who's worth the slow .info() call
     prelim_scores = {}
     for symbol, tf in technical.items():
-        prelim_scores[symbol] = compute_prediction_score(tf, market_regime)
+        prelim_score = compute_prediction_score(tf, market_regime)
+        prelim_multiplier = (tf.get("trend_template") or {}).get("multiplier", 1.0)
+        prelim_scores[symbol] = prelim_score * prelim_multiplier
 
     candidates = {s for s, sc in prelim_scores.items() if abs(sc) >= PREFILTER_THRESHOLD}
     # a starred ticker should always get its company info/fundamentals
@@ -2102,6 +2284,8 @@ def run_predictions(store):
                 print(f"Fundamentals error for {symbol}: {e}")
 
         score = compute_prediction_score(factors, market_regime)
+        trend_multiplier = (factors.get("trend_template") or {}).get("multiplier", 1.0)
+        score = round(score * trend_multiplier, 2)
         predicted = "up" if score >= 0 else "down"
 
         entry = {
