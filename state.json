@@ -628,5 +628,10 @@
   "US_KARD_bigmove_2026-09-02": true,
   "US_TARS_bigmove_2026-09-02": true,
   "US_VRNS_bigmove_2026-09-02": true,
-  "US_STDN_bigmove_2026-09-02": true
+  "US_STDN_bigmove_2026-09-02": true,
+  "US_PSQL_bigmove_2026-09-03": true,
+  "US_CRDO_bigmove_2026-09-03": true,
+  "US_DELL_bigmove_2026-09-03": true,
+  "US_ASTS_bigmove_2026-09-03": true,
+  "US_MDB_bigmove_2026-09-03": true
 }
