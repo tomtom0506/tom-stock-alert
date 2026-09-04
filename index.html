@@ -422,7 +422,7 @@
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 Top10 ותחזית למחר</p>
-        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. שני כפתורים נפרדים קובעים מה מוצג: <b>"הצג Top 10"</b> - 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל), ו<b>"🔮 הצג תחזית למחר"</b> - תצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. הכפתור הפעיל מסומן בירוק. התחזית מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
+        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. מתחת לכותרת מוצגת גם שורת "נתונים עודכנו לאחרונה" - שני זמנים נפרדים: מתי Top10 הרשמי חושב בפועל (לא רק מתי הריצה האחרונה של המערכת הסתיימה - יש הבדל, כי המנוע היומי לא רץ שוב אם כבר יש תחזית ליום הנוכחי), ומתי תחזית המחר חושבה. ככה תמיד אפשר לדעת אם מה שרואים טרי או קודם לעדכון קוד אחרון. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. שני כפתורים נפרדים קובעים מה מוצג: <b>"הצג Top 10"</b> - 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל), ו<b>"🔮 הצג תחזית למחר"</b> - תצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. הכפתור הפעיל מסומן בירוק. התחזית מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">✏ נהל אחזקות</p>
         <p>המקום היחיד להוספת מניה חדשה לאפליקציה - גם ל"התיק שלי" וגם ל"המניות שלי". הזנת טיקר, שם, וכמות יחידות (חובה) יוצרת גם אחזקה בתיק וגם רשומת מעקב עם ניתוח טכני מלא. אפשר לערוך את מחירי היעד (תמיכה/התנגדות להתראה) בנפרד לכל מניה בסקשן "המניות שלי" עצמו, עם כפתור ✏ ערוך.</p>
@@ -601,6 +601,7 @@
     <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
+    <div id="dataFreshnessNote" style="font-size:11px; color:var(--text-faint); margin-bottom:8px;"></div>
     <div class="view-toggle-group">
       <button id="showTop10Btn" class="top-toggle-btn view-active">הצג Top 10</button>
       <button id="showForecastBtn" class="top-toggle-btn">🔮 הצג תחזית למחר</button>
@@ -843,12 +844,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.2.6"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.2.7"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.2.7", items: [
+    "נוספה שורת 'נתונים עודכנו לאחרונה' מתחת לכותרת Top10/תחזית למחר - מציגה בדיוק מתי Top10 הרשמי חושב בפועל (לא רק מתי המערכת רצה לאחרונה - אלה שני דברים שונים, זה בדיוק מה שגרם לכל הבלבול היום) ומתי תחזית המחר חושבה. נוסף שדה חדש בשרת (predictions_generated_at) שמתעדכן רק כשהמנוע באמת מחשב מחדש.",
+  ]},
   { version: "5.2.6", items: [
     "בסקשן Top10/תחזית למחר: כפתורי התצוגה, המיון, וכפתור חישוב התחזית עברו להופיע מעל כרטיס 'המניה הכי חמה', לא מתחתיו.",
   ]},
@@ -1948,6 +1952,19 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
   }
 });
 
+function renderDataFreshnessNote(data) {
+  const el = document.getElementById("dataFreshnessNote");
+  const parts = [];
+  if (data.predictions_generated_at) {
+    parts.push(`Top10 חושב לאחרונה: ${new Date(data.predictions_generated_at).toLocaleString("he-IL")}`);
+  }
+  const forecastAt = data.tomorrow_forecast && data.tomorrow_forecast.generated_at;
+  if (forecastAt) {
+    parts.push(`תחזית למחר חושבה: ${new Date(forecastAt).toLocaleString("he-IL")}`);
+  }
+  el.textContent = parts.join(" · ");
+}
+
 async function loadPredictions() {
   const section = document.getElementById("predictionsSection");
   try {
@@ -1976,6 +1993,7 @@ async function loadPredictions() {
 
     latestPredictionsByTicker = {};
     history.filter(p => p.date === today).forEach(p => { latestPredictionsByTicker[p.ticker] = p; });
+    renderDataFreshnessNote(data);
     if (rows.length) render(); // refresh watchlist cards with fresh prediction badges
 
     renderHotPick(allTodayPreds);

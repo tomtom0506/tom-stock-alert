@@ -2605,6 +2605,14 @@ def run_predictions(store):
         "universe_size": len(technical),
     }
 
+    # exact timestamp the prediction engine actually finished running -
+    # NOT just "when the workflow last completed" (benchmark_comparison's
+    # timestamp updates every run regardless of this once-a-day guard
+    # above, which was the whole source of the "why don't I see new data"
+    # confusion). The frontend uses this specifically to show honestly
+    # whether today's Top10 predates a given code/formula change.
+    store["predictions_generated_at"] = datetime.now(timezone.utc).isoformat()
+
 
 US_MARKET_HOLIDAYS_2026 = {
     "2026-01-01", "2026-01-19", "2026-02-16", "2026-04-03", "2026-05-25",
