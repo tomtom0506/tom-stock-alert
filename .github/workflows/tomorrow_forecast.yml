@@ -1,0 +1,44 @@
+name: Tomorrow Forecast
+
+on:
+  schedule:
+    # ~21:15 UTC = shortly after US market close (4:00pm ET / 20:00 UTC in
+    # winter, 21:00 UTC in summer DST) - runs once daily on weekdays with
+    # the day's closing data, independent of the morning Top10 run.
+    - cron: "15 21 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: tomorrow-forecast
+  cancel-in-progress: true
+
+jobs:
+  tomorrow-forecast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tomorrow forecast
+        run: python tomorrow_forecast.py
+
+      - name: Commit result (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add predictions.json
+          git diff --staged --quiet || git commit -m "תחזית למחר - עדכון"
+          git fetch origin main
+          git merge -X ours --no-edit origin/main
+          git push origin HEAD:main
