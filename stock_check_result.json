@@ -1,35 +1,35 @@
 {
-  "ticker": "APP",
-  "predicted_direction": "up",
-  "raw_score": 3.24,
-  "overall_score": 53.6,
+  "ticker": "NIQ",
+  "predicted_direction": "down",
+  "raw_score": -0.06,
+  "overall_score": 21.6,
   "components": {
-    "original": 32.4,
-    "risk_reward": 64.8,
-    "leading_adjusted": 32.4,
-    "analyst": 84.8
+    "original": 0.6,
+    "risk_reward": 1.2,
+    "leading_adjusted": 0.6,
+    "analyst": 83.9
   },
   "excluded_from_blend": [],
-  "price": 313.5799865722656,
-  "support": 303.76,
-  "resistance": 419.7,
-  "analyst_count": 31,
-  "sector": "Communication Services",
-  "short_pct": 3.9100002000000003,
+  "price": 18.389999389648438,
+  "support": 15.66,
+  "resistance": 18.45,
+  "analyst_count": 13,
+  "sector": null,
+  "short_pct": null,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 0,
+    "criteria_met": 6,
     "criteria_total": 7,
     "passes": false,
-    "multiplier": 0.6
+    "multiplier": 0.943
   },
   "vcp": {
     "vcp_detected": false,
     "contractions": 7
   },
   "earnings": {
-    "date": "2026-11-04",
-    "days_away": 61
+    "date": "2026-11-12",
+    "days_away": 68
   },
-  "checked_at": "2026-09-04T12:06:55.600807+00:00"
+  "checked_at": "2026-09-04T21:13:32.079084+00:00"
 }
