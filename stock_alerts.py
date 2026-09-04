@@ -2255,6 +2255,14 @@ def run_tomorrow_forecast(store):
         prelim_scores[symbol] = prelim_score * prelim_multiplier
 
     candidates = {s for s, sc in prelim_scores.items() if abs(sc) >= PREFILTER_THRESHOLD}
+    # match run_predictions' candidate pool exactly (starred + monthly
+    # portfolio tickers always included) - without this, a ticker that's
+    # only in Top10 because it's starred/held could vanish entirely from
+    # the forecast's candidate pool even though its price barely moved,
+    # making the two lists look far more different than they really are.
+    candidates |= (set(load_json(STARRED_FILE, [])) & set(technical.keys()))
+    monthly_tickers = {h["ticker"] for h in (store.get("monthly_portfolio") or {}).get("holdings", [])}
+    candidates |= (monthly_tickers & set(technical.keys()))
     print(f"Tomorrow-forecast: {len(candidates)} tickers passed the pre-filter, fetching fundamentals...")
 
     entries = []
