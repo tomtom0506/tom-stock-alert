@@ -843,12 +843,16 @@
 </div>
 
 <script>
-const APP_VERSION = "5.2.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.2.5"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.2.5", items: [
+    "תוקן באג אמיתי: כשאותו טיקר מופיע גם ב-Top10 וגם בתחזית למחר (עם ציון שונה בכל אחת), לחיצה על תג הציון הייתה יכולה להציג את הפירוט הלא נכון (תמיד העדיפה את הנתונים של Top10, גם כשלחצו על התג בתחזית למחר). כל תג עכשיו קשור ישירות לנתונים המדויקים שהוא הוצג איתם, לא לחיפוש לפי טיקר.",
+    "תוקן: מחיר/תמיכה/התנגדות בחלון פירוט הציון הציגו הרבה מדי ספרות אחרי הנקודה (למשל 448.8999938964844) - עוגל לספרה אחת אחרי הנקודה.",
+  ]},
   { version: "5.2.4", items: [
     "הכפתור המתחלף בין Top10 לתחזית למחר הוחלף בשני כפתורים נפרדים, זה מתחת לזה - 'הצג Top 10' ו'🔮 הצג תחזית למחר' - עם צביעה ירוקה של הכפתור הפעיל, כדי שיהיה ברור תמיד באיזו תצוגה נמצאים.",
   ]},
@@ -1030,7 +1034,6 @@ document.getElementById("refreshBtn").addEventListener("click", () => {
 const CONFIG_KEY = "gh-watchlist-config";
 let owner = "", repo = "", token = "", sha = null, rows = [];
 let latestPredictionsByTicker = {};
-let latestForecastByTicker = {};
 let currentPrices = {};
 let editingId = null;
 
@@ -1818,18 +1821,29 @@ function renderCheckStockResult(data) {
   el.innerHTML = data ? scoreBreakdownCardHtml(data) : "";
 }
 
+let scoreBadgeRegistry = [];
+
 function overallScoreBadgeHtml(p) {
-  // clickable badge shown on Top10/watchlist cards - same overall score
-  // "בדוק מניה" would compute for this ticker (see build_score_breakdown
-  // in stock_alerts.py, shared by both paths). Only present when the
-  // backend actually computed it (Top10 picks + watchlist tickers only,
-  // not the whole scanned universe - see run_predictions).
+  // clickable badge shown on Top10/watchlist/forecast cards - same overall
+  // score "בדוק מניה" would compute for this ticker (see build_score_
+  // breakdown in stock_alerts.py, shared by all paths). Only present when
+  // the backend actually computed it.
+  // Registers the exact object `p` in scoreBadgeRegistry rather than
+  // looking it up by ticker later - a ticker can appear in more than one
+  // list at once (e.g. WDC in both Top10 and תחזית למחר, each with its
+  // own score), and a ticker-keyed lookup can't tell which one was
+  // actually clicked, so it silently showed the wrong one's data.
   if (p.overall_score == null) return "";
   const color = p.overall_score >= 60 ? "#5ee6a0" : (p.overall_score >= 40 ? "#ffd76a" : "#ff9a8a");
+  const idx = scoreBadgeRegistry.push(p) - 1;
   return `
-    <button class="score-badge-btn" data-ticker="${p.ticker}" style="background:#1c2230; border:1px solid ${color}66; color:${color}; border-radius:10px; padding:6px 14px; font-size:15px; font-weight:800; margin-top:8px; cursor:pointer;">
+    <button class="score-badge-btn" data-idx="${idx}" style="background:#1c2230; border:1px solid ${color}66; color:${color}; border-radius:10px; padding:6px 14px; font-size:15px; font-weight:800; margin-top:8px; cursor:pointer;">
       🎯 ${p.overall_score.toFixed(1)}
     </button>`;
+}
+
+function fmtNum1(v) {
+  return v == null ? "—" : Number(v).toFixed(1);
 }
 
 function showScoreBreakdownModal(p) {
@@ -1841,7 +1855,7 @@ function showScoreBreakdownModal(p) {
     excluded_from_blend: p.score_components
       ? Object.keys(p.score_components).filter(k => p.score_components[k] == null)
       : [],
-    price: p.price, support: p.support, resistance: p.resistance,
+    price: fmtNum1(p.price), support: fmtNum1(p.support), resistance: fmtNum1(p.resistance),
     short_pct: p.short_pct, rs_rating: p.rs_rating,
     trend_template: p.trend_template, vcp: p.vcp, earnings: p.earnings,
   };
@@ -1858,8 +1872,7 @@ document.getElementById("scoreBreakdownOverlay").addEventListener("click", (e) =
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".score-badge-btn");
   if (!btn) return;
-  const ticker = btn.dataset.ticker;
-  const p = latestPredictionsByTicker[ticker] || latestForecastByTicker[ticker];
+  const p = scoreBadgeRegistry[Number(btn.dataset.idx)];
   if (p) showScoreBreakdownModal(p);
 });
 
@@ -1960,8 +1973,6 @@ async function loadPredictions() {
 
     latestPredictionsByTicker = {};
     history.filter(p => p.date === today).forEach(p => { latestPredictionsByTicker[p.ticker] = p; });
-    latestForecastByTicker = {};
-    tomorrowForecastPicks.forEach(p => { latestForecastByTicker[p.ticker] = p; });
     if (rows.length) render(); // refresh watchlist cards with fresh prediction badges
 
     renderHotPick(allTodayPreds);
