@@ -837,12 +837,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.2.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.2.1", items: [
+    "תוקן: כרטיס Top10 היה מציג גם את התג הגדול (🎯 ציון כולל) וגם את תגיות הפירוט הקטנות (Minervini/RS/אנליסטים) יחד - כפילות. עכשיו תגיות הפירוט הקטנות מוצגות רק כגיבוי זמני, למניה שעדיין אין לה ציון כולל (למשל תחזית שנוצרה לפני שדרוג הקוד) - ברגע שיש ציון כולל, הן נעלמות והתג הגדול לוקח את מקומן (כולל אותו מידע, בתוך הפירוט שנפתח בלחיצה).",
+  ]},
   { version: "5.2", items: [
     "נוסף 'בדוק מניה' עם השלמה אוטומטית - הצעות לפי הטיקרים שכבר נבדקו (לא מול מאגר חיצוני).",
     "הוחלף הכפתור הצף '+ הוסף מניה' בכפתור צף '🔄 עדכן ניתוח', נגיש מכל מקום באפליקציה.",
@@ -1368,17 +1371,21 @@ function predictionCardHtml(p) {
           ${convictionBarHtml(p.score)}
           ${factorBadgesHtml(p)}
           ${overallScoreBadgeHtml(p)}
-          ${p.top10 ? topPickBreakdownHtml(p) : ""}
+          ${(p.top10 && p.overall_score == null) ? topPickBreakdownHtml(p) : ""}
         </div>
       </div>
     </div>`;
 }
 
 function topPickBreakdownHtml(p) {
-  // same breakdown fields "בדוק מניה" shows for an ad-hoc lookup, here for
-  // an actual Top 10 pick - analyst_score/earnings are only computed for
-  // real Top10 entries (see run_predictions), trend_template/vcp are on
-  // every scanned ticker already.
+  // fallback preview for a Top10 pick that hasn't gotten its full
+  // overall_score yet (e.g. new code just shipped but today's official
+  // run predates it - the score badge takes over as soon as it's there,
+  // see the (p.overall_score == null) condition at the call site, so
+  // this never doubles up with the score badge + its modal, which already
+  // includes all of this same info).
+  // analyst_score/earnings are only computed for real Top10 entries (see
+  // run_predictions), trend_template/vcp are on every scanned ticker already.
   const tags = [];
   const tt = p.trend_template;
   if (tt && tt.criteria_total) {
