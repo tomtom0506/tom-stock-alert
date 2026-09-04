@@ -307740,10 +307740,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Engie Brasil Energia S.A.",
-      "actual_price": 5.91,
-      "actual_pct_change": -0.67,
-      "actual_direction": "down",
-      "correct": true,
+      "actual_price": 5.95,
+      "actual_pct_change": 0.0,
+      "actual_direction": "up",
+      "correct": false,
       "graded_date": "2026-09-04"
     },
     {
@@ -329313,8 +329313,8 @@
       },
       "company_name": "AvalonBay Communities, Inc.",
       "business_summary": "Vivmark Residential focused on building, buying, and managing high-quality apartment communities across major U.S. metro areas. The company owns or held investments in more than 184,000 rental apartments across premier U.S. markets and over 11,100 apartments under construction. Vivmark Residential based in Chicago, Illinois.",
-      "actual_price": 64.96,
-      "actual_pct_change": 0.08,
+      "actual_price": 64.91,
+      "actual_pct_change": 0.0,
       "actual_direction": "up",
       "correct": false,
       "graded_date": "2026-09-04"
@@ -377384,7 +377384,7 @@
     "formula_live_since": "2026-09-01",
     "us": 47.8,
     "il": 54.2,
-    "updated_at": "2026-09-04T00:51:28.600117+00:00"
+    "updated_at": "2026-09-04T05:38:10.007462+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -377434,7 +377434,7 @@
   "portfolio_sim": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 94150.32732781791,
+    "value": 94150.32897840001,
     "last_processed_date": "2026-09-03",
     "daily_log": [
       {
@@ -378017,7 +378017,7 @@
   "portfolio_sim_experimental": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 107370.10490886049,
+    "value": 107370.10296320001,
     "last_processed_date": "2026-09-03",
     "daily_log": [
       {
@@ -378545,7 +378545,7 @@
   "portfolio_sim_leading": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 100079.19357749578,
+    "value": 100079.1986535,
     "last_processed_date": "2026-09-03",
     "daily_log": [
       {
@@ -378839,7 +378839,7 @@
       {
         "date": "2026-09-03",
         "value_start": 98411.13,
-        "value_end": 100079.19,
+        "value_end": 100079.2,
         "return_pct": 1.69,
         "tickers": [
           {
@@ -378890,7 +378890,7 @@
     "annual_return_pct": 0.07
   },
   "formula_comparison": {
-    "updated_at": "2026-09-04T00:51:28.602560+00:00",
+    "updated_at": "2026-09-04T05:38:10.009639+00:00",
     "note": "הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha=1.00 לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
     "since_change": {
       "live_since": "2026-09-01",
@@ -378906,7 +378906,7 @@
         "total": 100,
         "total_return_pct": -5.85,
         "monthly_return_pct": -5.86,
-        "value": 94150.32732781791
+        "value": 94150.32897840001
       },
       {
         "key": "original",
@@ -378915,7 +378915,7 @@
         "total": 20,
         "total_return_pct": 7.81,
         "monthly_return_pct": 7.81,
-        "value": 107814.76663999999
+        "value": 107814.76664
       },
       {
         "key": "risk_reward",
@@ -378924,7 +378924,7 @@
         "total": 90,
         "total_return_pct": 7.37,
         "monthly_return_pct": 7.38,
-        "value": 107370.10490886049
+        "value": 107370.10296320001
       },
       {
         "key": "leading",
@@ -378933,7 +378933,7 @@
         "total": 70,
         "total_return_pct": 0.08,
         "monthly_return_pct": 0.07,
-        "value": 100079.19357749578
+        "value": 100079.1986535
       }
     ]
   },
@@ -378944,7 +378944,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 169.46,
-        "value_ils": 9679.5,
+        "value_ils": 9671.46,
         "pct_change": -5.81,
         "weight_pct": 9.8
       },
@@ -378953,7 +378953,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 337.12,
-        "value_ils": 15202.26,
+        "value_ils": 15189.62,
         "pct_change": 0.63,
         "weight_pct": 15.3
       },
@@ -378962,7 +378962,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.3,
-        "value_ils": 24959.81,
+        "value_ils": 24939.05,
         "pct_change": 1.99,
         "weight_pct": 25.2
       },
@@ -378971,7 +378971,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 172.78,
-        "value_ils": 15582.86,
+        "value_ils": 15569.9,
         "pct_change": 0.03,
         "weight_pct": 15.7
       },
@@ -378994,10 +378994,10 @@
         "weight_pct": 18.9
       }
     ],
-    "total_value_ils": 99112.73,
+    "total_value_ils": 99058.33,
     "weighted_return_pct": 0.201,
-    "usdils_rate": 3.0062999725341797,
-    "updated_at": "2026-09-04T00:50:34.545796+00:00"
+    "usdils_rate": 3.0037999153137207,
+    "updated_at": "2026-09-04T05:37:05.639004+00:00"
   },
   "my_portfolio_sim": {
     "value": 103.4648427913351,
@@ -379055,7 +379055,7 @@
   "portfolio_sim_original": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 107814.76663999999,
+    "value": 107814.76664,
     "last_processed_date": "2026-09-03",
     "daily_log": [
       {
@@ -379170,7 +379170,7 @@
     "symbol": "^GSPC",
     "start_value": 100000,
     "start_date": "2026-08-21",
-    "value": 100955.65,
+    "value": 99898.75,
     "daily_log": [
       {
         "date": "2026-08-21",
@@ -379207,13 +379207,9 @@
       {
         "date": "2026-09-02",
         "value_end": 99898.75
-      },
-      {
-        "date": "2026-09-03",
-        "value_end": 100955.65
       }
     ],
-    "total_return_pct": 0.96
+    "total_return_pct": -0.1
   },
   "index_sim_ta125": {
     "symbol": "^TA125.TA",
@@ -379261,13 +379257,13 @@
     "total_return_pct": 1.96
   },
   "benchmark_comparison": {
-    "updated_at": "2026-09-04T00:51:28.716289+00:00",
+    "updated_at": "2026-09-04T05:38:10.541226+00:00",
     "since_date": "2026-08-21",
     "since_formula_change": "2026-09-01",
     "entries": {
       "top10": {
         "label": "Top 10 (סימולציית ₪100,000)",
-        "value": 94150.32732781791,
+        "value": 94150.32897840001,
         "total_return_pct": -5.85,
         "max_drawdown_pct": -10.09,
         "volatility_pct": 2.76,
@@ -379283,11 +379279,11 @@
       },
       "index_sim_sp500": {
         "label": "S&P 500",
-        "value": 100955.65,
-        "total_return_pct": 0.96,
+        "value": 99898.75,
+        "total_return_pct": -0.1,
         "max_drawdown_pct": -1.29,
-        "volatility_pct": 0.57,
-        "return_since_formula_change_pct": 1.52
+        "volatility_pct": 0.48,
+        "return_since_formula_change_pct": 0.46
       },
       "index_sim_ta125": {
         "label": "מדד ת\"א 125",
