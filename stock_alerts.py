@@ -2519,6 +2519,57 @@ def run_predictions(store):
             print(f"Earnings lookup failed for {entry['ticker']}: {e}")
             entry["earnings"] = None
 
+    # --- sell queue (item 22): tickers picked for Top10 within the last
+    # 30 days that are STILL in today's scanned universe (so we have
+    # fresh technical data for them) and now show a strong SELL signal -
+    # never any single condition alone, always price at/past resistance
+    # PLUS at least one confirming reversal signal, so a single noisy day
+    # doesn't flag a sell. Deliberately does not try to evaluate tickers
+    # that have dropped out of the scanned universe entirely (no fresh
+    # data to check) - it will simply age out of the 30-day window instead. ---
+    SELL_QUEUE_LOOKBACK_DAYS = 30
+    recent_cutoff = (date.today() - timedelta(days=SELL_QUEUE_LOOKBACK_DAYS)).isoformat()
+    previously_recommended = {}
+    for e in store["history"]:
+        if e.get("top10") and e.get("date", "") >= recent_cutoff:
+            t = e["ticker"]
+            if t not in previously_recommended or e["date"] > previously_recommended[t]["date"]:
+                previously_recommended[t] = e  # keep the pick closest to today, to judge trend degradation fairly
+
+    today_by_ticker = {e["ticker"]: e for e in today_entries}
+    sell_queue = []
+    for ticker, picked_entry in previously_recommended.items():
+        if ticker in real_top10_tickers:
+            continue  # still an active buy pick today, not a sell candidate
+        current = today_by_ticker.get(ticker)
+        if not current or current.get("price") is None or current.get("resistance") is None:
+            continue
+        at_resistance = current["price"] >= current["resistance"]
+        macd_bearish = current.get("macd_bullish") is False
+        rsi_overbought = (current.get("rsi") or 0) > 70
+        picked_tt = (picked_entry.get("trend_template") or {}).get("criteria_met")
+        current_tt = (current.get("trend_template") or {}).get("criteria_met")
+        trend_degraded = picked_tt is not None and current_tt is not None and current_tt <= picked_tt - 2
+        if not (at_resistance and (macd_bearish or rsi_overbought or trend_degraded)):
+            continue
+        breakdown = build_score_breakdown(current, current.get("recommendation_mean"), current.get("upside_pct"))
+        sell_queue.append({
+            "ticker": ticker,
+            "predicted": current.get("predicted"),
+            "price": current.get("price"), "support": current.get("support"), "resistance": current.get("resistance"),
+            "short_pct": current.get("short_pct"), "rs_rating": current.get("rs_rating"),
+            "trend_template": current.get("trend_template"), "vcp": current.get("vcp"),
+            "picked_on": picked_entry.get("date"),
+            "reasons": {
+                "at_resistance": at_resistance, "macd_bearish": macd_bearish,
+                "rsi_overbought": rsi_overbought, "trend_degraded": trend_degraded,
+            },
+            "overall_score": breakdown["overall_score"],
+            "score_components": breakdown["components"],
+        })
+    sell_queue.sort(key=lambda x: (x["overall_score"] if x["overall_score"] is not None else -1), reverse=True)
+    store["sell_queue"] = {"date": today, "lookback_days": SELL_QUEUE_LOOKBACK_DAYS, "items": sell_queue}
+
     # A blended-formula Top10 pick can in principle fall outside the top-25
     # raw-conviction cut above (that's the whole point of blending toward
     # risk/reward) - make sure it still gets "strong" treatment (news fetch,

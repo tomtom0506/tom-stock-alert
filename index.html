@@ -204,9 +204,9 @@
   .view-toggle-group .top-toggle-btn { width: 100%; }
 
   /* ---------- hot pick spotlight ---------- */
-  .hot-pick-card {
+  .stock-card.hot-pick-card {
     border: 1px solid var(--gold-dim); background: linear-gradient(135deg, var(--gold-glow), transparent 70%), var(--panel-hi);
-    border-radius: 16px; padding: 14px 16px; margin-bottom: 12px; box-shadow: 0 4px 18px rgba(212,169,74,0.12);
+    box-shadow: 0 4px 18px rgba(212,169,74,0.12);
   }
   .hot-pick-label { font-size: 11px; color: var(--gold); font-weight: 700; letter-spacing: 0.3px; margin-bottom: 6px; }
   .hot-pick-ticker { font-size: 22px; font-weight: 800; font-family: 'Space Grotesk', sans-serif; }
@@ -453,6 +453,9 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏆 פירוט מלא ל-Top 10 ול"מניות שלי"</p>
         <p>כל אחת מ-10 מניות ה-Top 10, וכל מניה ב"המניות שלי", מציגה עכשיו תג ציון כולל לחיץ (🎯 1-100) - <b>אותה נוסחה בדיוק</b> שמחשבת את הציון ב"בדוק מניה" (לא נוסחה נפרדת), כך שאותו טיקר תמיד ייתן אותו ציון בשני המקומות. לחיצה על התג פותחת את אותו פירוט מלא שיש ב"בדוק מניה" - כולל מגמת Minervini, RS Rating, ציון אנליסטים, VCP, ואזהרת דוח כספי קרוב. הציון מתעדכן <b>פעם ביום</b> כחלק מהריצה הרגילה - לא בזמן אמת, ולא לפי לחיצה. שאר המניות שנסרקות לא מקבלות את הפירוט הזה (חוץ ממגמת Minervini ו-RS Rating, שמחושבים לכולן ומשפיעים על הבחירה עצמה) - כדי לא להעמיס קריאות API מיותרות על כל השוק.</p>
 
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📋 תור קנייה ומכירה</p>
+        <p>מתקפל, מופיע בתוך סקשן Top10/מומלצות עכשיו. <b>שורת קנייה (ירוק)</b> - 10 מניות ה-Top10 הרשמיות של היום, ממוינות מהציון הגבוה ביותר. <b>שורת מכירה (אדום)</b> - רק מניות שהיו ב-Top10 ב-30 הימים האחרונים, ושמראות עכשיו <b>איתות מכירה חזק</b>: המחיר הגיע/עבר את ההתנגדות <b>וגם</b> לפחות אחד מבין - MACD הפך לשלילי, RSI מעל 70 (קניית יתר), או מגמת Minervini נחלשה משמעותית מאז שנבחרה. תנאי אחד בלבד לא מספיק - חייב שילוב, כדי לא "לצעוק מכירה" על כל תנודה. מניה שלא נמצאת יותר בטווח הסריקה (למשל יצאה מ-S&P 500) לא תיבדק - היא פשוט "תתיישן" מהתור אחרי 30 יום. לחיצה על כל מניה בתור פותחת את אותו פירוט מלא כמו בשאר האפליקציה. "המניה הכי חמה" כבר לא כרטיס נפרד - היא פשוט המניה הראשונה ברשימת Top10/מומלצות עכשיו, מסומנת במסגרת זהב.</p>
+
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
         <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומשלב את שלוש הנוסחאות שמריצות את Top 10 (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת <b>דירוג אנליסטים</b> - לציון כולל אחד 1-100, עם פירוט לכל רכיב בנפרד. אם אין נתון אנליסטים לטיקר מסוים, הרכיב הזה פשוט לא נכלל בשקלול (לא מקבל ציון ניטרלי מזויף). לצד הציון מוצגים גם כתגיות מידע: <b>מגמת Minervini</b> (כמה מ-7 קריטריוני "מגמה בריאה" המניה עומדת בהם - זה גם מנכה מהציון עצמו, ראו למטה), <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול שאר השוק שנסרק), <b>VCP</b> (זיהוי ניסיוני של תבנית התכווצות - מידע בלבד, לא משפיע על הציון), <b>מכירה בחסר</b>, ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי (גם זו לא משפיעה על הציון - זה סיכון תזמון, לא כיוון). 10 הטיקרים האחרונים שנבדקו נשמרים בדפדפן - לחיצה על אחד מהם בהיסטוריה מציגה שוב את התוצאה השמורה, בלי להריץ בדיקה חדשה.</p>
 
@@ -619,7 +622,19 @@
       <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב מחדש את 10 המומלצות עכשיו, על נתונים עדכניים לרגע זה - לא נשמר להיסטוריה ולא נבדק">🔁 רענן המלצות עכשיו</button>
     </div>
     <div id="tomorrowForecastStatus"></div>
-    <div id="hotPickCard"></div>
+
+    <div id="buySellQueueSection">
+      <div class="section-title" id="buySellQueueToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px;">
+        📋 תור קנייה ומכירה <span id="buySellQueueArrow" style="font-size:12px; color:var(--text-faint);">▾ הסתר</span>
+      </div>
+      <div id="buySellQueueBody">
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">קנייה - 10 מניות ה-Top10 הרשמיות של היום</div>
+        <div id="buyQueueList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;"></div>
+        <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">מכירה - מניות שהומלצו ב-30 הימים האחרונים, עם איתות מכירה חזק כרגע</div>
+        <div id="sellQueueList" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+    </div>
+
     <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
   </div>
 
@@ -844,12 +859,16 @@
 </div>
 
 <script>
-const APP_VERSION = "5.2.8"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.3", items: [
+    "נוסף סקשן חדש, מתקפל: '📋 תור קנייה ומכירה'. שורת קנייה (ירוק) - 10 מניות ה-Top10 הרשמיות של היום. שורת מכירה (אדום) - מניות שהיו ב-Top10 ב-30 הימים האחרונים ומראות עכשיו איתות מכירה חזק (הגעה להתנגדות + לפחות אחד מבין MACD שלילי/RSI קניית יתר/מגמת Minervini שנחלשה - לא תנאי בודד). לחיצה על כל מניה בתור פותחת את אותו פירוט מלא כמו בשאר האפליקציה.",
+    "כרטיס 'המניה הכי חמה' הנפרד הוסר - המניה הראשונה ברשימת Top10/מומלצות עכשיו מסומנת עכשיו במסגרת זהב במקומה, עם אותו קישור 'למה נבחרה?'.",
+  ]},
   { version: "5.2.8", items: [
     "תוקן באג אמיתי ב'תחזית למחר' (עכשיו 'מומלצות עכשיו'): בריכת המועמדים שלה שכחה לכלול מניות מסומנות ⭐ ומניות מ'תיק החודשי' - בדיוק כמו שה-Top10 הרשמי כן עושה. זה גרם לחוסר חפיפה מוגזם בין שתי הרשימות, מעבר להבדל המצופה בעיתוי הנתונים.",
     "שינוי מינוח להבהרה: '🔮 הצג תחזית למחר' הפך ל'🔮 10 המומלצות עכשיו (מתעדכן חופשי)', ו'הצג Top 10' הפך ל'הצג Top 10 (למעקב והוכחה)' - כדי שיהיה ברור שזו אותה נוסחה בדיוק, רק שאחת קפואה למדידה רשמית והשנייה מתעדכנת חופשי בלי לפגוע במדידה.",
@@ -1025,6 +1044,7 @@ setupCollapsibleToggle("formulaComparisonToggle", "formulaComparisonArrow", "for
 setupCollapsibleToggle("benchmarkComparisonToggle", "benchmarkComparisonArrow", "benchmarkComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("predictionsToggle", "predictionsArrow", "predictionsListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("watchlistToggle", "watchlistArrow", "watchlistPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("buySellQueueToggle", "buySellQueueArrow", "buySellQueueBody", "▸ הצג", "▾ הסתר");
 document.getElementById("changelogCloseBtn").addEventListener("click", () => {
   document.getElementById("changelogOverlay").classList.add("hidden");
 });
@@ -1361,7 +1381,7 @@ function sortPreds(preds, mode) {
   return arr;
 }
 
-function predictionCardHtml(p) {
+function predictionCardHtml(p, isFirst) {
   const ticker = (p.ticker || "").trim();
   const starred = starredTickers.has(ticker);
   const info = currentPrices[ticker];
@@ -1373,10 +1393,17 @@ function predictionCardHtml(p) {
   const nameHtml = p.company_name
     ? `<div class="card-name" data-action="show-company" data-ticker="${ticker}" style="cursor:pointer; text-decoration:underline dotted;">${p.company_name}</div>`
     : "";
+  // "hottest stock" is just whichever ticker ranks first in the currently
+  // displayed list (Top10 or "מומלצות עכשיו") - no separate spotlight card
+  // anymore, just a gold accent + a "why?" link in place (item 22 cleanup).
+  const hotPickLabelHtml = isFirst
+    ? `<div class="hot-pick-label hot-pick-why-btn" style="cursor:pointer;">🔥 המניה הכי חמה היום · <span style="text-decoration:underline;">למה נבחרה? 🔍</span></div>`
+    : "";
 
   return `
-    <div class="stock-card">
+    <div class="stock-card${isFirst ? " hot-pick-card" : ""}">
       <div class="card-view-only">
+        ${hotPickLabelHtml}
         <div class="card-top">
           <div class="card-id">
             <div class="card-ticker mono">
@@ -1468,9 +1495,7 @@ function toggleStar(ticker) {
   if (!t) return;
   if (starredTickers.has(t)) starredTickers.delete(t);
   else starredTickers.add(t);
-  renderPredictionsList(); // this also re-renders the starred section + hot pick stays as-is until next load
-  const hotCard = document.getElementById("hotPickCard");
-  if (hotCard.innerHTML) renderHotPick(allTodayPreds);
+  renderPredictionsList(); // also re-renders the starred section + hot-pick gold styling
   saveStarred();
 }
 
@@ -1489,64 +1514,6 @@ function renderStarredSection() {
 }
 
 let lastHotPick = null;
-let lastHotPickVolumeConfirmed = false;
-
-function renderHotPick(preds) {
-  const card = document.getElementById("hotPickCard");
-  // "hottest" = highest conviction that's also confirmed by a volume surge,
-  // falling back to plain highest conviction if nothing has a volume surge today
-  const withVolume = preds.filter(p => p.vol_ratio != null && p.vol_ratio >= 1.5);
-  const pool = withVolume.length ? withVolume : preds;
-  if (!pool.length) { card.innerHTML = ""; return; }
-  const hot = [...pool].sort((a, b) => Math.abs(b.score) - Math.abs(a.score))[0];
-  lastHotPick = hot;
-  lastHotPickVolumeConfirmed = withVolume.length > 0;
-  const hotTicker = (hot.ticker || "").trim();
-  const hotStarred = starredTickers.has(hotTicker);
-  const info = currentPrices[hotTicker];
-  const price = info && info.price != null ? info.price : (hot.price != null ? hot.price : null);
-  const pct = info ? info.pct_change : null;
-  const pctClass = pct == null ? "flat" : (pct >= 0 ? "up" : "down");
-  const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
-  if (hot.company_name) companyDataByTicker[hotTicker] = { name: hot.company_name, summary: hot.business_summary };
-  const hotNameHtml = hot.company_name
-    ? `<div class="card-name" data-action="show-company" data-ticker="${hotTicker}" style="cursor:pointer; text-decoration:underline dotted;">${hot.company_name}</div>`
-    : "";
-
-  card.innerHTML = `
-    <div class="hot-pick-card">
-      <div class="hot-pick-label" id="hotPickWhyBtn" style="cursor:pointer;">🔥 המניה הכי חמה היום · <span style="text-decoration:underline;">למה נבחרה? 🔍</span></div>
-      <div class="card-top">
-        <div class="card-id">
-          <div class="card-ticker mono">
-            <button class="star-btn" data-action="toggle-star" data-ticker="${hotTicker}" title="${hotStarred ? "הסר ממעקב" : "הוסף למעקב"}" style="margin-left:3px;">${hotStarred ? "⭐" : "☆"}</button>
-            ${hot.ticker}
-          </div>
-          ${hotNameHtml}
-        </div>
-        <div class="card-price-block">
-          <div class="card-price mono">${price != null ? price.toFixed(2) : "—"}</div>
-          <div class="card-pct mono ${pctClass}">${pctText}</div>
-        </div>
-      </div>
-      ${rangeBarHtml(hot, price)}
-      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-dim);">
-          <span>🔮 חיזוי היום</span>
-          <span class="${hot.predicted === "up" ? "prediction-dir-up" : "prediction-dir-down"}">
-            ${hot.predicted === "up" ? "▲ עלייה" : "▼ ירידה"} · ${hot.score}
-          </span>
-        </div>
-        ${convictionBarHtml(hot.score)}
-        ${factorBadgesHtml(hot)}
-        ${overallScoreBadgeHtml(hot)}
-        ${(hot.top10 && hot.overall_score == null) ? topPickBreakdownHtml(hot) : ""}
-      </div>
-    </div>
-  `;
-  attachStarEvents(card);
-  document.getElementById("hotPickWhyBtn").addEventListener("click", () => showHotPickExplanation());
-}
 
 let predictionsView = "top10"; // "top10" | "forecast" - two separate persistent buttons (see showTop10Btn/showForecastBtn), not a single toggling one, per Tomer's request after the toggle button proved confusing
 let tomorrowForecastPicks = [];
@@ -1575,10 +1542,12 @@ function renderPredictionsList() {
     list.innerHTML = predictionsView === "forecast"
       ? `<div class="predictions-empty">אין עדיין "מומלצות עכשיו" - לחץ "רענן המלצות עכשיו" כדי לחשב.</div>`
       : `<div class="predictions-empty">אין חיזויים חזקים כרגע</div>`;
+    lastHotPick = null;
     renderStarredSection();
     return;
   }
-  list.innerHTML = shown.map(p => predictionCardHtml(p)).join("");
+  lastHotPick = shown[0];
+  list.innerHTML = shown.map((p, i) => predictionCardHtml(p, i === 0)).join("");
   attachStarEvents(list);
   renderStarredSection();
 }
@@ -1887,6 +1856,10 @@ document.addEventListener("click", (e) => {
   if (p) showScoreBreakdownModal(p);
 });
 
+document.addEventListener("click", (e) => {
+  if (e.target.closest(".hot-pick-why-btn")) showHotPickExplanation();
+});
+
 document.getElementById("checkStockBtn").addEventListener("click", async () => {
   const statusEl = document.getElementById("checkStockStatus");
   const resultEl = document.getElementById("checkStockResult");
@@ -1956,6 +1929,46 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
   }
 });
 
+function queueRowHtml(p, colorScheme) {
+  // shared compact row for both buy (green) and sell (red) queues - always
+  // opens the same full breakdown modal as the big score badges elsewhere,
+  // via the same per-render registry (never a ticker-keyed lookup - see
+  // the v5.2.5 bug this avoided repeating).
+  const ticker = (p.ticker || "").trim();
+  const idx = scoreBadgeRegistry.push(p) - 1;
+  const scoreText = p.overall_score != null ? p.overall_score.toFixed(1) : (p.score != null ? p.score : "—");
+  const reasonLabels = { at_resistance: "בהתנגדות", macd_bearish: "MACD שלילי", rsi_overbought: "RSI קניית יתר", trend_degraded: "מגמה נחלשה" };
+  const reasonTags = p.reasons
+    ? Object.keys(p.reasons).filter(k => p.reasons[k]).map(k =>
+        `<span style="font-size:10px; color:#ff9a8a; border:1px solid #ff9a8a44; border-radius:6px; padding:1px 6px; margin-inline-start:4px;">${reasonLabels[k] || k}</span>`
+      ).join("")
+    : "";
+  const border = colorScheme === "sell" ? "#ff9a8a55" : "#5ee6a055";
+  const bg = colorScheme === "sell" ? "rgba(255,120,110,0.08)" : "rgba(94,230,160,0.08)";
+  const scoreColor = colorScheme === "sell" ? "#ff9a8a" : "#5ee6a0";
+  return `
+    <button class="score-badge-btn" data-idx="${idx}" style="display:flex; justify-content:space-between; align-items:center; width:100%; text-align:right; background:${bg}; border:1px solid ${border}; border-radius:10px; padding:8px 12px; cursor:pointer;">
+      <span style="font-weight:700; font-size:13px;">${ticker}${reasonTags}</span>
+      <span class="mono" style="font-weight:800; color:${scoreColor};">${scoreText}</span>
+    </button>`;
+}
+
+function renderBuySellQueue(data) {
+  const buyList = document.getElementById("buyQueueList");
+  const sellList = document.getElementById("sellQueueList");
+
+  const buyItems = [...allTodayPreds].filter(p => p.top10)
+    .sort((a, b) => (b.overall_score ?? Math.abs(b.score)) - (a.overall_score ?? Math.abs(a.score)));
+  buyList.innerHTML = buyItems.length
+    ? buyItems.map(p => queueRowHtml(p, "buy")).join("")
+    : `<div style="font-size:12px; color:var(--text-faint);">אין עדיין Top10 להיום</div>`;
+
+  const sellItems = (data.sell_queue && data.sell_queue.items) || [];
+  sellList.innerHTML = sellItems.length
+    ? sellItems.map(p => queueRowHtml(p, "sell")).join("")
+    : `<div style="font-size:12px; color:var(--text-faint);">אין כרגע איתות מכירה חזק על מניות שהומלצו לאחרונה</div>`;
+}
+
 function renderDataFreshnessNote(data) {
   const el = document.getElementById("dataFreshnessNote");
   const parts = [];
@@ -2000,8 +2013,8 @@ async function loadPredictions() {
     renderDataFreshnessNote(data);
     if (rows.length) render(); // refresh watchlist cards with fresh prediction badges
 
-    renderHotPick(allTodayPreds);
     renderPredictionsList();
+    renderBuySellQueue(data);
     section.classList.remove("hidden");
     renderTrackRecord(history, acc);
     renderPortfolioSim(data.portfolio_sim, acc);
@@ -2675,9 +2688,8 @@ function showHotPickExplanation() {
   const reversionItems = items.filter(i => i.cat === "reversion");
   const fundItems = items.filter(i => i.cat === "fund");
 
-  const selectionNote = lastHotPickVolumeConfirmed
-    ? `היא נבחרה מבין המניות עם <b>נפח מסחר חריג היום</b> (סימן שהתנועה נתמכת בכניסת כסף אמיתית, לא רק תזוזת מחיר על נפח דליל) - ומביניהן, זו עם עוצמת החיזוי הגבוהה ביותר.`
-    : `אף מניה היום לא הציגה נפח מסחר חריג משמעותית מהרגיל, ולכן הבחירה התבססה על עוצמת החיזוי (ציון) הגבוהה ביותר מבין כל המניות שנותחו.`;
+  const viewLabel = predictionsView === "forecast" ? '"10 המומלצות עכשיו"' : '"Top 10"';
+  const selectionNote = `זו המניה המדורגת ראשונה כרגע ב-${viewLabel}, לפי הנוסחה (עוצמת חיזוי + יחס סיכוי/סיכון + אינדיקטורים מקדימים, ואצל Top10 גם דירוג אנליסטים אם קיים).`;
 
   let html = `
     <p>ציון סופי: <b class="mono ${p.predicted === "up" ? "prediction-dir-up" : "prediction-dir-down"}" style="font-size:15px;">${p.score}</b>
