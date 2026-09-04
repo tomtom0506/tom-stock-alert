@@ -442,8 +442,8 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
         <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏆 פירוט מלא ל-Top 10</p>
-        <p>כל אחת מ-10 המניות שנבחרות בפועל מציגה עכשיו את אותן תגיות מידע שיש ב"בדוק מניה": <b>מגמת Minervini</b>, <b>RS Rating</b>, <b>ציון אנליסטים</b> (0-100, בנפרד מהציון הכולל), <b>VCP</b> (ניסיוני, מידע בלבד), ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי. שאר המניות שנסרקות לא מקבלות את הבדיקה הזו (חוץ ממגמת Minervini ו-RS Rating, שמחושבים לכולן ומשפיעים על הבחירה עצמה) - כדי לא להעמיס קריאות API מיותרות על כל השוק.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏆 פירוט מלא ל-Top 10 ול"מניות שלי"</p>
+        <p>כל אחת מ-10 מניות ה-Top 10, וכל מניה ב"המניות שלי", מציגה עכשיו תג ציון כולל לחיץ (🎯 1-100) - <b>אותה נוסחה בדיוק</b> שמחשבת את הציון ב"בדוק מניה" (לא נוסחה נפרדת), כך שאותו טיקר תמיד ייתן אותו ציון בשני המקומות. לחיצה על התג פותחת את אותו פירוט מלא שיש ב"בדוק מניה" - כולל מגמת Minervini, RS Rating, ציון אנליסטים, VCP, ואזהרת דוח כספי קרוב. הציון מתעדכן <b>פעם ביום</b> כחלק מהריצה הרגילה - לא בזמן אמת, ולא לפי לחיצה. שאר המניות שנסרקות לא מקבלות את הפירוט הזה (חוץ ממגמת Minervini ו-RS Rating, שמחושבים לכולן ומשפיעים על הבחירה עצמה) - כדי לא להעמיס קריאות API מיותרות על כל השוק.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
         <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומשלב את שלוש הנוסחאות שמריצות את Top 10 (ציון מקורי, יחס סיכוי/סיכון, אינדיקטורים מקדימים) בתוספת <b>דירוג אנליסטים</b> - לציון כולל אחד 1-100, עם פירוט לכל רכיב בנפרד. אם אין נתון אנליסטים לטיקר מסוים, הרכיב הזה פשוט לא נכלל בשקלול (לא מקבל ציון ניטרלי מזויף). לצד הציון מוצגים גם כתגיות מידע: <b>מגמת Minervini</b> (כמה מ-7 קריטריוני "מגמה בריאה" המניה עומדת בהם - זה גם מנכה מהציון עצמו, ראו למטה), <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול שאר השוק שנסרק), <b>VCP</b> (זיהוי ניסיוני של תבנית התכווצות - מידע בלבד, לא משפיע על הציון), <b>מכירה בחסר</b>, ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי (גם זו לא משפיעה על הציון - זה סיכון תזמון, לא כיוון). 10 הטיקרים האחרונים שנבדקו נשמרים בדפדפן - לחיצה על אחד מהם בהיסטוריה מציגה שוב את התוצאה השמורה, בלי להריץ בדיקה חדשה.</p>
@@ -635,6 +635,16 @@
     </div>
   </div>
 
+  <div class="modal-overlay hidden" id="scoreBreakdownOverlay" style="z-index:150;">
+    <div class="panel modal-box" id="scoreBreakdownPanel">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 style="margin:0;">🎯 פירוט ציון</h2>
+        <button id="scoreBreakdownCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
+      </div>
+      <div id="scoreBreakdownBody"></div>
+    </div>
+  </div>
+
   <div class="modal-overlay hidden" id="dailyPnlOverlay" style="z-index:150;">
     <div class="panel modal-box" id="dailyPnlPanel">
       <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -820,12 +830,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.1.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.1.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.1.4", items: [
+    "כל אחת מ-10 המניות ב-Top 10 וכל מניה ב'המניות שלי' מציגה עכשיו תג ציון כולל לחיץ (🎯), מחושב באותה נוסחה בדיוק שמחשבת את הציון ב'בדוק מניה' - לא נוסחה נפרדת. לחיצה על התג פותחת חלון עם אותו פירוט מלא שיש ב'בדוק מניה'. מתעדכן פעם ביום כחלק מהריצה הרגילה, לא בזמן אמת.",
+  ]},
   { version: "5.1.3", items: [
     "כל אחת מ-10 המניות שבפועל נבחרות ל-Top 10 מציגה עכשיו את אותה תגיות מידע שיש ב'בדוק מניה': מגמת Minervini, RS Rating, ציון אנליסטים (0-100), VCP (ניסיוני), ואזהרת דוח כספי קרוב - חדש: ציון אנליסטים ובדיקת דוח כספי מחושבים כעת גם עבור 10 המניות הנבחרות (זול, לא נבדק לכל השוק).",
   ]},
@@ -1341,6 +1354,7 @@ function predictionCardHtml(p) {
           </div>
           ${convictionBarHtml(p.score)}
           ${factorBadgesHtml(p)}
+          ${overallScoreBadgeHtml(p)}
           ${p.top10 ? topPickBreakdownHtml(p) : ""}
         </div>
       </div>
@@ -1593,12 +1607,10 @@ function renderCheckStockHistory() {
   });
 }
 
-function renderCheckStockResult(data) {
-  const el = document.getElementById("checkStockResult");
-  if (!data) { el.innerHTML = ""; return; }
+function scoreBreakdownCardHtml(data) {
+  if (!data) return "";
   if (data.error) {
-    el.innerHTML = `<div class="status error" style="margin-top:8px;">${data.error}</div>`;
-    return;
+    return `<div class="status error" style="margin-top:8px;">${data.error}</div>`;
   }
   const dirLabel = data.predicted_direction === "up" ? "עלייה 🔺" : "ירידה 🔻";
   const dirCls = data.predicted_direction === "up" ? "prediction-dir-up" : "prediction-dir-down";
@@ -1649,7 +1661,7 @@ function renderCheckStockResult(data) {
   }
   const tagsRow = tags.length ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;">${tags.join("")}</div>` : "";
 
-  el.innerHTML = `
+  return `
     <div class="panel" style="margin-top:10px; padding:16px; border-radius:14px;">
       ${earningsBanner}
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1673,6 +1685,56 @@ function renderCheckStockResult(data) {
       ${data.checked_at ? `<div style="font-size:11px; color:var(--text-faint); margin-top:10px;">נבדק ב-${new Date(data.checked_at).toLocaleString("he-IL")}</div>` : ""}
     </div>`;
 }
+
+function renderCheckStockResult(data) {
+  const el = document.getElementById("checkStockResult");
+  el.innerHTML = data ? scoreBreakdownCardHtml(data) : "";
+}
+
+function overallScoreBadgeHtml(p) {
+  // clickable badge shown on Top10/watchlist cards - same overall score
+  // "בדוק מניה" would compute for this ticker (see build_score_breakdown
+  // in stock_alerts.py, shared by both paths). Only present when the
+  // backend actually computed it (Top10 picks + watchlist tickers only,
+  // not the whole scanned universe - see run_predictions).
+  if (p.overall_score == null) return "";
+  const color = p.overall_score >= 60 ? "#5ee6a0" : (p.overall_score >= 40 ? "#ffd76a" : "#ff9a8a");
+  return `
+    <button class="score-badge-btn" data-ticker="${p.ticker}" style="background:#1c2230; border:1px solid ${color}66; color:${color}; border-radius:10px; padding:6px 14px; font-size:15px; font-weight:800; margin-top:8px; cursor:pointer;">
+      🎯 ${p.overall_score.toFixed(1)}
+    </button>`;
+}
+
+function showScoreBreakdownModal(p) {
+  const data = {
+    ticker: p.ticker,
+    predicted_direction: p.predicted,
+    overall_score: p.overall_score,
+    components: p.score_components,
+    excluded_from_blend: p.score_components
+      ? Object.keys(p.score_components).filter(k => p.score_components[k] == null)
+      : [],
+    price: p.price, support: p.support, resistance: p.resistance,
+    short_pct: p.short_pct, rs_rating: p.rs_rating,
+    trend_template: p.trend_template, vcp: p.vcp, earnings: p.earnings,
+  };
+  document.getElementById("scoreBreakdownBody").innerHTML = scoreBreakdownCardHtml(data);
+  document.getElementById("scoreBreakdownOverlay").classList.remove("hidden");
+}
+
+document.getElementById("scoreBreakdownCloseBtn").addEventListener("click", () => {
+  document.getElementById("scoreBreakdownOverlay").classList.add("hidden");
+});
+document.getElementById("scoreBreakdownOverlay").addEventListener("click", (e) => {
+  if (e.target.id === "scoreBreakdownOverlay") document.getElementById("scoreBreakdownOverlay").classList.add("hidden");
+});
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".score-badge-btn");
+  if (!btn) return;
+  const ticker = btn.dataset.ticker;
+  const p = latestPredictionsByTicker[ticker];
+  if (p) showScoreBreakdownModal(p);
+});
 
 document.getElementById("checkStockBtn").addEventListener("click", async () => {
   const statusEl = document.getElementById("checkStockStatus");
@@ -2975,6 +3037,7 @@ function render() {
               </div>
               ${convictionBarHtml(pred.score)}
               ${factorBadgesHtml(pred)}
+              ${overallScoreBadgeHtml(pred)}
             </div>`;
         })()}
       </div>

@@ -2058,24 +2058,48 @@ def analyst_score_0_100(recommendation_mean, upside_pct):
     return None
 
 
+def build_score_breakdown(entry, recommendation_mean, upside_pct):
+    """Shared by compute_single_ticker_score ('בדוק מניה') and the daily
+    Top10/watchlist breakdown attached in run_predictions below - one
+    formula, one place, so the badge shown on a Top10/watchlist card and
+    the result of running the same ticker through 'בדוק מניה' can never
+    silently drift apart. `entry` needs at least ticker/score/predicted
+    plus the technical factors (support/resistance/rsi/etc) that
+    compute_risk_reward_score and compute_leading_adjusted_score read.
+
+    See compute_single_ticker_score's docstring for why each sub-score is
+    normalized independently with a fixed ceiling rather than blended at
+    the rank level, and why the weights are fixed/equal for now."""
+    rr_raw = compute_risk_reward_score(entry)
+    leading_raw = compute_leading_adjusted_score(entry)
+    analyst_raw = analyst_score_0_100(recommendation_mean, upside_pct)
+
+    original_norm = round(max(0, min(abs(entry["score"]) / 10 * 100, 100)), 1)
+    rr_norm = round(max(0, min(rr_raw / 25 * 100, 100)), 1)
+    leading_norm = round(max(0, min(leading_raw / 10 * 100, 100)), 1)
+
+    components = {
+        "original": original_norm,
+        "risk_reward": rr_norm,
+        "leading_adjusted": leading_norm,
+        "analyst": analyst_raw,  # may be None - excluded from blend below if so
+    }
+    available = {k: v for k, v in components.items() if v is not None}
+    overall = round(sum(available.values()) / len(available), 1) if available else None
+    return {
+        "overall_score": overall,
+        "components": components,
+        "excluded_from_blend": [k for k, v in components.items() if v is None],
+    }
+
+
 def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, market_regime, rs_reference=None):
     """The 'בדוק מניה' on-demand analysis (see check_stock.py): reuses the
     exact same scoring engines the daily Top10 pipeline uses
     (compute_prediction_score, compute_risk_reward_score,
     compute_leading_adjusted_score), adds a new analyst-rating component,
-    and blends all four into one 1-100 score - plus returns each sub-score
-    separately for the breakdown view.
-
-    Unlike the real Top10 selection (compute_blended_top10_score), this
-    can't blend at the RANK level - there's no universe to rank an ad-hoc
-    single ticker against. So each sub-score is independently normalized
-    to a 0-100 scale using a fixed ceiling (chosen from the formulas' own
-    typical ranges, not calibrated against tracked history the way the
-    real Top10 alpha is - there isn't a population of graded ad-hoc
-    lookups to calibrate against). Weights are fixed and equal (25% each)
-    for the same reason: this is a judgment call to revisit once there's
-    real usage data, not an evidence-gated calibration like the Top10
-    blend elsewhere in this file.
+    and blends all four into one 1-100 score via build_score_breakdown -
+    plus returns each sub-score separately for the breakdown view.
 
     rs_reference, if provided, is yesterday's/today's full-universe list of
     6-month performances (see run_predictions) - lets this one-off lookup
@@ -2093,33 +2117,17 @@ def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, 
     predicted = "up" if score >= 0 else "down"
     entry = {"ticker": ticker, "score": score, "predicted": predicted, **factors}
 
-    rr_raw = compute_risk_reward_score(entry)
-    leading_raw = compute_leading_adjusted_score(entry)
-    analyst_raw = analyst_score_0_100(
-        fundamental_factors.get("recommendation_mean"),
-        fundamental_factors.get("upside_pct"),
+    breakdown = build_score_breakdown(
+        entry, fundamental_factors.get("recommendation_mean"), fundamental_factors.get("upside_pct")
     )
-
-    original_norm = round(max(0, min(abs(score) / 10 * 100, 100)), 1)
-    rr_norm = round(max(0, min(rr_raw / 25 * 100, 100)), 1)
-    leading_norm = round(max(0, min(leading_raw / 10 * 100, 100)), 1)
-
-    components = {
-        "original": original_norm,
-        "risk_reward": rr_norm,
-        "leading_adjusted": leading_norm,
-        "analyst": analyst_raw,  # may be None - excluded from blend below if so
-    }
-    available = {k: v for k, v in components.items() if v is not None}
-    overall = round(sum(available.values()) / len(available), 1) if available else None
 
     return {
         "ticker": ticker,
         "predicted_direction": predicted,
         "raw_score": round(score, 2),
-        "overall_score": overall,
-        "components": components,
-        "excluded_from_blend": [k for k, v in components.items() if v is None],
+        "overall_score": breakdown["overall_score"],
+        "components": breakdown["components"],
+        "excluded_from_blend": breakdown["excluded_from_blend"],
         "price": factors.get("price"),
         "support": factors.get("support"),
         "resistance": factors.get("resistance"),
@@ -2342,17 +2350,24 @@ def run_predictions(store):
     for entry in today_entries:
         entry["top10"] = entry["ticker"] in real_top10_tickers
 
-    # --- full breakdown for the actual Top 10, same fields "בדוק מניה"
-    # already shows for an ad-hoc lookup (analyst score, earnings date) -
-    # trend_template/vcp are already attached to every entry above via the
-    # factors copy loop, so only these two need computing here, and only
-    # for these 10 tickers (cheap - not the whole scanned universe). ---
+    # --- full breakdown (the same overall 1-100 score + component breakdown
+    # "בדוק מניה" computes) for the actual Top 10 AND the manually-tracked
+    # watchlist ("המניות שלי") - shown as a clickable badge on those cards.
+    # Cheap to do for this small set (10 + a handful of watchlist tickers),
+    # not attempted for the whole scanned universe. Uses build_score_breakdown
+    # so this can never drift from what "בדוק מניה" would compute for the
+    # same ticker on the same day. ---
+    watchlist_tickers = {item["ticker"] for item in load_json(WATCHLIST_FILE, [])}
+    breakdown_tickers = real_top10_tickers | watchlist_tickers
     for entry in today_entries:
-        if entry["ticker"] not in real_top10_tickers:
+        if entry["ticker"] not in breakdown_tickers:
             continue
-        entry["analyst_score"] = analyst_score_0_100(
-            entry.get("recommendation_mean"), entry.get("upside_pct")
+        breakdown = build_score_breakdown(
+            entry, entry.get("recommendation_mean"), entry.get("upside_pct")
         )
+        entry["overall_score"] = breakdown["overall_score"]
+        entry["score_components"] = breakdown["components"]
+        entry["analyst_score"] = breakdown["components"]["analyst"]
         try:
             entry["earnings"] = get_upcoming_earnings_date(entry["ticker"])
         except Exception as e:
