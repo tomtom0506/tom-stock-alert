@@ -2190,6 +2190,143 @@ def analyze_single_ticker(ticker):
 
 
 
+def run_tomorrow_forecast(store):
+    """Item 19: a genuinely SEPARATE forecast for the next trading session,
+    independent of the official once-a-day Top10 (run_predictions), which
+    locks in whenever it first runs each day and is tracked/graded against
+    the following close - see the already_predicted_today guard there.
+    This can run again the same day (e.g. near market close, on fresher
+    data) or on demand, and deliberately never touches store["history"] or
+    predictions.json's tracked/graded fields - it writes its own separate
+    file (tomorrow_forecast.json) so a forecast run can never contaminate
+    the accuracy record or interfere with grading.
+
+    Intentionally a self-contained scan (not sharing run_predictions'
+    download loop) even though that duplicates some logic - the tracked
+    pipeline behind the real Top10/accuracy numbers is the one thing in
+    this app that must stay untouched; a shared refactor there risks
+    breaking it for the sake of a much lower-stakes feature."""
+    universe = build_prediction_universe()
+    market_regime = get_market_regime()
+    print(f"Tomorrow-forecast universe: {len(universe)} tickers")
+
+    technical = {}
+    for i in range(0, len(universe), BATCH_SIZE):
+        batch = universe[i:i + BATCH_SIZE]
+        try:
+            data = yf.download(
+                tickers=" ".join(batch), period=PRICE_HISTORY_PERIOD, group_by="ticker",
+                threads=True, progress=False, auto_adjust=True,
+            )
+        except Exception as e:
+            print(f"Tomorrow-forecast batch download error: {e}")
+            continue
+        for symbol in batch:
+            try:
+                closes = data[symbol]["Close"] if len(batch) > 1 else _flatten_close_series(data["Close"])
+                volumes = data[symbol]["Volume"] if len(batch) > 1 else _flatten_close_series(data["Volume"])
+                highs = data[symbol]["High"] if len(batch) > 1 else _flatten_close_series(data["High"])
+                lows = data[symbol]["Low"] if len(batch) > 1 else _flatten_close_series(data["Low"])
+            except Exception:
+                continue
+            try:
+                tf = compute_technical_factors(closes, volumes, highs, lows)
+                if tf:
+                    technical[symbol] = tf
+            except Exception as e:
+                print(f"Tomorrow-forecast technical error for {symbol}: {e}")
+        time.sleep(1)
+
+    print(f"Tomorrow-forecast: technical factors computed for {len(technical)} tickers")
+
+    # RS Rating against THIS scan's own snapshot (may differ slightly from
+    # this morning's official run, since prices moved during the day)
+    perf_pairs = [(s, tf["run_up_180d"]) for s, tf in technical.items() if tf.get("run_up_180d") is not None]
+    if perf_pairs:
+        ranked = sorted(perf_pairs, key=lambda p: p[1])
+        total = len(ranked)
+        for rank, (symbol, _) in enumerate(ranked):
+            technical[symbol]["rs_rating"] = round(rank / max(total - 1, 1) * 100, 1)
+
+    prelim_scores = {}
+    for symbol, tf in technical.items():
+        prelim_score = compute_prediction_score(tf, market_regime)
+        prelim_multiplier = (tf.get("trend_template") or {}).get("multiplier", 1.0)
+        prelim_scores[symbol] = prelim_score * prelim_multiplier
+
+    candidates = {s for s, sc in prelim_scores.items() if abs(sc) >= PREFILTER_THRESHOLD}
+    print(f"Tomorrow-forecast: {len(candidates)} tickers passed the pre-filter, fetching fundamentals...")
+
+    entries = []
+    for symbol in technical:
+        factors = dict(technical[symbol])
+        if symbol in candidates:
+            try:
+                factors.update(get_fundamental_factors(symbol))
+            except Exception as e:
+                print(f"Tomorrow-forecast fundamentals error for {symbol}: {e}")
+
+        score = compute_prediction_score(factors, market_regime)
+        trend_multiplier = (factors.get("trend_template") or {}).get("multiplier", 1.0)
+        score = round(score * trend_multiplier, 2)
+        predicted = "up" if score >= 0 else "down"
+        entry = {"ticker": symbol, "score": score, "predicted": predicted, **factors}
+        entries.append(entry)
+
+    breadth = [e for e in entries if abs(e["score"]) >= PREDICTION_SCORE_THRESHOLD]
+    if not breadth:
+        store["tomorrow_forecast"] = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "picks": [],
+            "note": "אין מספיק מניות עם אות משמעותי כרגע לתחזית למחר.",
+        }
+        return store["tomorrow_forecast"]
+
+    formula_alpha = (store.get("formula_blend") or {}).get("alpha", DEFAULT_FORMULA_ALPHA)
+    rank_a = {e["ticker"]: i for i, e in enumerate(sorted(breadth, key=lambda e: abs(e["score"]), reverse=True))}
+    rank_b = {e["ticker"]: i for i, e in enumerate(sorted(breadth, key=compute_risk_reward_score, reverse=True))}
+    picks = select_diversified_top10(
+        breadth, lambda e: compute_blended_top10_score(e, formula_alpha, rank_a, rank_b),
+    )
+
+    full_picks = []
+    for entry in picks:
+        breakdown = build_score_breakdown(entry, entry.get("recommendation_mean"), entry.get("upside_pct"))
+        try:
+            earnings = get_upcoming_earnings_date(entry["ticker"])
+        except Exception as e:
+            print(f"Tomorrow-forecast earnings lookup failed for {entry['ticker']}: {e}")
+            earnings = None
+        # start from the full entry (same shape predictionCardHtml already
+        # knows how to render - rsi/macd/ma_trend/analysts/short_pct/etc.),
+        # normalizing numpy scalar types to native Python (same conversion
+        # run_predictions applies before anything gets JSON-saved) and
+        # layering the breakdown + earnings on top.
+        full_pick = {}
+        for k, v in entry.items():
+            if k.startswith("_"):
+                continue
+            if isinstance(v, (np.floating,)):
+                v = float(v)
+            elif isinstance(v, (np.integer,)):
+                v = int(v)
+            elif isinstance(v, (np.bool_,)):
+                v = bool(v)
+            full_pick[k] = v
+        full_pick.update({
+            "overall_score": breakdown["overall_score"],
+            "score_components": breakdown["components"],
+            "earnings": earnings,
+        })
+        full_picks.append(full_pick)
+
+    store["tomorrow_forecast"] = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "picks": full_picks,
+    }
+    return store["tomorrow_forecast"]
+
+
 def run_predictions(store):
     today = date.today().isoformat()
     already_predicted_today = any(e.get("date") == today for e in store["history"])

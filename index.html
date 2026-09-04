@@ -416,8 +416,11 @@
         <b>מניות במעקב</b> - כמה מניות יש לך ברשימה הידנית "המניות שלי".<br>
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
 
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 תחזיות ליום המסחר הבא</p>
-        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים (עוצמת אות, אפסייד אנליסטים, RSI, נפח מסחר, קרבה לתמיכה/התנגדות), ולעבור בין תצוגת Top 10 לתצוגה מלאה. כפתור <b>🔄 עדכן ניתוח</b> מפעיל ריצה חדשה של המנוע בגיטהאב (לוקח כמה דקות).</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 Top10 ותחזית למחר</p>
+        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. כפתור <b>"הצג רק Top 10"</b> מציג את 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל). כפתור <b>"🔮 הצג תחזית למחר"</b> מחליף אותו לתצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. היא מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> (גם צף בתחתית המסך) מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב (לוקח כמה דקות) - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
+
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">✏ נהל אחזקות</p>
+        <p>המקום היחיד להוספת מניה חדשה לאפליקציה - גם ל"התיק שלי" וגם ל"המניות שלי". הזנת טיקר, שם, וכמות יחידות (חובה) יוצרת גם אחזקה בתיק וגם רשומת מעקב עם ניתוח טכני מלא. אפשר לערוך את מחירי היעד (תמיכה/התנגדות להתראה) בנפרד לכל מניה בסקשן "המניות שלי" עצמו, עם כפתור ✏ ערוך.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">⭐ הכוכב וסקשן "מניות במעקב"</p>
         <p>לחיצה על ☆ ליד כל מניה מסמנת אותה ⭐ ומעלה אותה לסקשן קבוע למעלה, גם אם היא לא ברשימה המצומצמת של יום מסוים. מניות מסומנות מקבלות גם עדכון סטטוס יומי נפרד בטלגרם.</p>
@@ -591,12 +594,12 @@
       <div id="starredList"></div>
     </div>
     <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-      🔮 תחזיות ליום המסחר הבא <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
+      🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div id="hotPickCard"></div>
     <div class="predictions-controls">
       <select id="sortSelect" class="sort-select">
-        <option value="score">מיון: עוצמת אות</option>
+        <option value="score">מיון: לפי הנוסחה (ברירת מחדל)</option>
         <option value="upside">מיון: אפסייד אנליסטים</option>
         <option value="analysts">מיון: כמות אנליסטים ממליצים</option>
         <option value="rsi">מיון: RSI קיצוני</option>
@@ -606,8 +609,10 @@
       </select>
       <button id="topToggleBtn" class="top-toggle-btn">הצג רק Top 10</button>
       <button id="recomputeBtn" class="top-toggle-btn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
+      <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב תחזית טרייה למחר, בנפרד מ-Top10 הרשמי">🔁 חשב תחזית למחר</button>
     </div>
     <div id="recomputeStatus"></div>
+    <div id="tomorrowForecastStatus"></div>
     <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
   </div>
 
@@ -617,7 +622,8 @@
       ניתוח לפי דרישה לכל טיקר - לא קשור לרשימת המעקב היומית. מריץ את אותן שלוש הנוסחאות שמריצות את Top 10, בתוספת דירוג אנליסטים, ונותן ציון כולל 1-100. לוקח כדקה-שתיים (מפעיל ריצה חדשה בגיטהאב, לא מיידי).
     </div>
     <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <input class="field-input mono" id="checkStockInput" placeholder="לדוגמה: NVDA / TEVA.TA" style="flex:1;" />
+      <input class="field-input mono" id="checkStockInput" placeholder="לדוגמה: NVDA / TEVA.TA" style="flex:1;" list="checkStockSuggestions" autocomplete="off" />
+      <datalist id="checkStockSuggestions"></datalist>
       <button id="checkStockBtn" class="top-toggle-btn" style="white-space:nowrap;">בדוק מניה</button>
     </div>
     <div id="checkStockStatus"></div>
@@ -779,7 +785,8 @@
   </div>
 </div>
 
-<button class="add-btn hidden" id="addBtn">+ הוסף מניה</button>
+<button class="add-btn" id="floatingRecomputeBtn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
+<div id="floatingRecomputeStatus" style="position:fixed; bottom:78px; left:50%; transform:translateX(-50%); z-index:10; max-width:90vw;"></div>
 
 <div class="modal-overlay hidden" id="legalOverlay" style="z-index:200;">
   <div class="panel modal-box" id="legalPanel">
@@ -830,12 +837,18 @@
 </div>
 
 <script>
-const APP_VERSION = "5.1.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.2", items: [
+    "נוסף 'בדוק מניה' עם השלמה אוטומטית - הצעות לפי הטיקרים שכבר נבדקו (לא מול מאגר חיצוני).",
+    "הוחלף הכפתור הצף '+ הוסף מניה' בכפתור צף '🔄 עדכן ניתוח', נגיש מכל מקום באפליקציה.",
+    "'נהל אחזקות' הפך למקום היחיד להוספת מניה חדשה - הוספת אחזקה (כמות חובה מעכשיו) יוצרת אוטומטית גם רשומת מעקב תואמת ב'המניות שלי'.",
+    "סקשן 'תחזיות ליום המסחר הבא' שונה ל'Top10 ותחזית למחר': ברירת המחדל של המיון היא לפי הנוסחה; כפתור 'הצג רק Top 10' תוקן להציג את 10 המניות הרשמיות בפועל (ולא רק 10 הראשונות לפי המיון הנוכחי, כמו קודם); כפתור 'הצג הכל' הוחלף ב'הצג תחזית למחר' - חישוב נפרד ועצמאי (workflow חדש: tomorrow_forecast.yml) שאינו נוגע כלל במעקב/דירוג הרשמי, מתעדכן אוטומטית פעם ביום ליד סגירת המסחר וגם לפי דרישה ('🔁 חשב תחזית למחר'). גם התחזית למחר מקבלת את אותו תג ציון לחיץ 🎯 עם פירוט מלא.",
+  ]},
   { version: "5.1.4", items: [
     "כל אחת מ-10 המניות ב-Top 10 וכל מניה ב'המניות שלי' מציגה עכשיו תג ציון כולל לחיץ (🎯), מחושב באותה נוסחה בדיוק שמחשבת את הציון ב'בדוק מניה' - לא נוסחה נפרדת. לחיצה על התג פותחת חלון עם אותו פירוט מלא שיש ב'בדוק מניה'. מתעדכן פעם ביום כחלק מהריצה הרגילה, לא בזמן אמת.",
   ]},
@@ -998,6 +1011,7 @@ document.getElementById("refreshBtn").addEventListener("click", () => {
 const CONFIG_KEY = "gh-watchlist-config";
 let owner = "", repo = "", token = "", sha = null, rows = [];
 let latestPredictionsByTicker = {};
+let latestForecastByTicker = {};
 let currentPrices = {};
 let editingId = null;
 
@@ -1289,7 +1303,6 @@ function pctToResistance(p) {
 
 let allTodayPreds = [];
 let sortMode = "score";
-let showTopOnly = true;
 let starredTickers = new Set();
 let starredSha = null;
 let chartDataByTicker = {};
@@ -1496,17 +1509,30 @@ function renderHotPick(preds) {
   document.getElementById("hotPickWhyBtn").addEventListener("click", () => showHotPickExplanation());
 }
 
+let predictionsView = "top10"; // "top10" | "forecast" - replaces the old showTopOnly boolean (item 19: "הצג הכל" was replaced by a genuinely separate tomorrow-forecast view, not just "show everything")
+let tomorrowForecastPicks = [];
+
 function renderPredictionsList() {
   const list = document.getElementById("predictionsList");
-  const sorted = sortPreds(allTodayPreds, sortMode);
-  const shown = showTopOnly ? sorted.slice(0, 10) : sorted;
   document.getElementById("statPredictions").textContent = allTodayPreds.length;
-  document.getElementById("topToggleBtn").textContent = showTopOnly
+  document.getElementById("topToggleBtn").textContent = predictionsView === "top10"
     ? "הצג רק Top 10"
-    : `הצג הכל (${allTodayPreds.length})`;
+    : "🔮 הצג תחזית למחר";
+
+  let shown;
+  if (predictionsView === "forecast") {
+    shown = sortPreds(tomorrowForecastPicks, sortMode);
+  } else {
+    // filter by the actual official top10 flag - NOT just "top 10 of
+    // whatever the current sort happens to be", so this always matches
+    // the real picks the accuracy/simulation numbers are tracking
+    shown = sortPreds(allTodayPreds, sortMode).filter(p => p.top10);
+  }
 
   if (shown.length === 0) {
-    list.innerHTML = `<div class="predictions-empty">אין חיזויים חזקים כרגע</div>`;
+    list.innerHTML = predictionsView === "forecast"
+      ? `<div class="predictions-empty">אין עדיין תחזית למחר - לחץ "חשב תחזית למחר" כדי לחשב אחת טרייה.</div>`
+      : `<div class="predictions-empty">אין חיזויים חזקים כרגע</div>`;
     renderStarredSection();
     return;
   }
@@ -1520,12 +1546,13 @@ document.getElementById("sortSelect").addEventListener("change", (e) => {
   renderPredictionsList();
 });
 document.getElementById("topToggleBtn").addEventListener("click", () => {
-  showTopOnly = !showTopOnly;
+  predictionsView = predictionsView === "top10" ? "forecast" : "top10";
+  renderPredictionsList();
   renderPredictionsList();
 });
 
-document.getElementById("recomputeBtn").addEventListener("click", async () => {
-  const statusEl = document.getElementById("recomputeStatus");
+async function triggerFullRecompute(statusElId) {
+  const statusEl = document.getElementById(statusElId);
   if (!owner || !repo || !token) {
     statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
     return;
@@ -1550,6 +1577,40 @@ document.getElementById("recomputeBtn").addEventListener("click", async () => {
       statusEl.innerHTML = `<div class="status error">לטוקן אין הרשאת "Actions: Read and write" - צריך להוסיף אותה בהגדרות הטוקן בגיטהאב.</div>`;
     } else {
       statusEl.innerHTML = `<div class="status error">שגיאה (${res.status}) בהפעלת הריצה</div>`;
+    }
+  } catch (e) {
+    statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
+  }
+}
+
+document.getElementById("recomputeBtn").addEventListener("click", () => triggerFullRecompute("recomputeStatus"));
+document.getElementById("floatingRecomputeBtn").addEventListener("click", () => triggerFullRecompute("floatingRecomputeStatus"));
+document.getElementById("forecastRecomputeBtn").addEventListener("click", async () => {
+  const statusEl = document.getElementById("tomorrowForecastStatus");
+  if (!owner || !repo || !token) {
+    statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
+    return;
+  }
+  statusEl.innerHTML = `<div class="status">מחשב תחזית טרייה למחר...</div>`;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/actions/workflows/tomorrow_forecast.yml/dispatches`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `token ${token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ref: "main" }),
+      }
+    );
+    if (res.status === 204) {
+      statusEl.innerHTML = `<div class="status">✓ הופעל! זה ייקח כמה דקות - "הצג תחזית למחר" יתעדכן כשזה מוכן.</div>`;
+    } else if (res.status === 403) {
+      statusEl.innerHTML = `<div class="status error">לטוקן אין הרשאת "Actions: Read and write"</div>`;
+    } else {
+      statusEl.innerHTML = `<div class="status error">שגיאה (${res.status}) בהפעלת החישוב</div>`;
     }
   } catch (e) {
     statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
@@ -1584,6 +1645,12 @@ function saveCheckStockHistory(result) {
 function renderCheckStockHistory() {
   const el = document.getElementById("checkStockHistory");
   const hist = loadCheckStockHistory();
+
+  // autocomplete (item 18) - suggests from the already-checked history,
+  // not an external ticker database, per Tomer's scoping
+  const datalist = document.getElementById("checkStockSuggestions");
+  datalist.innerHTML = hist.map(h => `<option value="${h.ticker}">`).join("");
+
   if (!hist.length) { el.innerHTML = ""; return; }
   el.innerHTML = `
     <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">נבדקו לאחרונה (לחיצה מציגה את התוצאה השמורה, בלי בדיקה חדשה):</div>
@@ -1732,7 +1799,7 @@ document.addEventListener("click", (e) => {
   const btn = e.target.closest(".score-badge-btn");
   if (!btn) return;
   const ticker = btn.dataset.ticker;
-  const p = latestPredictionsByTicker[ticker];
+  const p = latestPredictionsByTicker[ticker] || latestForecastByTicker[ticker];
   if (p) showScoreBreakdownModal(p);
 });
 
@@ -1829,9 +1896,12 @@ async function loadPredictions() {
     // that merely crossed the 1.5 breadth threshold, which can be hundreds
     // on a strongly trending day and isn't a useful "watch these" list.
     allTodayPreds = history.filter(p => p.date === today && p.strong === true);
+    tomorrowForecastPicks = (data.tomorrow_forecast && data.tomorrow_forecast.picks) || [];
 
     latestPredictionsByTicker = {};
     history.filter(p => p.date === today).forEach(p => { latestPredictionsByTicker[p.ticker] = p; });
+    latestForecastByTicker = {};
+    tomorrowForecastPicks.forEach(p => { latestForecastByTicker[p.ticker] = p; });
     if (rows.length) render(); // refresh watchlist cards with fresh prediction badges
 
     renderHotPick(allTodayPreds);
@@ -2729,7 +2799,7 @@ document.getElementById("myPortfolioAddToggleBtn").addEventListener("click", () 
   document.getElementById("myPortfolioEditArea").classList.toggle("hidden");
 });
 
-document.getElementById("mpSaveHoldingBtn").addEventListener("click", () => {
+document.getElementById("mpSaveHoldingBtn").addEventListener("click", async () => {
   const ticker = document.getElementById("mpTickerInput").value.trim().toUpperCase();
   const name = document.getElementById("mpNameInput").value.trim();
   const quantity = Number(document.getElementById("mpQtyInput").value);
@@ -2747,6 +2817,18 @@ document.getElementById("mpSaveHoldingBtn").addEventListener("click", () => {
   document.getElementById("mpQtyInput").value = "";
   renderMyPortfolioEditList();
   saveMyHoldings("myPortfolioEditStatus");
+
+  // "נהל אחזקות" is now the single add-stock place (see item 20) - every
+  // holding also gets/keeps a matching "המניות שלי" watchlist entry, so it
+  // shows up with technical analysis + the score badge too. Preserves an
+  // existing row's target_high/target_low if the ticker was already being
+  // watched; leaves them null (no price-target alert) for a brand-new one.
+  const watchlistIdx = rows.findIndex(r => (r.ticker || "").toUpperCase() === ticker);
+  if (watchlistIdx === -1) {
+    rows.push({ ticker, name: name || ticker, target_high: null, target_low: null, _uid: ticker + "-" + Date.now() });
+    await saveWatchlist();
+    render();
+  }
 });
 
 function renderMyPortfolio(snapshot, sim) {
@@ -2857,7 +2939,6 @@ function renderMyPortfolio(snapshot, sim) {
 async function loadWatchlist() {
   document.getElementById("loadingMsg").classList.remove("hidden");
   document.getElementById("watchlistSection").classList.add("hidden");
-  document.getElementById("addBtn").classList.add("hidden");
   setStatus(null, "");
   try {
     const res = await fetch(
@@ -2873,7 +2954,6 @@ async function loadWatchlist() {
     updateHitStats();
     render();
     document.getElementById("watchlistSection").classList.remove("hidden");
-    document.getElementById("addBtn").classList.remove("hidden");
   } catch (e) {
     setStatus("error", e.message || "שגיאה בטעינת הרשימה");
   } finally {
@@ -2882,8 +2962,6 @@ async function loadWatchlist() {
 }
 
 async function saveWatchlist() {
-  const addBtn = document.getElementById("addBtn");
-  addBtn.disabled = true;
   setStatus(null, "");
   try {
     const clean = rows.map(r => ({
@@ -2918,8 +2996,6 @@ async function saveWatchlist() {
     setStatus("ok", "נשמר בהצלחה ✓");
   } catch (e) {
     setStatus("error", e.message || "שמירה נכשלה");
-  } finally {
-    addBtn.disabled = false;
   }
 }
 
@@ -3127,13 +3203,9 @@ document.getElementById("saveConfigBtn").addEventListener("click", () => {
   loadMyHoldings();
 });
 
-document.getElementById("addBtn").addEventListener("click", () => {
-  const uid = "new-" + Date.now();
-  rows.unshift({ ticker: "", name: "", target_high: null, target_low: null, _uid: uid });
-  editingId = uid;
-  render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
+/* the floating add-stock button was replaced by floatingRecomputeBtn above
+   (see item 20/21) - adding a stock now happens only through "נהל אחזקות",
+   which also creates the matching watchlist entry (see mpSaveHoldingBtn). */
 
 /* assign stable uid to rows without one (loaded from server) */
 function ensureUids() {
