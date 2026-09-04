@@ -380045,7 +380045,7 @@
     ]
   },
   "tomorrow_forecast": {
-    "generated_at": "2026-09-04T21:14:00.726307+00:00",
+    "generated_at": "2026-09-04T23:07:47.000130+00:00",
     "picks": [
       {
         "ticker": "SITM",
@@ -380103,64 +380103,6 @@
         "earnings": {
           "date": "2026-11-04",
           "days_away": 60
-        }
-      },
-      {
-        "ticker": "WDC",
-        "score": 6.88,
-        "predicted": "up",
-        "price": 467.4599914550781,
-        "year_high": 746.22998046875,
-        "year_low": 91.89810180664062,
-        "range_pos": 57.3962391097827,
-        "run_up_30d": 3.5302982878402736,
-        "run_up_180d": 90.65519122333333,
-        "rsi": 32.96893696758191,
-        "macd_bullish": true,
-        "ma_trend": "mixed",
-        "sma50": 506.9789990234375,
-        "sma150": 433.4481113688151,
-        "sma200": 372.7175619506836,
-        "sma200_rising": true,
-        "vol_ratio": 0.6186430900581503,
-        "trend_template": {
-          "criteria_met": 5,
-          "criteria_total": 7,
-          "passes": false,
-          "multiplier": 0.886
-        },
-        "resistance": 515.7,
-        "resistance_projected": false,
-        "support": 466.81,
-        "support_projected": false,
-        "vcp": {
-          "vcp_detected": false,
-          "contractions": 9
-        },
-        "rsi_bearish_div": false,
-        "rsi_bullish_div": false,
-        "macd_bearish_div": false,
-        "macd_bullish_div": false,
-        "obv_bearish_div": false,
-        "obv_bullish_div": false,
-        "adx": 16.1,
-        "adx_weakening": true,
-        "rs_rating": 96.1,
-        "upside_pct": 42.240341419586706,
-        "short_pct": 6.3100000000000005,
-        "recommendation_mean": 1.53846,
-        "analyst_count": 24,
-        "sector": "Technology",
-        "overall_score": 78.5,
-        "score_components": {
-          "original": 68.8,
-          "risk_reward": 100,
-          "leading_adjusted": 58.5,
-          "analyst": 86.5
-        },
-        "earnings": {
-          "date": "2026-11-05",
-          "days_away": 61
         }
       },
       {
@@ -380236,7 +380178,7 @@
         "ma_trend": "golden",
         "sma50": 72.65499984741211,
         "sma150": 67.74930498758953,
-        "sma200": 66.2721545600891,
+        "sma200": 66.2721545791626,
         "sma200_rising": true,
         "vol_ratio": 0.9601589379495157,
         "trend_template": {
@@ -380343,16 +380285,16 @@
         "predicted": "up",
         "price": 118.70999908447266,
         "year_high": 130.5866241455078,
-        "year_low": 75.21077728271484,
-        "range_pos": 78.55269809153012,
+        "year_low": 75.21078491210938,
+        "range_pos": 78.55269513663264,
         "run_up_30d": 9.594952008581895,
         "run_up_180d": 3.0057482948455343,
         "rsi": 57.6043028562231,
         "macd_bullish": true,
         "ma_trend": "golden",
         "sma50": 113.12331161499023,
-        "sma150": 118.48982004801432,
-        "sma200": 112.93071434020996,
+        "sma150": 118.48982020060221,
+        "sma200": 112.93071445465088,
         "sma200_rising": true,
         "vol_ratio": 1.144402514327069,
         "trend_template": {
@@ -380436,21 +380378,79 @@
         "adx": 53.6,
         "adx_weakening": false,
         "rs_rating": 87.2,
-        "upside_pct": 6.90103965974773,
+        "upside_pct": 7.30254098658622,
         "short_pct": 3.95,
-        "recommendation_mean": 2.0,
-        "analyst_count": 27,
+        "recommendation_mean": 1.96552,
+        "analyst_count": 28,
         "sector": "Healthcare",
-        "overall_score": 72.2,
+        "overall_score": 72.5,
         "score_components": {
           "original": 57.0,
           "risk_reward": 100,
           "leading_adjusted": 57.0,
-          "analyst": 75.0
+          "analyst": 75.9
         },
         "earnings": {
           "date": "2026-11-25",
           "days_away": 81
+        }
+      },
+      {
+        "ticker": "WDC",
+        "score": 5.56,
+        "predicted": "up",
+        "price": 467.4599914550781,
+        "year_high": 746.22998046875,
+        "year_low": 91.89810180664062,
+        "range_pos": 57.3962391097827,
+        "run_up_30d": 3.5302982878402736,
+        "run_up_180d": 90.65519122333333,
+        "rsi": 32.96893696758191,
+        "macd_bullish": true,
+        "ma_trend": "mixed",
+        "sma50": 506.9789990234375,
+        "sma150": 433.4481113688151,
+        "sma200": 372.7175619506836,
+        "sma200_rising": true,
+        "vol_ratio": 0.6186430900581503,
+        "trend_template": {
+          "criteria_met": 5,
+          "criteria_total": 7,
+          "passes": false,
+          "multiplier": 0.886
+        },
+        "resistance": 515.7,
+        "resistance_projected": false,
+        "support": 466.81,
+        "support_projected": false,
+        "vcp": {
+          "vcp_detected": false,
+          "contractions": 9
+        },
+        "rsi_bearish_div": false,
+        "rsi_bullish_div": false,
+        "macd_bearish_div": false,
+        "macd_bullish_div": false,
+        "obv_bearish_div": false,
+        "obv_bullish_div": false,
+        "adx": 16.1,
+        "adx_weakening": true,
+        "rs_rating": 96.1,
+        "upside_pct": 42.240341419586706,
+        "short_pct": 6.3100000000000005,
+        "recommendation_mean": null,
+        "analyst_count": 24,
+        "sector": "Technology",
+        "overall_score": 75.7,
+        "score_components": {
+          "original": 55.6,
+          "risk_reward": 100,
+          "leading_adjusted": 47.3,
+          "analyst": 100
+        },
+        "earnings": {
+          "date": "2026-11-05",
+          "days_away": 61
         }
       },
       {
@@ -380575,16 +380575,16 @@
         "predicted": "up",
         "price": 454.7099914550781,
         "year_high": 722.2277221679688,
-        "year_low": 161.1586151123047,
-        "range_pos": 52.32000348107743,
+        "year_low": 161.1586456298828,
+        "range_pos": 52.32000088767479,
         "run_up_30d": -13.703606660071047,
         "run_up_180d": 40.34678046421071,
         "rsi": 17.72225158516828,
         "macd_bullish": false,
         "ma_trend": "mixed",
         "sma50": 533.2680578613281,
-        "sma150": 449.5905493164062,
-        "sma200": 406.2809384155273,
+        "sma150": 449.5905491129557,
+        "sma200": 406.2809381866455,
         "sma200_rising": true,
         "vol_ratio": 0.6624043374770598,
         "trend_template": {
