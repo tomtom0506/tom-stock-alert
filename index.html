@@ -417,7 +417,7 @@
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 Top10 ותחזית למחר</p>
-        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. כפתור <b>"הצג רק Top 10"</b> מציג את 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל). כפתור <b>"🔮 הצג תחזית למחר"</b> מחליף אותו לתצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. היא מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> (גם צף בתחתית המסך) מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב (לוקח כמה דקות) - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
+        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. כפתור <b>"הצג רק Top 10"</b> מציג את 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל). כפתור <b>"🔮 הצג תחזית למחר"</b> מחליף אותו לתצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. היא מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">✏ נהל אחזקות</p>
         <p>המקום היחיד להוספת מניה חדשה לאפליקציה - גם ל"התיק שלי" וגם ל"המניות שלי". הזנת טיקר, שם, וכמות יחידות (חובה) יוצרת גם אחזקה בתיק וגם רשומת מעקב עם ניתוח טכני מלא. אפשר לערוך את מחירי היעד (תמיכה/התנגדות להתראה) בנפרד לכל מניה בסקשן "המניות שלי" עצמו, עם כפתור ✏ ערוך.</p>
@@ -608,10 +608,8 @@
         <option value="near_resistance">מיון: הכי קרוב להתנגדות (מכירה/שורט)</option>
       </select>
       <button id="topToggleBtn" class="top-toggle-btn">הצג רק Top 10</button>
-      <button id="recomputeBtn" class="top-toggle-btn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
       <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב תחזית טרייה למחר, בנפרד מ-Top10 הרשמי">🔁 חשב תחזית למחר</button>
     </div>
-    <div id="recomputeStatus"></div>
     <div id="tomorrowForecastStatus"></div>
     <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
   </div>
@@ -837,12 +835,19 @@
 </div>
 
 <script>
-const APP_VERSION = "5.2.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.2.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.2.3", items: [
+    "הוסר הכפתור '🔄 עדכן ניתוח' מתוך סקשן ה-Top10 (מיותר - יש כבר את הכפתור הצף בתחתית המסך).",
+    "תוקן: אחרי לחיצה על '🔄 עדכן ניתוח' (הצף), ההודעה 'זה ייקח 2-3 דקות' נשארה תקועה ולא התעדכנה. עכשיו האפליקציה בודקת ברקע כל 10 שניות אם הריצה הסתיימה בפועל, מציגה '✓ העדכון הסתיים!', מרעננת את הנתונים אוטומטית, ומנקה את ההודעה אחרי כמה שניות.",
+  ]},
+  { version: "5.2.2", items: [
+    "כרטיס '🔥 המניה הכי חמה היום' מציג עכשיו גם את תג הציון הכולל הלחיץ (🎯), כמו שאר הכרטיסים.",
+  ]},
   { version: "5.2.1", items: [
     "תוקן: כרטיס Top10 היה מציג גם את התג הגדול (🎯 ציון כולל) וגם את תגיות הפירוט הקטנות (Minervini/RS/אנליסטים) יחד - כפילות. עכשיו תגיות הפירוט הקטנות מוצגות רק כגיבוי זמני, למניה שעדיין אין לה ציון כולל (למשל תחזית שנוצרה לפני שדרוג הקוד) - ברגע שיש ציון כולל, הן נעלמות והתג הגדול לוקח את מקומן (כולל אותו מידע, בתוך הפירוט שנפתח בלחיצה).",
   ]},
@@ -1509,6 +1514,8 @@ function renderHotPick(preds) {
         </div>
         ${convictionBarHtml(hot.score)}
         ${factorBadgesHtml(hot)}
+        ${overallScoreBadgeHtml(hot)}
+        ${(hot.top10 && hot.overall_score == null) ? topPickBreakdownHtml(hot) : ""}
       </div>
     </div>
   `;
@@ -1558,12 +1565,16 @@ document.getElementById("topToggleBtn").addEventListener("click", () => {
   renderPredictionsList();
 });
 
+let recomputePollTimer = null;
+
 async function triggerFullRecompute(statusElId) {
   const statusEl = document.getElementById(statusElId);
   if (!owner || !repo || !token) {
     statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
     return;
   }
+  if (recomputePollTimer) { clearInterval(recomputePollTimer); recomputePollTimer = null; }
+  const triggeredAt = Date.now();
   statusEl.innerHTML = `<div class="status">מפעיל ריצה חדשה בגיטהאב...</div>`;
   try {
     const res = await fetch(
@@ -1579,7 +1590,33 @@ async function triggerFullRecompute(statusElId) {
       }
     );
     if (res.status === 204) {
-      statusEl.innerHTML = `<div class="status">✓ הופעל! זה ייקח כ-3 דקות עד שהנתונים המעודכנים יופיעו כאן.</div>`;
+      statusEl.innerHTML = `<div class="status">✓ הופעל! מחכה לסיום (כ-3 דקות)...</div>`;
+      let attempts = 0;
+      const maxAttempts = 36; // ~6 minutes at 10s intervals
+      recomputePollTimer = setInterval(async () => {
+        attempts++;
+        try {
+          const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/predictions.json?t=${Date.now()}`);
+          if (r.ok) {
+            const data = await r.json();
+            const updatedAt = data.benchmark_comparison && data.benchmark_comparison.updated_at
+              ? new Date(data.benchmark_comparison.updated_at).getTime() : 0;
+            if (updatedAt > triggeredAt) {
+              clearInterval(recomputePollTimer);
+              recomputePollTimer = null;
+              statusEl.innerHTML = `<div class="status">✓ העדכון הסתיים!</div>`;
+              loadPredictions();
+              setTimeout(() => { statusEl.innerHTML = ""; }, 8000);
+              return;
+            }
+          }
+        } catch (e) { /* keep polling */ }
+        if (attempts >= maxAttempts) {
+          clearInterval(recomputePollTimer);
+          recomputePollTimer = null;
+          statusEl.innerHTML = `<div class="status error">לא רואה סיום אחרי כמה דקות - בדוק ב-Actions בגיטהאב אם הריצה הצליחה.</div>`;
+        }
+      }, 10000);
     } else if (res.status === 403) {
       statusEl.innerHTML = `<div class="status error">לטוקן אין הרשאת "Actions: Read and write" - צריך להוסיף אותה בהגדרות הטוקן בגיטהאב.</div>`;
     } else {
@@ -1590,7 +1627,6 @@ async function triggerFullRecompute(statusElId) {
   }
 }
 
-document.getElementById("recomputeBtn").addEventListener("click", () => triggerFullRecompute("recomputeStatus"));
 document.getElementById("floatingRecomputeBtn").addEventListener("click", () => triggerFullRecompute("floatingRecomputeStatus"));
 document.getElementById("forecastRecomputeBtn").addEventListener("click", async () => {
   const statusEl = document.getElementById("tomorrowForecastStatus");
