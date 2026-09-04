@@ -197,6 +197,11 @@
     background: var(--panel-hi); color: var(--gold); border: 1px solid var(--border-hi);
     border-radius: 10px; padding: 9px 14px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
   }
+  .top-toggle-btn.view-active {
+    background: rgba(94,230,160,0.16); color: #5ee6a0; border-color: #5ee6a0;
+  }
+  .view-toggle-group { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+  .view-toggle-group .top-toggle-btn { width: 100%; }
 
   /* ---------- hot pick spotlight ---------- */
   .hot-pick-card {
@@ -417,7 +422,7 @@
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 Top10 ותחזית למחר</p>
-        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. כפתור <b>"הצג רק Top 10"</b> מציג את 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל). כפתור <b>"🔮 הצג תחזית למחר"</b> מחליף אותו לתצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. היא מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
+        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. שני כפתורים נפרדים קובעים מה מוצג: <b>"הצג Top 10"</b> - 10 המניות הרשמיות שנבחרו היום (אלה שנגדן נמדדת ההצלחה בפועל), ו<b>"🔮 הצג תחזית למחר"</b> - תצוגה נפרדת לגמרי: 10 מניות עם פוטנציאל לקנייה במסחר הבא, מחושבות על נתונים עדכניים יותר (לא בהכרח אותן מניות כמו ה-Top10 הרשמי של היום) - זו תחזית, לא רשימה רשמית שנמדדת. הכפתור הפעיל מסומן בירוק. התחזית מתעדכנת אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן להפעיל ידנית עם <b>"🔁 חשב תחזית למחר"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">✏ נהל אחזקות</p>
         <p>המקום היחיד להוספת מניה חדשה לאפליקציה - גם ל"התיק שלי" וגם ל"המניות שלי". הזנת טיקר, שם, וכמות יחידות (חובה) יוצרת גם אחזקה בתיק וגם רשומת מעקב עם ניתוח טכני מלא. אפשר לערוך את מחירי היעד (תמיכה/התנגדות להתראה) בנפרד לכל מניה בסקשן "המניות שלי" עצמו, עם כפתור ✏ ערוך.</p>
@@ -597,6 +602,10 @@
       🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div id="hotPickCard"></div>
+    <div class="view-toggle-group">
+      <button id="showTop10Btn" class="top-toggle-btn view-active">הצג Top 10</button>
+      <button id="showForecastBtn" class="top-toggle-btn">🔮 הצג תחזית למחר</button>
+    </div>
     <div class="predictions-controls">
       <select id="sortSelect" class="sort-select">
         <option value="score">מיון: לפי הנוסחה (ברירת מחדל)</option>
@@ -607,7 +616,6 @@
         <option value="near_support">מיון: הכי קרוב לתמיכה (קנייה)</option>
         <option value="near_resistance">מיון: הכי קרוב להתנגדות (מכירה/שורט)</option>
       </select>
-      <button id="topToggleBtn" class="top-toggle-btn">הצג רק Top 10</button>
       <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב תחזית טרייה למחר, בנפרד מ-Top10 הרשמי">🔁 חשב תחזית למחר</button>
     </div>
     <div id="tomorrowForecastStatus"></div>
@@ -835,12 +843,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.2.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.2.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.2.4", items: [
+    "הכפתור המתחלף בין Top10 לתחזית למחר הוחלף בשני כפתורים נפרדים, זה מתחת לזה - 'הצג Top 10' ו'🔮 הצג תחזית למחר' - עם צביעה ירוקה של הכפתור הפעיל, כדי שיהיה ברור תמיד באיזו תצוגה נמצאים.",
+  ]},
   { version: "5.2.3", items: [
     "הוסר הכפתור '🔄 עדכן ניתוח' מתוך סקשן ה-Top10 (מיותר - יש כבר את הכפתור הצף בתחתית המסך).",
     "תוקן: אחרי לחיצה על '🔄 עדכן ניתוח' (הצף), ההודעה 'זה ייקח 2-3 דקות' נשארה תקועה ולא התעדכנה. עכשיו האפליקציה בודקת ברקע כל 10 שניות אם הריצה הסתיימה בפועל, מציגה '✓ העדכון הסתיים!', מרעננת את הנתונים אוטומטית, ומנקה את ההודעה אחרי כמה שניות.",
@@ -1523,15 +1534,18 @@ function renderHotPick(preds) {
   document.getElementById("hotPickWhyBtn").addEventListener("click", () => showHotPickExplanation());
 }
 
-let predictionsView = "top10"; // "top10" | "forecast" - replaces the old showTopOnly boolean (item 19: "הצג הכל" was replaced by a genuinely separate tomorrow-forecast view, not just "show everything")
+let predictionsView = "top10"; // "top10" | "forecast" - two separate persistent buttons (see showTop10Btn/showForecastBtn), not a single toggling one, per Tomer's request after the toggle button proved confusing
 let tomorrowForecastPicks = [];
+
+function updateViewButtons() {
+  document.getElementById("showTop10Btn").classList.toggle("view-active", predictionsView === "top10");
+  document.getElementById("showForecastBtn").classList.toggle("view-active", predictionsView === "forecast");
+}
 
 function renderPredictionsList() {
   const list = document.getElementById("predictionsList");
   document.getElementById("statPredictions").textContent = allTodayPreds.length;
-  document.getElementById("topToggleBtn").textContent = predictionsView === "top10"
-    ? "הצג רק Top 10"
-    : "🔮 הצג תחזית למחר";
+  updateViewButtons();
 
   let shown;
   if (predictionsView === "forecast") {
@@ -1559,9 +1573,12 @@ document.getElementById("sortSelect").addEventListener("change", (e) => {
   sortMode = e.target.value;
   renderPredictionsList();
 });
-document.getElementById("topToggleBtn").addEventListener("click", () => {
-  predictionsView = predictionsView === "top10" ? "forecast" : "top10";
+document.getElementById("showTop10Btn").addEventListener("click", () => {
+  predictionsView = "top10";
   renderPredictionsList();
+});
+document.getElementById("showForecastBtn").addEventListener("click", () => {
+  predictionsView = "forecast";
   renderPredictionsList();
 });
 
