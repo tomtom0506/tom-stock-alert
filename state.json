@@ -410,7 +410,7 @@
   "US_VICR_bigmove_2026-08-20": true,
   "IL_MTRX.TA_bigmove_2026-08-20": true,
   "IL_ROBO.TA_bigmove_2026-08-20": true,
-  "XOP_above_190": false,
+  "XOP_above_190": true,
   "US_SHAZ_bigmove_2026-08-20": true,
   "US_MARA_bigmove_2026-08-20": true,
   "US_ANDG_bigmove_2026-08-20": true,
@@ -693,5 +693,7 @@
   "US_LULU_bigmove_2026-09-04": true,
   "US_FICO_bigmove_2026-09-04": true,
   "US_ASAN_bigmove_2026-09-04": true,
-  "US_PATH_bigmove_2026-09-04": true
+  "US_PATH_bigmove_2026-09-04": true,
+  "US_AEHR_bigmove_2026-09-04": true,
+  "US_CBRS_bigmove_2026-09-04": true
 }
