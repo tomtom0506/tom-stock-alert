@@ -696,5 +696,8 @@
   "US_PATH_bigmove_2026-09-04": true,
   "US_AEHR_bigmove_2026-09-04": true,
   "US_CBRS_bigmove_2026-09-04": true,
-  "US_SNDK_bigmove_2026-09-04": true
+  "US_SNDK_bigmove_2026-09-04": true,
+  "US_BLTE_bigmove_2026-09-04": true,
+  "US_AXTI_bigmove_2026-09-04": true,
+  "US_COHU_bigmove_2026-09-04": true
 }
