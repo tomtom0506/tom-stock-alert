@@ -2865,6 +2865,16 @@ def main():
     if not is_market_trading_day():
         print("Market hasn't traded today yet (weekend/holiday/pre-open) - "
               "skipping mover alerts, grading, and new predictions.")
+        # explicit, timestamped signal the frontend's "🔄 עדכן ניתוח" button
+        # can poll for - without this, a click on a non-trading day looked
+        # identical to a stuck/failed run (nothing else in the store
+        # changes when this early-return path is taken), leaving the "in
+        # progress" message stuck until the client-side timeout instead of
+        # explaining why nothing happened.
+        prediction_store["last_run_status"] = {
+            "checked_at": datetime.now(timezone.utc).isoformat(),
+            "traded_today": False,
+        }
         save_json(PREDICTIONS_FILE, prediction_store)
         save_json(STATE_FILE, state)
         return
@@ -2906,6 +2916,10 @@ def main():
     except Exception as e:
         print(f"Monthly portfolio management failed: {type(e).__name__}: {e}")
 
+    prediction_store["last_run_status"] = {
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+        "traded_today": True,
+    }
     save_json(PREDICTIONS_FILE, prediction_store)
     save_json(STATE_FILE, state)
 
