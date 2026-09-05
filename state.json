@@ -434,7 +434,7 @@
   "US_TGTX_bigmove_2026-08-21": true,
   "US_HUT_bigmove_2026-08-21": true,
   "US_INFQ_bigmove_2026-08-21": true,
-  "PLTR_above_180": false,
+  "PLTR_above_180": true,
   "US_SLS_bigmove_2026-08-21": true,
   "US_CVI_bigmove_2026-08-21": true,
   "US_VIRT_bigmove_2026-08-21": true,
