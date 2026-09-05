@@ -859,12 +859,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.3.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.3.1", items: [
+    "הוארך זמן ההמתנה לתוצאה ב'בדוק מניה' מ-2 דקות ל-6 דקות - ריצת גיטהאב לפעמים לוקחת יותר זמן, בעיקר בריצות הראשונות של workflow.",
+  ]},
   { version: "5.3", items: [
     "נוסף סקשן חדש, מתקפל: '📋 תור קנייה ומכירה'. שורת קנייה (ירוק) - 10 מניות ה-Top10 הרשמיות של היום. שורת מכירה (אדום) - מניות שהיו ב-Top10 ב-30 הימים האחרונים ומראות עכשיו איתות מכירה חזק (הגעה להתנגדות + לפחות אחד מבין MACD שלילי/RSI קניית יתר/מגמת Minervini שנחלשה - לא תנאי בודד). לחיצה על כל מניה בתור פותחת את אותו פירוט מלא כמו בשאר האפליקציה.",
     "כרטיס 'המניה הכי חמה' הנפרד הוסר - המניה הראשונה ברשימת Top10/מומלצות עכשיו מסומנת עכשיו במסגרת זהב במקומה, עם אותו קישור 'למה נבחרה?'.",
@@ -1896,10 +1899,10 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
         : `<div class="status error">שגיאה (${res.status}) בהפעלת הבדיקה</div>`;
       return;
     }
-    statusEl.innerHTML = `<div class="status">✓ הופעל! מחפש תוצאה כל כמה שניות (עד כ-2 דקות)...</div>`;
+    statusEl.innerHTML = `<div class="status">✓ הופעל! מחפש תוצאה כל כמה שניות (עד כ-6 דקות - ריצה בגיטהאב לפעמים לוקחת יותר זמן מהרגיל, בעיקר בפעם הראשונה)...</div>`;
 
     let attempts = 0;
-    const maxAttempts = 24; // ~2 minutes at 5s intervals
+    const maxAttempts = 36; // ~6 minutes at 10s intervals - was 2 min, too short: a GitHub Actions run can genuinely take a few minutes, especially early runs of a workflow
     checkStockPollTimer = setInterval(async () => {
       attempts++;
       try {
@@ -1921,9 +1924,9 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
       if (attempts >= maxAttempts) {
         clearInterval(checkStockPollTimer);
         checkStockPollTimer = null;
-        statusEl.innerHTML = `<div class="status error">לא הגיעה תוצאה תוך כדקתיים - בדוק ב-Actions בגיטהאב אם הריצה הצליחה, ונסה "רענן תוצאה" בעוד רגע.</div>`;
+        statusEl.innerHTML = `<div class="status error">לא הגיעה תוצאה תוך כ-6 דקות - בדוק ב-Actions בגיטהאב אם הריצה הצליחה, ונסה "רענן תוצאה" בעוד רגע.</div>`;
       }
-    }, 5000);
+    }, 10000);
   } catch (e) {
     statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
   }
