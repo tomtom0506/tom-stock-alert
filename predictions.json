@@ -380050,8 +380050,66 @@
     ]
   },
   "tomorrow_forecast": {
-    "generated_at": "2026-09-05T09:39:49.117083+00:00",
+    "generated_at": "2026-09-05T12:51:21.326839+00:00",
     "picks": [
+      {
+        "ticker": "STRL",
+        "score": 6.52,
+        "predicted": "up",
+        "price": 486.489990234375,
+        "year_high": 993.739990234375,
+        "year_low": 283.57000732421875,
+        "range_pos": 28.57343844337444,
+        "run_up_30d": -9.250489716940477,
+        "run_up_180d": 23.12773867294294,
+        "rsi": 23.090664394705655,
+        "macd_bullish": true,
+        "ma_trend": "mixed",
+        "sma50": 599.6422009277344,
+        "sma150": 587.3632004801432,
+        "sma200": 522.6645501708985,
+        "sma200_rising": true,
+        "vol_ratio": 0.6909792754311027,
+        "trend_template": {
+          "criteria_met": 4,
+          "criteria_total": 7,
+          "passes": false,
+          "multiplier": 0.829
+        },
+        "resistance": 603.89,
+        "resistance_projected": false,
+        "support": 469.75,
+        "support_projected": false,
+        "vcp": {
+          "vcp_detected": false,
+          "contractions": 7
+        },
+        "rsi_bearish_div": false,
+        "rsi_bullish_div": false,
+        "macd_bearish_div": false,
+        "macd_bullish_div": false,
+        "obv_bearish_div": false,
+        "obv_bullish_div": false,
+        "adx": 30.5,
+        "adx_weakening": false,
+        "rs_rating": 73.6,
+        "upside_pct": 80.06536619457748,
+        "short_pct": 4.099999700000001,
+        "recommendation_mean": 1.0,
+        "analyst_count": 7,
+        "sector": "Industrials",
+        "overall_score": 82.6,
+        "score_components": {
+          "original": 65.2,
+          "risk_reward": 100,
+          "leading_adjusted": 65.2,
+          "analyst": 100.0
+        },
+        "earnings": {
+          "date": "2026-11-02",
+          "days_away": 58
+        }
+      },
       {
         "ticker": "FAF",
         "score": 5.94,
@@ -380061,13 +380119,13 @@
         "year_low": 56.383460998535156,
         "range_pos": 71.85699446667697,
         "run_up_30d": -3.1936147400508483,
-        "run_up_180d": 9.398897875418069,
+        "run_up_180d": 9.398910426553606,
         "rsi": 48.28137607008056,
         "macd_bullish": true,
         "ma_trend": "golden",
         "sma50": 72.65499984741211,
-        "sma150": 67.74930488586426,
-        "sma200": 66.2721544456482,
+        "sma150": 67.74930498758953,
+        "sma200": 66.2721545791626,
         "sma200_rising": true,
         "vol_ratio": 0.973841462475551,
         "trend_template": {
@@ -380165,7 +380223,7 @@
         },
         "earnings": {
           "date": "2026-11-04",
-          "days_away": 60
+          "days_away": 59
         }
       },
       {
@@ -380182,8 +380240,8 @@
         "macd_bullish": true,
         "ma_trend": "golden",
         "sma50": 113.12331161499023,
-        "sma150": 118.4898203531901,
-        "sma200": 112.93071453094483,
+        "sma150": 118.4898199971517,
+        "sma200": 112.93071426391602,
         "sma200_rising": true,
         "vol_ratio": 1.1599647914291773,
         "trend_template": {
@@ -380223,7 +380281,7 @@
         },
         "earnings": {
           "date": "2026-11-04",
-          "days_away": 60
+          "days_away": 59
         }
       },
       {
@@ -380459,64 +380517,6 @@
         }
       },
       {
-        "ticker": "STRL",
-        "score": 5.28,
-        "predicted": "up",
-        "price": 486.489990234375,
-        "year_high": 993.739990234375,
-        "year_low": 283.57000732421875,
-        "range_pos": 28.57343844337444,
-        "run_up_30d": -9.250489716940477,
-        "run_up_180d": 23.12773867294294,
-        "rsi": 23.090664394705655,
-        "macd_bullish": true,
-        "ma_trend": "mixed",
-        "sma50": 599.6422009277344,
-        "sma150": 587.3632004801432,
-        "sma200": 522.6645501708985,
-        "sma200_rising": true,
-        "vol_ratio": 0.6909792754311027,
-        "trend_template": {
-          "criteria_met": 4,
-          "criteria_total": 7,
-          "passes": false,
-          "multiplier": 0.829
-        },
-        "resistance": 603.89,
-        "resistance_projected": false,
-        "support": 469.75,
-        "support_projected": false,
-        "vcp": {
-          "vcp_detected": false,
-          "contractions": 7
-        },
-        "rsi_bearish_div": false,
-        "rsi_bullish_div": false,
-        "macd_bearish_div": false,
-        "macd_bullish_div": false,
-        "obv_bearish_div": false,
-        "obv_bullish_div": false,
-        "adx": 30.5,
-        "adx_weakening": false,
-        "rs_rating": 73.6,
-        "upside_pct": 80.06536619457748,
-        "short_pct": 4.099999700000001,
-        "recommendation_mean": null,
-        "analyst_count": 7,
-        "sector": "Industrials",
-        "overall_score": 76.4,
-        "score_components": {
-          "original": 52.8,
-          "risk_reward": 100,
-          "leading_adjusted": 52.8,
-          "analyst": 100
-        },
-        "earnings": {
-          "date": "2026-11-02",
-          "days_away": 58
-        }
-      },
-      {
         "ticker": "CIFR",
         "score": 5.5,
         "predicted": "up",
@@ -380571,7 +380571,7 @@
         },
         "earnings": {
           "date": "2026-11-02",
-          "days_away": 58
+          "days_away": 57
         }
       },
       {
@@ -380580,16 +380580,16 @@
         "predicted": "up",
         "price": 454.7099914550781,
         "year_high": 722.2277221679688,
-        "year_low": 161.15863037109375,
-        "range_pos": 52.320002184376136,
+        "year_low": 161.1586151123047,
+        "range_pos": 52.32000348107743,
         "run_up_30d": -13.703606660071047,
         "run_up_180d": 40.346767244546136,
         "rsi": 17.72225158516828,
         "macd_bullish": false,
         "ma_trend": "mixed",
         "sma50": 533.2680578613281,
-        "sma150": 449.5905493164062,
-        "sma200": 406.28093864440916,
+        "sma150": 449.5905487060547,
+        "sma200": 406.2809383392334,
         "sma200_rising": true,
         "vol_ratio": 0.6628933132817193,
         "trend_template": {
