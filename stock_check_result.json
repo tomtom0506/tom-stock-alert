@@ -1,35 +1,35 @@
 {
-  "ticker": "NIQ",
-  "predicted_direction": "down",
-  "raw_score": -0.06,
-  "overall_score": 21.6,
+  "ticker": "ZVRA",
+  "predicted_direction": "up",
+  "raw_score": 5.82,
+  "overall_score": 60.6,
   "components": {
-    "original": 0.6,
-    "risk_reward": 1.2,
-    "leading_adjusted": 0.6,
-    "analyst": 83.9
+    "original": 58.2,
+    "risk_reward": 34.9,
+    "leading_adjusted": 49.5,
+    "analyst": 100
   },
   "excluded_from_blend": [],
-  "price": 18.389999389648438,
-  "support": 15.66,
-  "resistance": 18.45,
-  "analyst_count": 13,
-  "sector": null,
-  "short_pct": null,
+  "price": 12.399999618530273,
+  "support": 11.56,
+  "resistance": 13.66,
+  "analyst_count": 9,
+  "sector": "Healthcare",
+  "short_pct": 11.020000000000001,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 6,
+    "criteria_met": 7,
     "criteria_total": 7,
-    "passes": false,
-    "multiplier": 0.943
+    "passes": true,
+    "multiplier": 1.0
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 7
+    "contractions": 9
   },
   "earnings": {
-    "date": "2026-11-12",
-    "days_away": 68
+    "date": "2026-11-04",
+    "days_away": 60
   },
-  "checked_at": "2026-09-04T21:16:14.573111+00:00"
+  "checked_at": "2026-09-05T06:15:16.431128+00:00"
 }
