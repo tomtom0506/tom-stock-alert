@@ -378973,36 +378973,36 @@
         "price_native": 175.27,
         "value_ils": 15823.73,
         "pct_change": 0.41,
-        "weight_pct": 15.8
+        "weight_pct": 15.7
       },
       {
         "ticker": "FTAL.TA",
         "name": "פתאל החזקות",
         "ok": true,
-        "price_native": 75420.0,
-        "value_ils": 15084.0,
-        "pct_change": 0.96,
-        "weight_pct": 15.0
+        "price_native": 74990.0,
+        "value_ils": 14998.0,
+        "pct_change": -0.57,
+        "weight_pct": 14.9
       },
       {
         "ticker": "AZRG.TA",
         "name": "עזריאלי קבוצה",
         "ok": true,
-        "price_native": 40690.0,
-        "value_ils": 19124.3,
-        "pct_change": 2.01,
-        "weight_pct": 19.0
+        "price_native": 40940.0,
+        "value_ils": 19241.8,
+        "pct_change": 0.61,
+        "weight_pct": 19.1
       }
     ],
-    "total_value_ils": 100467.08,
-    "weighted_return_pct": -0.304,
+    "total_value_ils": 100498.58,
+    "weighted_return_pct": -0.799,
     "usdils_rate": 3.009399890899658,
-    "updated_at": "2026-09-05T08:37:13.225412+00:00"
+    "updated_at": "2026-09-05T12:06:16.689385+00:00"
   },
   "my_portfolio_sim": {
     "value": 103.14099783339823,
     "pending_date": "2026-09-05",
-    "pending_return_pct": -0.304,
+    "pending_return_pct": -0.799,
     "daily_log": [
       {
         "date": "2026-08-26",
