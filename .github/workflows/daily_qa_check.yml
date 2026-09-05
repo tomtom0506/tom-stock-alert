@@ -1,0 +1,34 @@
+name: Daily QA Check
+
+on:
+  schedule:
+    # ~07:00 Israel time. Israel is UTC+3 (IDT) roughly late-Mar to late-Oct
+    # and UTC+2 (IST) the rest of the year, so during IST this will actually
+    # fire around 06:00 local time - a ~1h drift twice a year that doesn't
+    # matter for a non-time-critical QA notification.
+    - cron: '0 4 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  qa-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history needed - the script diffs today's data against prior days' committed snapshots
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run daily QA check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python daily_qa_check.py
