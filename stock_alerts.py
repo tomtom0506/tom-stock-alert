@@ -1474,29 +1474,65 @@ def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
     momentum-based PREFILTER_THRESHOLD candidates gate used for the daily
     Top10, since a stock near its 52-week low often has a weak *momentum*
     score and would never reach that gate on its own, even though it's
-    exactly the kind of name this selection is looking for."""
-    shortlist = []
+    exactly the kind of name this selection is looking for.
+
+    Fallback (per Tomer): the $50B/15%/25% bar is strict and some months
+    may not produce 10 qualifiers on its own - rather than ship a
+    half-empty or empty monthly portfolio, unfilled slots are backfilled
+    with the large-cap S&P 500 names CLOSEST to meeting both price
+    conditions (never relaxing the market-cap bar itself - that one stays
+    non-negotiable). Each returned entry carries "backup_pick": True/False
+    so the frontend can mark backfilled picks with a subtle, non-market-cap
+    -relaxing indicator."""
+    pool = []
     for e in today_entries:
         if e["ticker"] not in sp500_tickers or e.get("predicted") != "up":
             continue
-        year_high, year_low, price = e.get("year_high"), e.get("year_low"), e.get("price")
-        if not (year_high and year_low and price):
-            continue
-        below_high = price <= year_high * (1 - MONTHLY_MIN_BELOW_HIGH_PCT / 100)
-        near_low = price <= year_low * (1 + MONTHLY_MAX_ABOVE_LOW_PCT / 100)
-        if below_high and near_low:
-            shortlist.append(e)
+        if e.get("year_high") and e.get("year_low") and e.get("price"):
+            pool.append(e)
 
-    for e in shortlist:
+    for e in pool:
         if e.get("market_cap") is None:  # already fetched if it happened to pass the daily momentum prefilter too
             try:
                 e.update(get_fundamental_factors(e["ticker"]))
             except Exception as ex:
                 print(f"Monthly-portfolio fundamentals fetch failed for {e['ticker']}: {ex}")
 
-    qualified = [e for e in shortlist if (e.get("market_cap") or 0) >= LARGE_CAP_MIN_MARKET_CAP]
+    large_cap_pool = [e for e in pool if (e.get("market_cap") or 0) >= LARGE_CAP_MIN_MARKET_CAP]
+
+    def below_high_pct(e):
+        return (e["year_high"] - e["price"]) / e["year_high"] * 100
+
+    def above_low_pct(e):
+        return (e["price"] - e["year_low"]) / e["year_low"] * 100
+
+    def meets_price_conditions(e):
+        return below_high_pct(e) >= MONTHLY_MIN_BELOW_HIGH_PCT and above_low_pct(e) <= MONTHLY_MAX_ABOVE_LOW_PCT
+
+    qualified = [e for e in large_cap_pool if meets_price_conditions(e)]
     qualified.sort(key=lambda e: abs(e["score"]), reverse=True)
-    return qualified[:10]
+    for e in qualified:
+        e["backup_pick"] = False
+
+    result = qualified[:10]
+
+    if len(result) < 10:
+        chosen = {e["ticker"] for e in result}
+        runner_ups = [e for e in large_cap_pool if e["ticker"] not in chosen]
+
+        def distance_from_qualifying(e):
+            # 0 on a dimension already satisfied, otherwise how far short,
+            # normalized so both dimensions are comparable
+            high_shortfall = max(0.0, MONTHLY_MIN_BELOW_HIGH_PCT - below_high_pct(e)) / MONTHLY_MIN_BELOW_HIGH_PCT
+            low_shortfall = max(0.0, above_low_pct(e) - MONTHLY_MAX_ABOVE_LOW_PCT) / MONTHLY_MAX_ABOVE_LOW_PCT
+            return high_shortfall + low_shortfall
+
+        runner_ups.sort(key=distance_from_qualifying)
+        for e in runner_ups[:10 - len(result)]:
+            e["backup_pick"] = True
+            result.append(e)
+
+    return result
 
 
 def manage_monthly_portfolio(store, today_entries):
@@ -1547,6 +1583,7 @@ def manage_monthly_portfolio(store, today_entries):
             {
                 "ticker": e["ticker"], "entry_date": today, "entry_price": e.get("price"),
                 "entry_score": e["score"], "warned": False, "early_warned": False,
+                "backup_pick": e.get("backup_pick", False),
             }
             for e in new_top10 if e.get("price")
         ]
