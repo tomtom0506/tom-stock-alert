@@ -166,20 +166,33 @@ def get_market_indices():
     return result
 
 
+def build_extra_price_tickers(watchlist_tickers, curated_tickers, starred, monthly_tickers):
+    """Which tickers besides the watchlist need a live price fetched every
+    15 min for the frontend's price/% line - Top10/forecast picks, starred
+    tickers, AND monthly-portfolio holdings. Pulled out as its own pure
+    function (no network, no I/O) specifically so a ticker source silently
+    missing from this set - like monthly_tickers was before this fix - is
+    something a unit test can actually catch, instead of only showing up
+    as a flat 0.0% in the app days later."""
+    return [
+        t for t in dict.fromkeys(list(curated_tickers) + list(starred) + list(monthly_tickers))
+        if t not in watchlist_tickers
+    ]
+
+
 def run_watchlist_alerts(state, prediction_store=None):
     watchlist = load_json(WATCHLIST_FILE, [])
     watchlist_tickers = {item["ticker"] for item in watchlist}
 
     starred = load_json(STARRED_FILE, [])
     curated_tickers = []
+    monthly_tickers = []
     if prediction_store:
         curated_tickers = (prediction_store.get("top_picks") or {}).get("tickers", [])
+        monthly_tickers = [h["ticker"] for h in (prediction_store.get("monthly_portfolio") or {}).get("holdings", [])]
     # keeps the dynamic predictions list's price/% line fresh every 15 min,
     # same as the manual watchlist - without re-running the full daily engine
-    extra_tickers = [
-        t for t in dict.fromkeys(list(curated_tickers) + list(starred))
-        if t not in watchlist_tickers
-    ]
+    extra_tickers = build_extra_price_tickers(watchlist_tickers, curated_tickers, starred, monthly_tickers)
 
     current_prices = {}
     for item in watchlist:

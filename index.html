@@ -859,12 +859,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.3.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.3.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.3.3", items: [
+    "תוקן באג אמיתי שתפסת: מניות 'תיק חודשי' לא היו כלולות ברשימת המניות שמקבלות מחיר חי כל 15 דקות - זו הסיבה שכולן (חוץ מ-DAR שהייתה גם ברשימה אחרת במקרה) הראו 0.0% שינוי במקום המחיר האמיתי. תוקן, ונוסף טסט ייעודי כדי שזה לא יקרה שוב בשקט.",
+  ]},
   { version: "5.3.2", items: [
     "נוספה תשואה מצטברת אחת לסקשן 'תיק חודשי' - ממוצע פשוט בין כל ההחזקות מאז תחילת המחזור, עם המרה משוערת ל-₪ (אילו הושקעו ₪100,000 בחלוקה שווה). לפני זה היה אפשר לראות רק את התשואה של כל מניה בנפרד, לא מספר אחד מסכם לתיק כולו.",
   ]},
