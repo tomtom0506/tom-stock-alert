@@ -982,6 +982,7 @@ def get_fundamental_factors(ticker):
         "recommendation_mean": recommendation_mean,
         "analyst_count": analyst_count,
         "sector": info.get("sector"),
+        "market_cap": info.get("marketCap"),
         "_company_name": name,
         "_business_summary": summary,
     }
@@ -1451,14 +1452,64 @@ MONTHLY_HOLD_DAYS = 30
 MONTHLY_STOP_LOSS_PCT = -8.0  # trigger an urgent sell warning if a holding drops this much from entry
 
 
+LARGE_CAP_MIN_MARKET_CAP = 50_000_000_000  # $50B floor - on TOP of S&P 500 membership itself, per Tomer's "both" answer, not either/or
+MONTHLY_MIN_BELOW_HIGH_PCT = 15   # must be at least 15% below its 52-week high
+MONTHLY_MAX_ABOVE_LOW_PCT = 25    # AND within 25% of its 52-week low - both conditions together, not either
+
+
+def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
+    """Monthly-portfolio-specific selection - deliberately NOT just today's
+    Top 10 (that's a short-term-momentum pick, which is exactly why almost
+    every monthly holding was showing an early-warning divergence flag -
+    wrong tool for a 30-day hold). Looks instead for large, stable S&P 500
+    names trading low relative to their own 52-week range but still
+    directionally positive - "buy quality on a dip", not "buy what's
+    hottest today".
+
+    Two-stage like the main pipeline: cheap technical prefilter first
+    (S&P 500 membership + 52-week range position + predicted direction -
+    all already computed for every scanned ticker regardless of the
+    momentum prefilter elsewhere), THEN an extra fundamentals fetch only
+    for that short list to check market cap - deliberately bypasses the
+    momentum-based PREFILTER_THRESHOLD candidates gate used for the daily
+    Top10, since a stock near its 52-week low often has a weak *momentum*
+    score and would never reach that gate on its own, even though it's
+    exactly the kind of name this selection is looking for."""
+    shortlist = []
+    for e in today_entries:
+        if e["ticker"] not in sp500_tickers or e.get("predicted") != "up":
+            continue
+        year_high, year_low, price = e.get("year_high"), e.get("year_low"), e.get("price")
+        if not (year_high and year_low and price):
+            continue
+        below_high = price <= year_high * (1 - MONTHLY_MIN_BELOW_HIGH_PCT / 100)
+        near_low = price <= year_low * (1 + MONTHLY_MAX_ABOVE_LOW_PCT / 100)
+        if below_high and near_low:
+            shortlist.append(e)
+
+    for e in shortlist:
+        if e.get("market_cap") is None:  # already fetched if it happened to pass the daily momentum prefilter too
+            try:
+                e.update(get_fundamental_factors(e["ticker"]))
+            except Exception as ex:
+                print(f"Monthly-portfolio fundamentals fetch failed for {e['ticker']}: {ex}")
+
+    qualified = [e for e in shortlist if (e.get("market_cap") or 0) >= LARGE_CAP_MIN_MARKET_CAP]
+    qualified.sort(key=lambda e: abs(e["score"]), reverse=True)
+    return qualified[:10]
+
+
 def manage_monthly_portfolio(store, today_entries):
     """A slower, buy-and-hold alternative to the daily-rebalanced ₪100,000
-    simulation: picks today's real Top 10 once, holds them for ~30 days
-    (no daily trading costs eating the return), and refreshes the list at
-    the end of the cycle. In between, watches each holding daily and fires
-    an urgent, separate Telegram alert the moment one breaks down - a stop
-    loss, a support breakdown, or the technical signal flipping negative -
-    so a bad holding doesn't just get silently ridden out for a month."""
+    simulation: picks large-cap S&P 500 names trading low relative to
+    their own 52-week range once (see select_monthly_portfolio_candidates -
+    deliberately NOT the same short-term-momentum Top10 picks), holds them
+    for ~30 days (no daily trading costs eating the return), and refreshes
+    the list at the end of the cycle. In between, watches each holding
+    daily and fires an urgent, separate Telegram alert the moment one
+    breaks down - a stop loss, a support breakdown, or the technical
+    signal flipping negative - so a bad holding doesn't just get silently
+    ridden out for a month."""
     print(f"manage_monthly_portfolio: starting, {len(today_entries)} entries for today")
     today = date.today().isoformat()
     mp = store.setdefault("monthly_portfolio", {
@@ -1489,8 +1540,9 @@ def manage_monthly_portfolio(store, today_entries):
             })
             mp["history"] = mp["history"][-24:]  # keep ~2 years of monthly cycles
 
-        new_top10 = [e for e in today_entries if e.get("top10") and e.get("predicted") == "up"]
-        print(f"manage_monthly_portfolio: found {len(new_top10)} top10 entries among today's {len(today_entries)}")
+        sp500_tickers = set(get_sp500_tickers())
+        new_top10 = select_monthly_portfolio_candidates(today_entries, sp500_tickers)
+        print(f"manage_monthly_portfolio: found {len(new_top10)} qualifying large-cap/low-price entries among today's {len(today_entries)}")
         mp["holdings"] = [
             {
                 "ticker": e["ticker"], "entry_date": today, "entry_price": e.get("price"),
