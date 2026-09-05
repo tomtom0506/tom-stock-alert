@@ -1,35 +1,35 @@
 {
-  "ticker": "WDC",
+  "ticker": "SITM",
   "predicted_direction": "up",
-  "raw_score": 4.33,
-  "overall_score": 66.7,
+  "raw_score": 4.45,
+  "overall_score": 67.8,
   "components": {
-    "original": 43.3,
-    "risk_reward": 86.6,
-    "leading_adjusted": 36.8,
+    "original": 44.5,
+    "risk_reward": 89.0,
+    "leading_adjusted": 37.8,
     "analyst": 100
   },
   "excluded_from_blend": [],
-  "price": 467.4599914550781,
-  "support": 466.81,
-  "resistance": 515.7,
-  "analyst_count": 24,
+  "price": 612.0900268554688,
+  "support": 592.19,
+  "resistance": 725.28,
+  "analyst_count": 9,
   "sector": "Technology",
-  "short_pct": 6.3100000000000005,
+  "short_pct": 4.8499998,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 5,
+    "criteria_met": 6,
     "criteria_total": 7,
     "passes": false,
-    "multiplier": 0.886
+    "multiplier": 0.943
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 9
+    "contractions": 7
   },
   "earnings": {
-    "date": "2026-11-05",
-    "days_away": 61
+    "date": "2026-11-04",
+    "days_away": 60
   },
-  "checked_at": "2026-09-05T07:00:14.475925+00:00"
+  "checked_at": "2026-09-05T08:17:29.727934+00:00"
 }
