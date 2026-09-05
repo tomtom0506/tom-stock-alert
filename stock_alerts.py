@@ -38,6 +38,16 @@ import requests
 import yfinance as yf
 
 BASE_DIR = Path(__file__).parent
+
+# Bump this every time stock_alerts.py's PREDICTION LOGIC changes (not for
+# comment-only or cosmetic edits) - stamped onto every prediction entry and
+# into last_run_status, so it's possible to tell exactly which backend
+# version actually produced a given day's Top10/predictions data, instead
+# of having to infer it after the fact from which fields happen to be
+# present (see the v5.4.3-era "why is overall_score missing" investigation
+# this was added to prevent having to repeat).
+BACKEND_VERSION = "5.4.4"
+
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
 STATE_FILE = BASE_DIR / "state.json"
@@ -2556,6 +2566,7 @@ def run_predictions(store):
         entry = {
             "date": today, "ticker": symbol, "score": score, "predicted": predicted,
             "strong": False, "top10": False, "graded": False,  # "strong"/"top10" decided below, once every ticker has a score
+            "engine_version": BACKEND_VERSION,
         }
         for k, v in factors.items():
             if k.startswith("_"):
@@ -2874,6 +2885,7 @@ def main():
         prediction_store["last_run_status"] = {
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "traded_today": False,
+            "backend_version": BACKEND_VERSION,
         }
         save_json(PREDICTIONS_FILE, prediction_store)
         save_json(STATE_FILE, state)
@@ -2919,6 +2931,7 @@ def main():
     prediction_store["last_run_status"] = {
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "traded_today": True,
+        "backend_version": BACKEND_VERSION,
     }
     save_json(PREDICTIONS_FILE, prediction_store)
     save_json(STATE_FILE, state)
