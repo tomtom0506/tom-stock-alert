@@ -2288,6 +2288,16 @@ def analyze_single_ticker(ticker):
     result = compute_single_ticker_score(ticker, tf, fund, market_regime, rs_reference=rs_ref)
     result["earnings"] = get_upcoming_earnings_date(ticker)
     result["checked_at"] = datetime.now(timezone.utc).isoformat()
+
+    # market-status awareness (item: "נתונים אמיתיים ונכונים") - which
+    # date does this price actually reflect, and is that market even open
+    # today? Scoped to "בדוק מניה" only, not the shared daily engine - see
+    # is_market_trading_day's docstring for why.
+    try:
+        result["price_as_of_date"] = closes.dropna().index[-1].strftime("%Y-%m-%d")
+    except Exception:
+        result["price_as_of_date"] = None
+    result["market_status"] = get_market_status_for_ticker(ticker)
     return result
 
 
@@ -2788,13 +2798,56 @@ def is_market_trading_day():
     out to be unreliable: it was returning False all day even on normal
     trading days, silently skipping grading/predictions/monthly-portfolio
     every single run. A plain calendar check is simpler and, unlike that
-    approach, doesn't depend on uncertain intraday data timing.)"""
+    approach, doesn't depend on uncertain intraday data timing.)
+
+    NOTE: this gates the whole daily engine (Top10/grading/monthly
+    portfolio) using the US calendar only, for ALL tickers including .TA -
+    left as-is deliberately (see ISRAEL_MARKET_HOLIDAYS_2026 below, which
+    is only used for "בדוק מניה"). Touching the shared daily pipeline's
+    market-day logic risks skewing the accuracy/grading numbers that are
+    the whole point of the app right now, for the sake of ~6-8 days/year
+    where TASE is closed but the US market isn't - Tomer explicitly chose
+    to scope this fix to the on-demand single-ticker check only."""
     today = date.today()
     if today.weekday() >= 5:  # Saturday=5, Sunday=6
         return False
     if today.isoformat() in US_MARKET_HOLIDAYS_2026:
         return False
     return True
+
+
+# TASE full-closure holidays for 2026, from Bank of Israel's official
+# Markets Division calendar (ימי פעילות חטיבת השווקים לשנת 2026) - as of
+# the Jan-2026 schedule change, TASE trades Monday-Friday (not Sunday-
+# Thursday anymore), Friday on shortened hours; the dates below are the
+# additional Israeli-holiday closures on top of that Mon-Fri week.
+ISRAEL_MARKET_HOLIDAYS_2026 = {
+    "2026-03-03", "2026-03-04",  # Purim, Shushan Purim
+    "2026-04-02", "2026-04-08",  # Passover (1st and last day)
+    "2026-04-22",  # Independence Day
+    "2026-05-22",  # Shavuot
+    "2026-07-23",  # Tisha B'Av
+    "2026-09-13",  # 2nd day Rosh Hashana (falls on a Sunday, already off under the new Mon-Fri week - listed for completeness)
+    "2026-09-21",  # Yom Kippur
+}
+
+
+def get_market_status_for_ticker(ticker):
+    """For "בדוק מניה" only (see is_market_trading_day's note above for why
+    this isn't wired into the shared daily engine): is TODAY a trading day
+    on the specific market this ticker belongs to (TASE for .TA tickers,
+    US markets otherwise)? Used to warn the user the check ran on a day
+    that market was closed, rather than silently showing a stale price
+    with no explanation."""
+    today = date.today()
+    is_weekend_il = today.weekday() >= 5  # TASE is Mon-Fri since Jan 2026, same weekday numbering as US
+    if is_israeli(ticker):
+        market = "ת\"א (TASE)"
+        is_trading_day = not is_weekend_il and today.isoformat() not in ISRAEL_MARKET_HOLIDAYS_2026
+    else:
+        market = "ארה\"ב (US)"
+        is_trading_day = not is_weekend_il and today.isoformat() not in US_MARKET_HOLIDAYS_2026
+    return {"market": market, "is_trading_day": is_trading_day}
 
 
 def main():
