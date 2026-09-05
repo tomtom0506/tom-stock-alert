@@ -442,7 +442,7 @@
         <p>בכרטיסים של המניות המצומצמות (עד 25) והמניות המסומנות בכוכב, אפשר <b>ללחוץ על התגית</b> בפס התמיכה/התנגדות (מסומנת ב-📈) כדי לפתוח גרף שמראה את ~140 ימי המסחר האחרונים, עם נקודות אדומות (שיאים מקומיים) וירוקות (שפלים מקומיים) שעליהן מבוסס חישוב התמיכה/ההתנגדות, וקו זהוב מקווקו שמחבר ביניהן לפי סדר כרונולוגי - בדיוק כמו שמסמנים ידנית על גרף. מניות אחרות (שאינן בין ה-25 או מסומנות) אין להן עדיין נתוני גרף, כדי לא להכביד על גודל הקובץ.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📅 תיק חודשי</p>
-        <p>אלטרנטיבה לסימולציית ה-100,000 ₪ היומית: במקום להחליף מניות כל יום, הסקשן הזה בוחר Top 10 פעם ב-30 יום בלבד ומחזיק אותן - כדי לא "לאבד" רווח על עמלות קנייה/מכירה תכופות. אם מניה שנמצאת בתיק נשברת טכנית באמצע החודש (ירידה חדה, שבירת תמיכה, או שהאיתות מתהפך לשלילי) - תישלח לך התראה דחופה ונפרדת בטלגרם עם המלצה לשקול מכירה, במקום לחכות בשקט לרענון הבא.</p>
+        <p>אלטרנטיבה לסימולציית ה-100,000 ₪ היומית: במקום להחליף מניות כל יום, הסקשן הזה בוחר Top 10 פעם ב-30 יום בלבד ומחזיק אותן - כדי לא "לאבד" רווח על עמלות קנייה/מכירה תכופות. אם מניה שנמצאת בתיק נשברת טכנית באמצע החודש (ירידה חדה, שבירת תמיכה, או שהאיתות מתהפך לשלילי) - תישלח לך התראה דחופה ונפרדת בטלגרם עם המלצה לשקול מכירה, במקום לחכות בשקט לרענון הבא. למעלה מוצגת גם תשואה מצטברת אחת למחזור כולו - ממוצע פשוט (לא משוקלל) בין כל ההחזקות, כי אין כאן כמויות/משקלים כמו ב"התיק שלי" - רק תמונת מצב אחת שנבחרה בתחילת המחזור והוחזקה מאז.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧮 השוואת נוסחאות</p>
         <p>ה-Top 10 האמיתי נבחר היום לפי <b>עירוב מכויל</b> בין שתי שיטות בסיסיות: עוצמת חיזוי טהורה, ויחס סיכוי/סיכון (מניות שבהן הפוטנציאל לרווח עד ההתנגדות גדול משמעותית מהסיכון עד התמיכה) - עם הגבלה של עד 50% מהתיק מאותו סקטור. משקל העירוב (alpha) מתעדכן לבד פעם בחודש בערך, בצעדים קטנים ומוגבלים, ורק כשיש פער מובהק וגדול מספיק בין השיטות - לא בתגובה לתנודה של יום-יומיים. הסקשן מציג את הביצועים של ארבע השיטות זו לצד זו: הנוסחה האמיתית (העירוב), שתי הבסיסיות הטהורות, והניסיונית עם אינדיקטורים מקדימים. תיבת <b>"✨ מאז שינוי הנוסחה"</b> מציגה את הביצועים רק מהיום שהעירוב עלה לראשונה - כדי שהיסטוריה ישנה מהנוסחה הפחות טובה לא תדלל את התמונה הנוכחית.</p>
@@ -859,12 +859,15 @@
 </div>
 
 <script>
-const APP_VERSION = "5.3.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.3.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.3.2", items: [
+    "נוספה תשואה מצטברת אחת לסקשן 'תיק חודשי' - ממוצע פשוט בין כל ההחזקות מאז תחילת המחזור, עם המרה משוערת ל-₪ (אילו הושקעו ₪100,000 בחלוקה שווה). לפני זה היה אפשר לראות רק את התשואה של כל מניה בנפרד, לא מספר אחד מסכם לתיק כולו.",
+  ]},
   { version: "5.3.1", items: [
     "הוארך זמן ההמתנה לתוצאה ב'בדוק מניה' מ-2 דקות ל-6 דקות - ריצת גיטהאב לפעמים לוקחת יותר זמן, בעיקר בריצות הראשונות של workflow.",
   ]},
@@ -2385,8 +2388,30 @@ function renderMonthlyPortfolio(mp, prices) {
     return;
   }
 
+  const returns = mp.holdings
+    .map(h => {
+      const live = prices[h.ticker];
+      const current = live && live.price != null ? live.price : h.entry_price;
+      return h.entry_price ? (current - h.entry_price) / h.entry_price * 100 : null;
+    })
+    .filter(r => r != null);
+  const avgPct = returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
+  const avgCls = avgPct == null ? "" : (avgPct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
+  const avgText = avgPct == null ? "—" : `${avgPct >= 0 ? "+" : ""}${avgPct.toFixed(2)}%`;
+  // simple average across holdings (equal-weight assumption - the monthly
+  // portfolio has no quantity/weight field, just a fixed Top10 snapshot
+  // held for the cycle) - not a compounding daily sim like "התיק שלי"/Top10
+  // have, since there's no need to replay day-by-day: entry_price already
+  // IS the fixed starting point for this cycle.
+  const impliedIls = avgPct != null ? Math.round(100000 * (1 + avgPct / 100)) : null;
+
   const summary = document.getElementById("monthlyPortfolioSummary");
-  summary.innerHTML = `מחזור נוכחי: <b class="mono">${mp.start_date}</b> → רענון הבא: <b class="mono">${mp.next_refresh_date}</b> · ${mp.holdings.length} מניות`;
+  summary.innerHTML = `
+    מחזור נוכחי: <b class="mono">${mp.start_date}</b> → רענון הבא: <b class="mono">${mp.next_refresh_date}</b> · ${mp.holdings.length} מניות
+    <div style="margin-top:8px; font-size:14px;">
+      תשואה מצטברת של המחזור (ממוצע פשוט בין ההחזקות): <b class="mono ${avgCls}">${avgText}</b>
+      ${impliedIls != null ? `<span style="color:var(--text-faint);"> (≈ ₪${impliedIls.toLocaleString("he-IL")} אם הושקעו ₪100,000 בחלוקה שווה בתחילת המחזור)</span>` : ""}
+    </div>`;
 
   const list = document.getElementById("monthlyPortfolioList");
   list.innerHTML = mp.holdings.map(h => {
