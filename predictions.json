@@ -378997,11 +378997,11 @@
     "total_value_ils": 100498.58,
     "weighted_return_pct": -0.799,
     "usdils_rate": 3.009399890899658,
-    "updated_at": "2026-09-05T23:21:02.090469+00:00"
+    "updated_at": "2026-09-06T01:14:50.608243+00:00"
   },
   "my_portfolio_sim": {
-    "value": 103.14099783339823,
-    "pending_date": "2026-09-05",
+    "value": 102.31690126070937,
+    "pending_date": "2026-09-06",
     "pending_return_pct": -0.799,
     "daily_log": [
       {
@@ -379053,9 +379053,14 @@
         "date": "2026-09-04",
         "return_pct": -0.313,
         "value": 103.141
+      },
+      {
+        "date": "2026-09-05",
+        "return_pct": -0.799,
+        "value": 102.317
       }
     ],
-    "total_return_pct": 3.14
+    "total_return_pct": 2.32
   },
   "portfolio_sim_original": {
     "start_value": 100000,
@@ -380645,7 +380650,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-05T23:21:02.090500+00:00",
+    "checked_at": "2026-09-06T01:14:50.608280+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   }
