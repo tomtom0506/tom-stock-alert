@@ -378944,65 +378944,65 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 174.33,
-        "value_ils": 9963.87,
+        "value_ils": 9973.91,
         "pct_change": -4.49,
-        "weight_pct": 9.9
+        "weight_pct": 10.0
       },
       {
         "ticker": "GOOGL",
         "name": "Alphabet",
         "ok": true,
         "price_native": 338.46,
-        "value_ils": 15272.18,
+        "value_ils": 15287.56,
         "pct_change": -1.11,
-        "weight_pct": 15.2
+        "weight_pct": 15.3
       },
       {
         "ticker": "ZVRA",
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.4,
-        "value_ils": 25178.38,
+        "value_ils": 25203.74,
         "pct_change": -1.12,
-        "weight_pct": 25.1
+        "weight_pct": 25.2
       },
       {
         "ticker": "XLI",
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 175.27,
-        "value_ils": 15817.26,
+        "value_ils": 15833.19,
         "pct_change": 0.41,
-        "weight_pct": 15.7
+        "weight_pct": 15.8
       },
       {
         "ticker": "FTAL.TA",
         "name": "פתאל החזקות",
         "ok": true,
-        "price_native": 74990.0,
-        "value_ils": 14998.0,
-        "pct_change": -0.57,
-        "weight_pct": 14.9
+        "price_native": 73530.0,
+        "value_ils": 14706.0,
+        "pct_change": -1.95,
+        "weight_pct": 14.7
       },
       {
         "ticker": "AZRG.TA",
         "name": "עזריאלי קבוצה",
         "ok": true,
-        "price_native": 40940.0,
-        "value_ils": 19241.8,
-        "pct_change": 0.61,
-        "weight_pct": 19.2
+        "price_native": 40720.0,
+        "value_ils": 19138.4,
+        "pct_change": -0.54,
+        "weight_pct": 19.1
       }
     ],
-    "total_value_ils": 100471.49,
-    "weighted_return_pct": -0.798,
-    "usdils_rate": 3.0081698894500732,
-    "updated_at": "2026-09-07T05:47:24.723225+00:00"
+    "total_value_ils": 100142.8,
+    "weighted_return_pct": -1.223,
+    "usdils_rate": 3.011199951171875,
+    "updated_at": "2026-09-07T11:34:49.204416+00:00"
   },
   "my_portfolio_sim": {
     "value": 101.4993892196363,
     "pending_date": "2026-09-07",
-    "pending_return_pct": -0.798,
+    "pending_return_pct": -1.223,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -380655,7 +380655,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-07T05:47:24.723254+00:00",
+    "checked_at": "2026-09-07T11:34:49.204452+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   }
