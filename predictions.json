@@ -378944,7 +378944,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 174.33,
-        "value_ils": 9970.26,
+        "value_ils": 9977.55,
         "pct_change": -4.49,
         "weight_pct": 10.0
       },
@@ -378953,7 +378953,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 338.46,
-        "value_ils": 15281.98,
+        "value_ils": 15293.15,
         "pct_change": -1.11,
         "weight_pct": 15.3
       },
@@ -378962,7 +378962,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.4,
-        "value_ils": 25194.54,
+        "value_ils": 25212.95,
         "pct_change": -1.12,
         "weight_pct": 25.2
       },
@@ -378971,7 +378971,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 175.27,
-        "value_ils": 15827.41,
+        "value_ils": 15838.98,
         "pct_change": 0.41,
         "weight_pct": 15.8
       },
@@ -378979,30 +378979,30 @@
         "ticker": "FTAL.TA",
         "name": "פתאל החזקות",
         "ok": true,
-        "price_native": 73310.0,
-        "value_ils": 14662.0,
-        "pct_change": -2.24,
+        "price_native": 73580.0,
+        "value_ils": 14716.0,
+        "pct_change": -1.88,
         "weight_pct": 14.7
       },
       {
         "ticker": "AZRG.TA",
         "name": "עזריאלי קבוצה",
         "ok": true,
-        "price_native": 40560.0,
-        "value_ils": 19063.2,
-        "pct_change": -0.93,
-        "weight_pct": 19.1
+        "price_native": 40460.0,
+        "value_ils": 19016.2,
+        "pct_change": -1.17,
+        "weight_pct": 19.0
       }
     ],
-    "total_value_ils": 99999.39,
-    "weighted_return_pct": -1.34,
-    "usdils_rate": 3.0100998878479004,
-    "updated_at": "2026-09-07T11:52:11.178024+00:00"
+    "total_value_ils": 100054.83,
+    "weighted_return_pct": -1.334,
+    "usdils_rate": 3.0123000144958496,
+    "updated_at": "2026-09-07T16:08:12.603935+00:00"
   },
   "my_portfolio_sim": {
     "value": 101.4993892196363,
     "pending_date": "2026-09-07",
-    "pending_return_pct": -1.34,
+    "pending_return_pct": -1.334,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -380655,7 +380655,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-07T11:52:11.178055+00:00",
+    "checked_at": "2026-09-07T16:08:12.603968+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   }
