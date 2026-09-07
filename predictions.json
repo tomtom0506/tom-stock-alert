@@ -378944,7 +378944,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 174.33,
-        "value_ils": 9973.91,
+        "value_ils": 9973.24,
         "pct_change": -4.49,
         "weight_pct": 10.0
       },
@@ -378953,7 +378953,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 338.46,
-        "value_ils": 15287.56,
+        "value_ils": 15286.55,
         "pct_change": -1.11,
         "weight_pct": 15.3
       },
@@ -378962,7 +378962,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.4,
-        "value_ils": 25203.74,
+        "value_ils": 25202.07,
         "pct_change": -1.12,
         "weight_pct": 25.2
       },
@@ -378971,7 +378971,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 175.27,
-        "value_ils": 15833.19,
+        "value_ils": 15832.14,
         "pct_change": 0.41,
         "weight_pct": 15.8
       },
@@ -378994,10 +378994,10 @@
         "weight_pct": 19.0
       }
     ],
-    "total_value_ils": 100030.6,
+    "total_value_ils": 100026.2,
     "weighted_return_pct": -1.334,
-    "usdils_rate": 3.011199951171875,
-    "updated_at": "2026-09-07T17:28:18.977590+00:00"
+    "usdils_rate": 3.010999917984009,
+    "updated_at": "2026-09-07T18:28:53.939260+00:00"
   },
   "my_portfolio_sim": {
     "value": 101.4993892196363,
@@ -380655,7 +380655,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-07T17:28:18.977622+00:00",
+    "checked_at": "2026-09-07T18:28:53.939292+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   }
