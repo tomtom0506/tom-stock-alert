@@ -378944,7 +378944,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 174.33,
-        "value_ils": 9967.95,
+        "value_ils": 9964.3,
         "pct_change": -4.49,
         "weight_pct": 9.9
       },
@@ -378953,7 +378953,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 338.46,
-        "value_ils": 15278.42,
+        "value_ils": 15272.84,
         "pct_change": -1.11,
         "weight_pct": 15.2
       },
@@ -378962,7 +378962,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.4,
-        "value_ils": 25188.68,
+        "value_ils": 25179.47,
         "pct_change": -1.12,
         "weight_pct": 25.1
       },
@@ -378971,7 +378971,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 175.27,
-        "value_ils": 15823.73,
+        "value_ils": 15817.94,
         "pct_change": 0.41,
         "weight_pct": 15.7
       },
@@ -378991,18 +378991,18 @@
         "price_native": 40940.0,
         "value_ils": 19241.8,
         "pct_change": 0.61,
-        "weight_pct": 19.1
+        "weight_pct": 19.2
       }
     ],
-    "total_value_ils": 100498.58,
-    "weighted_return_pct": -0.799,
-    "usdils_rate": 3.009399890899658,
-    "updated_at": "2026-09-06T23:00:11.624890+00:00"
+    "total_value_ils": 100474.35,
+    "weighted_return_pct": -0.798,
+    "usdils_rate": 3.0083000659942627,
+    "updated_at": "2026-09-07T00:53:22.907933+00:00"
   },
   "my_portfolio_sim": {
-    "value": 102.31690126070937,
-    "pending_date": "2026-09-06",
-    "pending_return_pct": -0.799,
+    "value": 101.4993892196363,
+    "pending_date": "2026-09-07",
+    "pending_return_pct": -0.798,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -379058,9 +379058,14 @@
         "date": "2026-09-05",
         "return_pct": -0.799,
         "value": 102.317
+      },
+      {
+        "date": "2026-09-06",
+        "return_pct": -0.799,
+        "value": 101.499
       }
     ],
-    "total_return_pct": 2.32
+    "total_return_pct": 1.5
   },
   "portfolio_sim_original": {
     "start_value": 100000,
@@ -380650,7 +380655,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-06T23:00:11.624918+00:00",
+    "checked_at": "2026-09-07T00:53:22.907966+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   }
