@@ -751,5 +751,15 @@
   "US_NVS_bigmove_2026-09-09": true,
   "US_HWM_bigmove_2026-09-09": true,
   "US_STDN_bigmove_2026-09-09": true,
-  "US_AMGN_bigmove_2026-09-09": true
+  "US_AMGN_bigmove_2026-09-09": true,
+  "US_SIG_bigmove_2026-09-09": true,
+  "US_PLSE_bigmove_2026-09-09": true,
+  "US_SUNB_bigmove_2026-09-09": true,
+  "US_TTAN_bigmove_2026-09-09": true,
+  "US_TBBK_bigmove_2026-09-09": true,
+  "US_BRZE_bigmove_2026-09-09": true,
+  "US_RML_bigmove_2026-09-09": true,
+  "US_CASY_bigmove_2026-09-09": true,
+  "US_RGC_bigmove_2026-09-09": true,
+  "US_XE_bigmove_2026-09-09": true
 }
