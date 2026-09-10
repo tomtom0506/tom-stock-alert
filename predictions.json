@@ -532370,7 +532370,7 @@
     "formula_live_since": "2026-09-01",
     "us": 47.6,
     "il": 53.6,
-    "updated_at": "2026-09-10T06:35:30.551962+00:00"
+    "updated_at": "2026-09-10T06:40:43.277894+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -534300,7 +534300,7 @@
     "annual_return_pct": 13.05
   },
   "formula_comparison": {
-    "updated_at": "2026-09-10T06:35:30.555416+00:00",
+    "updated_at": "2026-09-10T06:40:43.280550+00:00",
     "note": "הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha=0.90 לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
     "since_change": {
       "live_since": "2026-09-01",
@@ -534354,7 +534354,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 169.53,
-        "value_ils": 9740.32,
+        "value_ils": 9742.45,
         "pct_change": -0.45,
         "weight_pct": 9.9
       },
@@ -534363,7 +534363,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 330.65,
-        "value_ils": 14997.99,
+        "value_ils": 15001.26,
         "pct_change": -2.28,
         "weight_pct": 15.3
       },
@@ -534372,7 +534372,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.04,
-        "value_ils": 24575.56,
+        "value_ils": 24580.92,
         "pct_change": -5.01,
         "weight_pct": 25.0
       },
@@ -534381,7 +534381,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 171.79,
-        "value_ils": 15584.48,
+        "value_ils": 15587.88,
         "pct_change": -1.51,
         "weight_pct": 15.9
       },
@@ -534404,10 +534404,10 @@
         "weight_pct": 19.1
       }
     ],
-    "total_value_ils": 98239.65,
+    "total_value_ils": 98253.81,
     "weighted_return_pct": -2.279,
-    "usdils_rate": 3.023940086364746,
-    "updated_at": "2026-09-10T06:34:48.774337+00:00"
+    "usdils_rate": 3.024600028991699,
+    "updated_at": "2026-09-10T06:39:55.528001+00:00"
   },
   "my_portfolio_sim": {
     "value": 98.16743532078411,
@@ -534888,7 +534888,7 @@
     "total_return_pct": 2.95
   },
   "benchmark_comparison": {
-    "updated_at": "2026-09-10T06:35:30.681344+00:00",
+    "updated_at": "2026-09-10T06:40:43.371888+00:00",
     "since_date": "2026-08-21",
     "since_formula_change": "2026-09-01",
     "entries": {
@@ -536246,7 +536246,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-10T06:35:30.683768+00:00",
+    "checked_at": "2026-09-10T06:40:43.374283+00:00",
     "traded_today": true,
     "backend_version": "5.4.4"
   },
