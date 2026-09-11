@@ -582853,7 +582853,7 @@
     "formula_live_since": "2026-09-01",
     "us": 46.9,
     "il": 52.8,
-    "updated_at": "2026-09-11T03:36:35.291029+00:00"
+    "updated_at": "2026-09-11T08:21:08.474043+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -582905,7 +582905,7 @@
   "portfolio_sim": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 95143.33016155318,
+    "value": 95143.3295722,
     "last_processed_date": "2026-09-10",
     "daily_log": [
       {
@@ -583676,7 +583676,7 @@
   "portfolio_sim_experimental": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 108567.23634292476,
+    "value": 108567.2358408,
     "last_processed_date": "2026-09-10",
     "daily_log": [
       {
@@ -584392,7 +584392,7 @@
   "portfolio_sim_leading": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 106622.68172716598,
+    "value": 106622.681922,
     "last_processed_date": "2026-09-10",
     "daily_log": [
       {
@@ -584929,7 +584929,7 @@
     "annual_return_pct": 6.61
   },
   "formula_comparison": {
-    "updated_at": "2026-09-11T03:36:35.293774+00:00",
+    "updated_at": "2026-09-11T08:21:08.477183+00:00",
     "note": "הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha=0.90 לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
     "since_change": {
       "live_since": "2026-09-01",
@@ -584945,7 +584945,7 @@
         "total": 139,
         "total_return_pct": -4.86,
         "monthly_return_pct": -4.88,
-        "value": 95143.33016155318
+        "value": 95143.3295722
       },
       {
         "key": "original",
@@ -584954,7 +584954,7 @@
         "total": 60,
         "total_return_pct": 6.04,
         "monthly_return_pct": 6.04,
-        "value": 106035.5416224575
+        "value": 106035.5442918
       },
       {
         "key": "risk_reward",
@@ -584963,7 +584963,7 @@
         "total": 129,
         "total_return_pct": 8.57,
         "monthly_return_pct": 8.57,
-        "value": 108567.23634292476
+        "value": 108567.2358408
       },
       {
         "key": "leading",
@@ -584972,7 +584972,7 @@
         "total": 110,
         "total_return_pct": 6.62,
         "monthly_return_pct": 6.61,
-        "value": 106622.68172716598
+        "value": 106622.681922
       }
     ]
   },
@@ -584983,7 +584983,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 165.86,
-        "value_ils": 9613.79,
+        "value_ils": 9597.28,
         "pct_change": -2.16,
         "weight_pct": 9.8
       },
@@ -584992,7 +584992,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 332.6,
-        "value_ils": 15219.94,
+        "value_ils": 15193.8,
         "pct_change": 0.59,
         "weight_pct": 15.5
       },
@@ -585001,7 +585001,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.06,
-        "value_ils": 24834.22,
+        "value_ils": 24791.57,
         "pct_change": 0.17,
         "weight_pct": 25.3
       },
@@ -585010,7 +585010,7 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 170.55,
-        "value_ils": 15608.91,
+        "value_ils": 15582.1,
         "pct_change": -0.72,
         "weight_pct": 15.9
       },
@@ -585033,10 +585033,10 @@
         "weight_pct": 18.8
       }
     ],
-    "total_value_ils": 98249.06,
+    "total_value_ils": 98136.95,
     "weighted_return_pct": -0.562,
-    "usdils_rate": 3.0506999492645264,
-    "updated_at": "2026-09-11T03:35:11.783137+00:00"
+    "usdils_rate": 3.0454599857330322,
+    "updated_at": "2026-09-11T08:19:36.558185+00:00"
   },
   "my_portfolio_sim": {
     "value": 97.6157343342813,
@@ -585129,7 +585129,7 @@
   "portfolio_sim_original": {
     "start_value": 100000,
     "currency": "ILS",
-    "value": 106035.5416224575,
+    "value": 106035.5442918,
     "last_processed_date": "2026-09-10",
     "daily_log": [
       {
@@ -585578,13 +585578,13 @@
     "total_return_pct": 1.52
   },
   "benchmark_comparison": {
-    "updated_at": "2026-09-11T03:36:35.515649+00:00",
+    "updated_at": "2026-09-11T08:21:08.851001+00:00",
     "since_date": "2026-08-21",
     "since_formula_change": "2026-09-01",
     "entries": {
       "top10": {
         "label": "Top 10 (סימולציית ₪100,000)",
-        "value": 95143.33016155318,
+        "value": 95143.3295722,
         "total_return_pct": -4.86,
         "max_drawdown_pct": -10.09,
         "volatility_pct": 3.14,
@@ -586932,7 +586932,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-11T03:39:16.341121+00:00",
+    "checked_at": "2026-09-11T08:21:08.853918+00:00",
     "traded_today": true,
     "backend_version": "5.4.4"
   },
