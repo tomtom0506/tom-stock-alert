@@ -584982,37 +584982,37 @@
         "ticker": "PLTR",
         "name": "Palantir",
         "ok": true,
-        "price_native": 167.23,
-        "value_ils": 9628.07,
-        "pct_change": 0.83,
-        "weight_pct": 9.9
+        "price_native": 165.86,
+        "value_ils": 9549.19,
+        "pct_change": -2.16,
+        "weight_pct": 9.8
       },
       {
         "ticker": "GOOGL",
         "name": "Alphabet",
         "ok": true,
-        "price_native": 338.5,
-        "value_ils": 15385.84,
-        "pct_change": 1.77,
-        "weight_pct": 15.8
+        "price_native": 332.6,
+        "value_ils": 15117.67,
+        "pct_change": 0.59,
+        "weight_pct": 15.6
       },
       {
         "ticker": "ZVRA",
         "name": "Zevra Therapeutics",
         "ok": true,
-        "price_native": 12.01,
-        "value_ils": 24565.07,
-        "pct_change": -0.41,
-        "weight_pct": 25.2
+        "price_native": 12.06,
+        "value_ils": 24667.34,
+        "pct_change": 0.17,
+        "weight_pct": 25.4
       },
       {
         "ticker": "XLI",
         "name": "Industrial Select Sector SPDR",
         "ok": true,
-        "price_native": 172.37,
-        "value_ils": 15669.47,
-        "pct_change": 1.07,
-        "weight_pct": 16.1
+        "price_native": 170.55,
+        "value_ils": 15504.02,
+        "pct_change": -0.72,
+        "weight_pct": 16.0
       },
       {
         "ticker": "FTAL.TA",
@@ -585021,7 +585021,7 @@
         "price_native": 69670.0,
         "value_ils": 13934.0,
         "pct_change": -4.04,
-        "weight_pct": 14.3
+        "weight_pct": 14.4
       },
       {
         "ticker": "AZRG.TA",
@@ -585030,18 +585030,18 @@
         "price_native": 38940.0,
         "value_ils": 18301.8,
         "pct_change": -0.82,
-        "weight_pct": 18.8
+        "weight_pct": 18.9
       }
     ],
-    "total_value_ils": 97484.25,
-    "weighted_return_pct": -0.301,
+    "total_value_ils": 97074.02,
+    "weighted_return_pct": -0.927,
     "usdils_rate": 3.0302000045776367,
-    "updated_at": "2026-09-11T21:58:16.480963+00:00"
+    "updated_at": "2026-09-12T00:06:11.651025+00:00"
   },
   "my_portfolio_sim": {
-    "value": 97.6157343342813,
-    "pending_date": "2026-09-11",
-    "pending_return_pct": -0.301,
+    "value": 97.32191097393512,
+    "pending_date": "2026-09-12",
+    "pending_return_pct": -0.927,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -585122,9 +585122,14 @@
         "date": "2026-09-10",
         "return_pct": -0.562,
         "value": 97.616
+      },
+      {
+        "date": "2026-09-11",
+        "return_pct": -0.301,
+        "value": 97.322
       }
     ],
-    "total_return_pct": -2.38
+    "total_return_pct": -2.68
   },
   "portfolio_sim_original": {
     "start_value": 100000,
@@ -586937,8 +586942,8 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-11T21:59:39.581029+00:00",
-    "traded_today": true,
+    "checked_at": "2026-09-12T00:06:11.651049+00:00",
+    "traded_today": false,
     "backend_version": "5.4.4"
   },
   "sell_queue": {
