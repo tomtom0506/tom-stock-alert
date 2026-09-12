@@ -585020,7 +585020,7 @@
         "ok": true,
         "price_native": 69670.0,
         "value_ils": 13934.0,
-        "pct_change": -4.04,
+        "pct_change": 0.0,
         "weight_pct": 14.3
       },
       {
@@ -585029,19 +585029,19 @@
         "ok": true,
         "price_native": 38940.0,
         "value_ils": 18301.8,
-        "pct_change": -0.82,
+        "pct_change": 0.0,
         "weight_pct": 18.8
       }
     ],
     "total_value_ils": 97484.25,
-    "weighted_return_pct": -0.301,
+    "weighted_return_pct": 0.43,
     "usdils_rate": 3.0302000045776367,
-    "updated_at": "2026-09-12T08:51:39.449225+00:00"
+    "updated_at": "2026-09-12T12:42:39.477823+00:00"
   },
   "my_portfolio_sim": {
     "value": 97.32191097393512,
     "pending_date": "2026-09-12",
-    "pending_return_pct": -0.301,
+    "pending_return_pct": 0.43,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -586942,7 +586942,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-12T08:51:39.449256+00:00",
+    "checked_at": "2026-09-12T12:42:39.477854+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   },
