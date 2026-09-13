@@ -585036,7 +585036,7 @@
     "total_value_ils": 97484.25,
     "weighted_return_pct": 0.43,
     "usdils_rate": 3.0302000045776367,
-    "updated_at": "2026-09-13T17:42:06.869529+00:00"
+    "updated_at": "2026-09-13T19:51:17.206069+00:00"
   },
   "my_portfolio_sim": {
     "value": 97.74039519112304,
@@ -586947,7 +586947,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-13T17:42:06.869559+00:00",
+    "checked_at": "2026-09-13T19:51:17.206117+00:00",
     "traded_today": false,
     "backend_version": "5.4.4"
   },
