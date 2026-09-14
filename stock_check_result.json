@@ -1,35 +1,40 @@
 {
-  "ticker": "SITM",
+  "ticker": "ZVRA",
   "predicted_direction": "up",
-  "raw_score": 4.45,
-  "overall_score": 67.8,
+  "raw_score": 5.75,
+  "overall_score": 55.3,
   "components": {
-    "original": 44.5,
-    "risk_reward": 89.0,
-    "leading_adjusted": 37.8,
+    "original": 57.5,
+    "risk_reward": 6.1,
+    "leading_adjusted": 57.5,
     "analyst": 100
   },
   "excluded_from_blend": [],
-  "price": 612.0900268554688,
-  "support": 592.19,
-  "resistance": 725.28,
+  "price": 12.010000228881836,
+  "support": 11.56,
+  "resistance": 12.13,
   "analyst_count": 9,
-  "sector": "Technology",
-  "short_pct": 4.8499998,
+  "sector": "Healthcare",
+  "short_pct": 9.83,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 6,
+    "criteria_met": 7,
     "criteria_total": 7,
-    "passes": false,
-    "multiplier": 0.943
+    "passes": true,
+    "multiplier": 1.0
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 7
+    "contractions": 8
   },
   "earnings": {
     "date": "2026-11-04",
-    "days_away": 60
+    "days_away": 51
   },
-  "checked_at": "2026-09-05T09:35:37.309959+00:00"
+  "checked_at": "2026-09-14T05:11:46.061311+00:00",
+  "price_as_of_date": "2026-09-11",
+  "market_status": {
+    "market": "ארה\"ב (US)",
+    "is_trading_day": true
+  }
 }
