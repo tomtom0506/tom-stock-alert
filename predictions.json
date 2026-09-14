@@ -537713,8 +537713,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Afcon Holdings Ltd",
-      "actual_price": 48700.0,
-      "actual_pct_change": -6.97,
+      "actual_price": 49330.0,
+      "actual_pct_change": -5.77,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -537823,8 +537823,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 17340.0,
-      "actual_pct_change": -3.93,
+      "actual_price": 17370.0,
+      "actual_pct_change": -3.77,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -538415,8 +538415,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 3114.0,
-      "actual_pct_change": -5.75,
+      "actual_price": 3136.0,
+      "actual_pct_change": -5.08,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -539345,8 +539345,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 2029.0,
-      "actual_pct_change": -3.38,
+      "actual_price": 2055.0,
+      "actual_pct_change": -2.14,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -540343,8 +540343,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 5472.0,
-      "actual_pct_change": -0.83,
+      "actual_price": 5425.0,
+      "actual_pct_change": -1.69,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -540398,8 +540398,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 5750.0,
-      "actual_pct_change": -2.24,
+      "actual_price": 5788.0,
+      "actual_pct_change": -1.6,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -540804,8 +540804,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Aura Investments Ltd.",
-      "actual_price": 1787.0,
-      "actual_pct_change": -2.03,
+      "actual_price": 1794.0,
+      "actual_pct_change": -1.64,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -541458,8 +541458,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Azorim-Investment, Development & Construction Co. Ltd",
-      "actual_price": 1673.0,
-      "actual_pct_change": -4.67,
+      "actual_price": 1713.0,
+      "actual_pct_change": -2.39,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -542167,10 +542167,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Bezeq The Israel Telecommunication Corp. Ltd",
-      "actual_price": 791.3,
-      "actual_pct_change": 1.45,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 776.0,
+      "actual_pct_change": -0.51,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -542401,8 +542401,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 67830.0,
-      "actual_pct_change": -1.84,
+      "actual_price": 67920.0,
+      "actual_pct_change": -1.71,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -544779,8 +544779,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 3672.0,
-      "actual_pct_change": -0.03,
+      "actual_price": 3589.0,
+      "actual_pct_change": -2.29,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -545859,8 +545859,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Clal Insurance Enterprises Holdings Ltd.",
-      "actual_price": 27990.0,
-      "actual_pct_change": -0.25,
+      "actual_price": 27620.0,
+      "actual_pct_change": -1.57,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -549181,8 +549181,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Delta Galil Industries Ltd.",
-      "actual_price": 18170.0,
-      "actual_pct_change": -1.25,
+      "actual_price": 18250.0,
+      "actual_pct_change": -0.82,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -549594,10 +549594,10 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 9070.0,
-      "actual_pct_change": -0.32,
-      "actual_direction": "down",
-      "correct": false,
+      "actual_price": 9118.0,
+      "actual_pct_change": 0.21,
+      "actual_direction": "up",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -550124,10 +550124,10 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 3641.0,
-      "actual_pct_change": 1.2,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 3580.0,
+      "actual_pct_change": -0.5,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -551206,8 +551206,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "El Al Israel Airlines Ltd.",
-      "actual_price": 1645.0,
-      "actual_pct_change": -2.2,
+      "actual_price": 1640.0,
+      "actual_pct_change": -2.5,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -551433,8 +551433,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 3276.0,
-      "actual_pct_change": -6.67,
+      "actual_price": 3333.0,
+      "actual_pct_change": -5.04,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -552268,8 +552268,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 219300.0,
-      "actual_pct_change": 0.86,
+      "actual_price": 223100.0,
+      "actual_pct_change": 2.61,
       "actual_direction": "up",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -553554,8 +553554,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 23960.0,
-      "actual_pct_change": -0.17,
+      "actual_price": 23720.0,
+      "actual_pct_change": -1.17,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -555154,8 +555154,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 2967.0,
-      "actual_pct_change": -1.72,
+      "actual_price": 2929.0,
+      "actual_pct_change": -2.98,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -555742,10 +555742,10 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 876.5,
-      "actual_pct_change": -0.56,
-      "actual_direction": "down",
-      "correct": true,
+      "actual_price": 887.6,
+      "actual_pct_change": 0.7,
+      "actual_direction": "up",
+      "correct": false,
       "graded_date": "2026-09-14"
     },
     {
@@ -556408,10 +556408,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Harel Insurance Investments & Financial Services Ltd",
-      "actual_price": 19610.0,
-      "actual_pct_change": 0.1,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 19270.0,
+      "actual_pct_change": -1.63,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -558440,8 +558440,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "ICL Group Ltd",
-      "actual_price": 1690.0,
-      "actual_pct_change": -4.74,
+      "actual_price": 1750.0,
+      "actual_pct_change": -1.35,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -558736,8 +558736,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 3921.0,
-      "actual_pct_change": -1.98,
+      "actual_price": 3906.0,
+      "actual_pct_change": -2.35,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -560807,8 +560807,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 19690.0,
-      "actual_pct_change": -6.86,
+      "actual_price": 20000.0,
+      "actual_pct_change": -5.39,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -561464,10 +561464,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Kamada Ltd.",
-      "actual_price": 2505.0,
-      "actual_pct_change": 0.6,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 2452.0,
+      "actual_pct_change": -1.53,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -563078,10 +563078,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Bank Leumi le-Israel B.M.",
-      "actual_price": 7961.0,
-      "actual_pct_change": 0.18,
-      "actual_direction": "up",
-      "correct": true,
+      "actual_price": 7892.0,
+      "actual_pct_change": -0.69,
+      "actual_direction": "down",
+      "correct": false,
       "graded_date": "2026-09-14"
     },
     {
@@ -564702,8 +564702,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Migdal Insurance and Financial Holdings Ltd.",
-      "actual_price": 2060.0,
-      "actual_pct_change": -0.48,
+      "actual_price": 2044.0,
+      "actual_pct_change": -1.26,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -564867,8 +564867,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 38620.0,
-      "actual_pct_change": -3.4,
+      "actual_price": 38750.0,
+      "actual_pct_change": -3.08,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -565163,8 +565163,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Menora Mivtachim Holdings Ltd.",
-      "actual_price": 53720.0,
-      "actual_pct_change": -1.09,
+      "actual_price": 53390.0,
+      "actual_pct_change": -1.69,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -566743,10 +566743,10 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 10500.0,
-      "actual_pct_change": -0.75,
-      "actual_direction": "down",
-      "correct": false,
+      "actual_price": 10630.0,
+      "actual_pct_change": 0.48,
+      "actual_direction": "up",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -567099,10 +567099,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Mizrahi Tefahot Bank Ltd.",
-      "actual_price": 23660.0,
-      "actual_pct_change": 0.38,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 23480.0,
+      "actual_pct_change": -0.38,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -567920,10 +567920,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "NICE Ltd.",
-      "actual_price": 31750.0,
-      "actual_pct_change": 3.89,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 30060.0,
+      "actual_pct_change": -1.64,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -569766,8 +569766,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 6896.0,
-      "actual_pct_change": 0.67,
+      "actual_price": 6940.0,
+      "actual_pct_change": 1.31,
       "actual_direction": "up",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -569821,8 +569821,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 9374.0,
-      "actual_pct_change": -7.46,
+      "actual_price": 9550.0,
+      "actual_pct_change": -5.73,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -570007,8 +570007,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Oil Refineries Ltd.",
-      "actual_price": 237.4,
-      "actual_pct_change": -0.29,
+      "actual_price": 232.4,
+      "actual_pct_change": -2.39,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -571354,8 +571354,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Phoenix Financial Ltd.",
-      "actual_price": 18670.0,
-      "actual_pct_change": -0.05,
+      "actual_price": 18480.0,
+      "actual_pct_change": -1.07,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -572006,10 +572006,10 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 8109.0,
-      "actual_pct_change": 1.05,
-      "actual_direction": "up",
-      "correct": false,
+      "actual_price": 7989.0,
+      "actual_pct_change": -0.45,
+      "actual_direction": "down",
+      "correct": true,
       "graded_date": "2026-09-14"
     },
     {
@@ -572474,8 +572474,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 28400.0,
-      "actual_pct_change": -2.37,
+      "actual_price": 28510.0,
+      "actual_pct_change": -1.99,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -572591,8 +572591,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 3838.0,
-      "actual_pct_change": -1.29,
+      "actual_price": 3797.0,
+      "actual_pct_change": -2.34,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -574130,8 +574130,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 2143.0,
-      "actual_pct_change": -1.24,
+      "actual_price": 2153.0,
+      "actual_pct_change": -0.78,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -574543,8 +574543,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "RoboGroup T.E.K. Ltd.",
-      "actual_price": 42.2,
-      "actual_pct_change": -2.76,
+      "actual_price": 42.9,
+      "actual_pct_change": -1.15,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -575004,8 +575004,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Shufersal Ltd",
-      "actual_price": 3682.0,
-      "actual_pct_change": -0.51,
+      "actual_price": 3668.0,
+      "actual_pct_change": -0.89,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -575893,8 +575893,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 873.8,
-      "actual_pct_change": -2.91,
+      "actual_price": 884.9,
+      "actual_pct_change": -1.68,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -576413,8 +576413,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Suny Cellular Communication Ltd",
-      "actual_price": 131.6,
-      "actual_pct_change": -1.86,
+      "actual_price": 131.3,
+      "actual_pct_change": -2.09,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -578498,8 +578498,8 @@
       "top10_original": false,
       "top10_experimental": false,
       "top10_leading": false,
-      "actual_price": 13200.0,
-      "actual_pct_change": -1.86,
+      "actual_price": 12980.0,
+      "actual_pct_change": -3.49,
       "actual_direction": "down",
       "correct": true,
       "graded_date": "2026-09-14"
@@ -579160,10 +579160,10 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Teva Pharmaceutical Industries Limited",
-      "actual_price": 11540.0,
-      "actual_pct_change": 3.68,
-      "actual_direction": "up",
-      "correct": true,
+      "actual_price": 11120.0,
+      "actual_pct_change": -0.09,
+      "actual_direction": "down",
+      "correct": false,
       "graded_date": "2026-09-14"
     },
     {
@@ -580490,8 +580490,8 @@
       "top10_experimental": false,
       "top10_leading": false,
       "company_name": "Tower Semiconductor Ltd.",
-      "actual_price": 61080.0,
-      "actual_pct_change": -8.63,
+      "actual_price": 64190.0,
+      "actual_pct_change": -3.98,
       "actual_direction": "down",
       "correct": false,
       "graded_date": "2026-09-14"
@@ -633570,8 +633570,8 @@
     "top10_up_total_since_formula_change": 79,
     "formula_live_since": "2026-09-01",
     "us": 47.6,
-    "il": 52.1,
-    "updated_at": "2026-09-14T20:38:02.219333+00:00"
+    "il": 52.9,
+    "updated_at": "2026-09-14T22:44:15.347591+00:00"
   },
   "market_regime": {
     "bullish": true,
@@ -635788,7 +635788,7 @@
     "annual_return_pct": 5.28
   },
   "formula_comparison": {
-    "updated_at": "2026-09-14T20:38:02.225953+00:00",
+    "updated_at": "2026-09-14T22:44:15.349957+00:00",
     "note": "הבחירה האמיתית היא עירוב בין שתי הבסיסיות (עוצמת חיזוי טהורה מול יחס סיכוי/סיכון טהור), במשקל נוכחי alpha=0.90 לטובת יחס סיכוי/סיכון. העירוב מכויל אוטומטית פעם בחודש בערך, בצעדים מוגבלים ורק כשיש הבדל מובהק וגדול מספיק - לא בתגובה לתנודה של יום-יומיים.",
     "since_change": {
       "live_since": "2026-09-01",
@@ -635842,7 +635842,7 @@
         "name": "Palantir",
         "ok": true,
         "price_native": 173.31,
-        "value_ils": 10019.28,
+        "value_ils": 10012.36,
         "pct_change": 3.64,
         "weight_pct": 10.2
       },
@@ -635851,7 +635851,7 @@
         "name": "Alphabet",
         "ok": true,
         "price_native": 349.39,
-        "value_ils": 15946.34,
+        "value_ils": 15935.33,
         "pct_change": 3.22,
         "weight_pct": 16.2
       },
@@ -635860,7 +635860,7 @@
         "name": "Zevra Therapeutics",
         "ok": true,
         "price_native": 12.05,
-        "value_ils": 24748.56,
+        "value_ils": 24731.48,
         "pct_change": 0.33,
         "weight_pct": 25.1
       },
@@ -635869,38 +635869,38 @@
         "name": "Industrial Select Sector SPDR",
         "ok": true,
         "price_native": 169.93,
-        "value_ils": 15511.38,
+        "value_ils": 15500.67,
         "pct_change": -1.42,
-        "weight_pct": 15.7
+        "weight_pct": 15.8
       },
       {
         "ticker": "FTAL.TA",
         "name": "פתאל החזקות",
         "ok": true,
-        "price_native": 70650.0,
-        "value_ils": 14130.0,
-        "pct_change": 1.41,
-        "weight_pct": 14.3
+        "price_native": 69670.0,
+        "value_ils": 13934.0,
+        "pct_change": 0.0,
+        "weight_pct": 14.2
       },
       {
         "ticker": "AZRG.TA",
         "name": "עזריאלי קבוצה",
         "ok": true,
-        "price_native": 38710.0,
-        "value_ils": 18193.7,
-        "pct_change": -0.59,
-        "weight_pct": 18.5
+        "price_native": 38940.0,
+        "value_ils": 18301.8,
+        "pct_change": 0.0,
+        "weight_pct": 18.6
       }
     ],
-    "total_value_ils": 98549.26,
-    "weighted_return_pct": 0.844,
-    "usdils_rate": 3.0427000522613525,
-    "updated_at": "2026-09-14T20:37:04.438613+00:00"
+    "total_value_ils": 98415.64,
+    "weighted_return_pct": 0.751,
+    "usdils_rate": 3.040600061416626,
+    "updated_at": "2026-09-14T22:43:05.481189+00:00"
   },
   "my_portfolio_sim": {
     "value": 98.16067889044487,
     "pending_date": "2026-09-14",
-    "pending_return_pct": 0.844,
+    "pending_return_pct": 0.751,
     "daily_log": [
       {
         "date": "2026-08-26",
@@ -636442,7 +636442,7 @@
     "symbol": "^TA125.TA",
     "start_value": 100000,
     "start_date": "2026-08-21",
-    "value": 101640.15,
+    "value": 101524.36,
     "daily_log": [
       {
         "date": "2026-08-21",
@@ -636503,16 +636503,12 @@
       {
         "date": "2026-09-10",
         "value_end": 101524.36
-      },
-      {
-        "date": "2026-09-14",
-        "value_end": 101640.15
       }
     ],
-    "total_return_pct": 1.64
+    "total_return_pct": 1.52
   },
   "benchmark_comparison": {
-    "updated_at": "2026-09-14T20:38:02.352243+00:00",
+    "updated_at": "2026-09-14T22:44:15.534286+00:00",
     "since_date": "2026-08-21",
     "since_formula_change": "2026-09-01",
     "entries": {
@@ -636542,11 +636538,11 @@
       },
       "index_sim_ta125": {
         "label": "מדד ת\"א 125",
-        "value": 101640.15,
-        "total_return_pct": 1.64,
+        "value": 101524.36,
+        "total_return_pct": 1.52,
         "max_drawdown_pct": -2.57,
-        "volatility_pct": 0.85,
-        "return_since_formula_change_pct": 1.02
+        "volatility_pct": 0.88,
+        "return_since_formula_change_pct": 0.91
       }
     }
   },
@@ -637882,7 +637878,7 @@
     ]
   },
   "last_run_status": {
-    "checked_at": "2026-09-14T20:38:02.355951+00:00",
+    "checked_at": "2026-09-14T22:44:15.536848+00:00",
     "traded_today": true,
     "backend_version": "5.4.4"
   },
