@@ -1,40 +1,4 @@
 {
-  "ticker": "ZVRA",
-  "predicted_direction": "up",
-  "raw_score": 5.75,
-  "overall_score": 55.3,
-  "components": {
-    "original": 57.5,
-    "risk_reward": 6.1,
-    "leading_adjusted": 57.5,
-    "analyst": 100
-  },
-  "excluded_from_blend": [],
-  "price": 12.010000228881836,
-  "support": 11.56,
-  "resistance": 12.13,
-  "analyst_count": 9,
-  "sector": "Healthcare",
-  "short_pct": 9.83,
-  "rs_rating": null,
-  "trend_template": {
-    "criteria_met": 7,
-    "criteria_total": 7,
-    "passes": true,
-    "multiplier": 1.0
-  },
-  "vcp": {
-    "vcp_detected": false,
-    "contractions": 8
-  },
-  "earnings": {
-    "date": "2026-11-04",
-    "days_away": 51
-  },
-  "checked_at": "2026-09-14T05:11:46.061311+00:00",
-  "price_as_of_date": "2026-09-11",
-  "market_status": {
-    "market": "ארה\"ב (US)",
-    "is_trading_day": true
-  }
+  "ticker": "SAE",
+  "error": "אין מספיק היסטוריית מחיר לניתוח (טיקר חדש/לא סחיר?)"
 }
