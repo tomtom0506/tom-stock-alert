@@ -10,7 +10,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write   # v5.5.0: the script now writes/commits qa_outliers_log.json, qa_daily_log.json, qa_conclusions.md
 
 jobs:
   qa-check:
@@ -32,3 +32,11 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python daily_qa_check.py
+
+      - name: Commit QA log updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add qa_outliers_log.json qa_daily_log.json qa_conclusions.md
+          git diff --staged --quiet || git commit -m "QA log update ($(date -u +%Y-%m-%d))"
+          git push
