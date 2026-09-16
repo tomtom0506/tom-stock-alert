@@ -605,11 +605,13 @@
       <div id="starredList"></div>
     </div>
     <div id="cryptoExposedSection" class="hidden">
-      <div class="section-title">₿ מניות חשופות-קריפטו</div>
+      <div class="section-title" id="cryptoExposedToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+        ₿ מניות חשופות-קריפטו <span id="cryptoExposedArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
+      </div>
       <p style="font-size:11.5px; color:var(--text-faint); margin:0 0 8px;">
         יקום קבוע (COIN, MSTR, MARA, RIOT, CLSK) - אותה נוסחה בדיוק כמו Top10, לא חלק מ-Top10 הרשמי הנמדד.
       </p>
-      <div id="cryptoExposedList"></div>
+      <div class="predictions-panel hidden" id="cryptoExposedPanel"><div id="cryptoExposedList"></div></div>
     </div>
     <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
@@ -1088,6 +1090,7 @@ setupCollapsibleToggle("myPortfolioToggle", "myPortfolioArrow", "myPortfolioPane
 setupCollapsibleToggle("formulaComparisonToggle", "formulaComparisonArrow", "formulaComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("benchmarkComparisonToggle", "benchmarkComparisonArrow", "benchmarkComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("predictionsToggle", "predictionsArrow", "predictionsListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
+setupCollapsibleToggle("cryptoExposedToggle", "cryptoExposedArrow", "cryptoExposedPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("watchlistToggle", "watchlistArrow", "watchlistPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("buySellQueueToggle", "buySellQueueArrow", "buySellQueueBody", "▸ הצג", "▾ הסתר");
 document.getElementById("changelogCloseBtn").addEventListener("click", () => {
