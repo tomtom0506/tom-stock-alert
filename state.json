@@ -1,6 +1,6 @@
 {
   "AAPL_above_200": true,
-  "GOOGL_below_345": false,
+  "GOOGL_below_345": true,
   "GOOGL_above_350": false,
   "SPCX_above_115": true,
   "PLTR_above_163": true,
@@ -933,5 +933,7 @@
   "US_AXTI_bigmove_2026-09-16": true,
   "US_WOR_bigmove_2026-09-16": true,
   "US_JBHT_bigmove_2026-09-16": true,
-  "US_PLSE_bigmove_2026-09-16": true
+  "US_PLSE_bigmove_2026-09-16": true,
+  "US_ARQT_bigmove_2026-09-16": true,
+  "US_BULL_bigmove_2026-09-16": true
 }
