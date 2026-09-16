@@ -15,12 +15,22 @@ Top10/grading/monthly-portfolio for ALL tickers including .TA - see that
 function's docstring for why), so this script must never second-guess it
 with a separate calendar of its own.
 
-No new persisted state file is introduced. Every check either reads
-today's data directly, or - for "did this change since yesterday" checks
-(stagnation, accuracy trend) - reads the relevant file's own git history
-via `git show`/`git log`, since the repo is committed to daily by the
-existing workflows anyway. This keeps the script fully read-only with
-respect to the app's own data.
+Most checks read today's data directly, or - for "did this change since
+yesterday" checks (stagnation, accuracy trend) - read the relevant file's
+own git history via `git show`/`git log`, since the repo is committed to
+daily by the existing workflows anyway.
+
+Since v5.5.0 this script ALSO writes three small accumulating files (the
+workflow now commits them back - see daily_qa_check.yml): qa_outliers_log
+(every data_suspect ticker ever flagged, for audit), qa_daily_log (one
+enriched record per trading day - accuracy, market regime, actual index
+return, suspect count), and qa_conclusions.md (a human-readable,
+always-current breakdown of accuracy conditioned on market state,
+regenerated fully from qa_daily_log every run, with a minimum-sample
+guard so a small/skewed window never gets reported as a firm conclusion -
+this is what a check-in conversation reads, not the daily Telegram
+message). Everything about the app's OWN data (predictions.json,
+current_prices.json, the code files) is still read-only.
 """
 import json
 import py_compile
@@ -29,13 +39,18 @@ from datetime import date
 
 from stock_alerts import (
     BASE_DIR, CURRENT_PRICES_FILE, PREDICTIONS_FILE,
-    load_json, send_telegram_message, is_market_trading_day,
+    load_json, save_json, send_telegram_message, is_market_trading_day,
 )
 
 STAGNATION_PRICE_MATCH_THRESHOLD = 0.70  # 70%+ tickers unchanged from prior snapshot -> suspicious
 ACCURACY_LOW_THRESHOLD = 40.0
 ACCURACY_LOW_STREAK_DAYS = 3
 ACCURACY_ROLLING_WINDOW = 5
+MIN_SAMPLES_FOR_CONCLUSION = 5  # don't report a conditional-accuracy bucket until it has at least this many days
+
+QA_OUTLIERS_LOG = BASE_DIR / "qa_outliers_log.json"
+QA_DAILY_LOG = BASE_DIR / "qa_daily_log.json"
+QA_CONCLUSIONS_FILE = BASE_DIR / "qa_conclusions.md"
 
 
 def git_show(path_in_repo, rev):
@@ -200,6 +215,112 @@ def check_accuracy_streak(store, issues):
             )
 
 
+def check_data_suspect_flags(store, today_str, outliers_section):
+    """Surfaces today's data_suspect tickers (see compute_technical_factors
+    in stock_alerts.py, added v5.5.0 after the NFE incident) prominently in
+    the Telegram message, and appends each to the cumulative outliers log
+    so a repeating pattern (same ticker, same kind of event) is visible
+    over time instead of each flag disappearing after one day's message."""
+    todays = [e for e in store.get("history", []) if e["date"] == today_str]
+    flagged = [e for e in todays if e.get("data_suspect")]
+    if not flagged:
+        return
+
+    for e in flagged:
+        outliers_section.append(
+            f"{e['ticker']}: {e.get('data_suspect_reason') or 'תנועת מחיר קיצונית לא מוסברת'} "
+            f"- הוצא אוטומטית מ-Top10/תחזיות חזקות."
+        )
+
+    log = load_json(QA_OUTLIERS_LOG, [])
+    existing_keys = {(rec.get("date"), rec.get("ticker")) for rec in log}
+    for e in flagged:
+        key = (today_str, e["ticker"])
+        if key in existing_keys:
+            continue
+        log.append({
+            "date": today_str,
+            "ticker": e["ticker"],
+            "reason": e.get("data_suspect_reason"),
+        })
+    save_json(QA_OUTLIERS_LOG, log)
+
+
+def record_daily_log(store, today_str, prices_payload):
+    """Appends one enriched record for today to qa_daily_log.json - the
+    accumulating evidence base generate_conclusions() reads from. Skips if
+    today's record already exists (idempotent - a workflow_dispatch re-run
+    on the same day shouldn't duplicate the day's entry)."""
+    log = load_json(QA_DAILY_LOG, [])
+    if any(rec.get("date") == today_str for rec in log):
+        return log  # already recorded today, nothing to do
+
+    acc = store.get("accuracy") or {}
+    regime = store.get("market_regime") or {}
+    indices = (prices_payload or {}).get("indices") or {}
+    todays = [e for e in store.get("history", []) if e["date"] == today_str]
+
+    record = {
+        "date": today_str,
+        "market_regime_bullish": regime.get("bullish"),
+        "sp500_pct_change": (indices.get("sp500") or {}).get("pct_change"),
+        "ta125_pct_change": (indices.get("ta125") or {}).get("pct_change"),
+        "strong_daily_accuracy": acc.get("top10_accuracy_daily"),
+        "data_suspect_count": sum(1 for e in todays if e.get("data_suspect")),
+    }
+    log.append(record)
+    save_json(QA_DAILY_LOG, log)
+    return log
+
+
+def generate_conclusions(daily_log):
+    """Regenerates qa_conclusions.md FROM SCRATCH every run, from the full
+    accumulated qa_daily_log - always reflects all evidence gathered so
+    far, not just today's. Each bucket is reported only once it has at
+    least MIN_SAMPLES_FOR_CONCLUSION days, specifically so a conclusion
+    like the "4%/25" one Tomer flagged (a small, skewed recent window)
+    never gets presented here as if it were a firm, statistically
+    meaningful finding."""
+
+    def bucket_avg(records, key_filter):
+        vals = [r["strong_daily_accuracy"] for r in records if key_filter(r) and r.get("strong_daily_accuracy") is not None]
+        return (round(sum(vals) / len(vals), 1) if vals else None), len(vals)
+
+    lines = [
+        "# יומן מסקנות - tom-stock-alert",
+        "",
+        f"מעודכן אוטומטית מכל בדיקת QA (מחזיק {len(daily_log)} ימי מסחר שנרשמו עד כה). "
+        f"בקטגוריה מוצג מסקנה רק מ-{MIN_SAMPLES_FOR_CONCLUSION} ימים ומעלה - פחות מזה מוצג כ'אין מספיק נתונים'.",
+        "",
+        "## דיוק מותנה מצב-שוק (תג שורי/דובי)",
+    ]
+    for label, filt in (
+        ("ימים שהתג היה שורי", lambda r: r.get("market_regime_bullish") is True),
+        ("ימים שהתג היה דובי", lambda r: r.get("market_regime_bullish") is False),
+    ):
+        avg, n = bucket_avg(daily_log, filt)
+        if n >= MIN_SAMPLES_FOR_CONCLUSION:
+            lines.append(f"- **{label}**: דיוק ממוצע {avg}% (מבוסס {n} ימים)")
+        else:
+            lines.append(f"- {label}: אין מספיק נתונים עדיין ({n}/{MIN_SAMPLES_FOR_CONCLUSION} ימים)")
+
+    lines += ["", "## דיוק מותנה תשואת מדד בפועל (S&P 500 אותו יום)"]
+    for label, filt in (
+        ("ימים שהמדד עלה בפועל", lambda r: (r.get("sp500_pct_change") or 0) > 0),
+        ("ימים שהמדד ירד בפועל", lambda r: (r.get("sp500_pct_change") or 0) < 0),
+    ):
+        avg, n = bucket_avg(daily_log, filt)
+        if n >= MIN_SAMPLES_FOR_CONCLUSION:
+            lines.append(f"- **{label}**: דיוק ממוצע {avg}% (מבוסס {n} ימים)")
+        else:
+            lines.append(f"- {label}: אין מספיק נתונים עדיין ({n}/{MIN_SAMPLES_FOR_CONCLUSION} ימים)")
+
+    total_suspect = sum(r.get("data_suspect_count") or 0 for r in daily_log)
+    lines += ["", "## חריגות נתונים", f"סה\"כ {total_suspect} סימוני 'נתון חשוד' מאז שהמנגנון הופעל (ראה qa_outliers_log.json לפירוט מלא)."]
+
+    QA_CONCLUSIONS_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main():
     today_str = date.today().isoformat()
 
@@ -209,9 +330,10 @@ def main():
         return
 
     store = load_json(PREDICTIONS_FILE, {})
-    prices_data = load_json(CURRENT_PRICES_FILE, {}).get("prices", {})
+    prices_payload = load_json(CURRENT_PRICES_FILE, {})
+    prices_data = prices_payload.get("prices", {})
 
-    issues, info = [], []
+    issues, info, outliers = [], [], []
 
     check_engine_ran_today(store, today_str, issues, info)
     check_duplicates(store, today_str, issues)
@@ -222,6 +344,10 @@ def main():
     check_syntax(issues)
     check_stagnation(prices_data, today_str, issues, info)
     check_accuracy_streak(store, issues)
+    check_data_suspect_flags(store, today_str, outliers)
+
+    daily_log = record_daily_log(store, today_str, prices_payload)
+    generate_conclusions(daily_log)
 
     if issues:
         header = f"⚠️ בדיקת QA יומית ({today_str}) - נמצאו בעיות:"
@@ -229,6 +355,9 @@ def main():
     else:
         header = f"✅ בדיקת QA יומית ({today_str}) - הכל תקין."
         body = "\n".join(f"• {i}" for i in info)
+
+    if outliers:
+        body += "\n\n🔎 חריגות נתונים שסוננו אוטומטית:\n" + "\n".join(f"• {o}" for o in outliers)
 
     msg = header + (("\n" + body) if body else "")
     send_telegram_message(msg)

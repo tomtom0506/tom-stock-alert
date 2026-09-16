@@ -450,6 +450,9 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
         <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">₿ מניות חשופות-קריפטו</p>
+        <p>יקום מחקר קבוע - COIN, MSTR, MARA, RIOT, CLSK - מניות רגילות עם חשיפה/קורלציה גבוהה לביטקוין/קריפטו, נבדקות באותה נוסחה בדיוק כמו כל מניה אחרת (לא קריפטו ישיר). הסקשן מוצג רק אם יש להן ניתוח מהיום, עם תג כתום ₿ כדי להבדיל אותן בבירור מ-Top10 הרשמי - הן <b>לא</b> חלק ממנו ולא נכנסות למדידת ההצלחה.</p>
+
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏆 פירוט מלא ל-Top 10 ול"מניות שלי"</p>
         <p>כל אחת מ-10 מניות ה-Top 10, וכל מניה ב"המניות שלי", מציגה עכשיו תג ציון כולל לחיץ (🎯 1-100) - <b>אותה נוסחה בדיוק</b> שמחשבת את הציון ב"בדוק מניה" (לא נוסחה נפרדת), כך שאותו טיקר תמיד ייתן אותו ציון בשני המקומות. לחיצה על התג פותחת את אותו פירוט מלא שיש ב"בדוק מניה" - כולל מגמת Minervini, RS Rating, ציון אנליסטים, VCP, ואזהרת דוח כספי קרוב. הציון מתעדכן <b>פעם ביום</b> כחלק מהריצה הרגילה - לא בזמן אמת, ולא לפי לחיצה. שאר המניות שנסרקות לא מקבלות את הפירוט הזה (חוץ ממגמת Minervini ו-RS Rating, שמחושבים לכולן ומשפיעים על הבחירה עצמה) - כדי לא להעמיס קריאות API מיותרות על כל השוק.</p>
 
@@ -600,6 +603,13 @@
     <div id="starredSection" class="hidden">
       <div class="section-title">⭐ מניות במעקב</div>
       <div id="starredList"></div>
+    </div>
+    <div id="cryptoExposedSection" class="hidden">
+      <div class="section-title">₿ מניות חשופות-קריפטו</div>
+      <p style="font-size:11.5px; color:var(--text-faint); margin:0 0 8px;">
+        יקום קבוע (COIN, MSTR, MARA, RIOT, CLSK) - אותה נוסחה בדיוק כמו Top10, לא חלק מ-Top10 הרשמי הנמדד.
+      </p>
+      <div id="cryptoExposedList"></div>
     </div>
     <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
@@ -859,15 +869,22 @@
 </div>
 
 <script>
-const APP_VERSION = "5.4.4"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.5.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.5.0", date: "2026-09-16", items: [
+    "תוקן באג ישן מהבאקלוג: `run_predictions()` רץ עכשיו לפני `run_watchlist_alerts()` (במקום אחריו) - מתקן פער-מחזור שגרם להערכות חיות שגויות (0.00%) ביום שבו Top10 מתחלף, כי המחירים החיים נכתבו קודם מול ה-Top10 הישן.",
+    "סקשן חדש: '₿ מניות חשופות-קריפטו' - יקום קבוע (COIN, MSTR, MARA, RIOT, CLSK), אותה נוסחה בדיוק כמו Top10, עם תג כתום נפרד כדי שיהיה ברור שזו קטגוריה נבדלת ולא חלק מ-Top10 הרשמי הנמדד. לא קריפטו ישיר (BTC-USD וכו') - זה נדחה בכוונה: מסחר 24/7 בלי לוח יום-מסחר, בלי יקום אנליסטים/RS Rating - ארכיטקטורה שונה לגמרי מהשאר.",
+    "זיהוי נתונים חשודים (בעקבות מקרה NFE): מניה עם תנועה יומית קיצונית ולא הגיונית בהיסטוריית המחיר (מעל 200% ביום אחד - כמעט תמיד split הפוך/רה-ארגון חוב, לא מסחר אמיתי) מסומנת ומודרת אוטומטית מ-Top10/תחזיות חזקות, כדי שלא תיכנס עם ציון שמבוסס על נתונים מזוהמים. נשארת גלויה בהיסטוריה לצורך מעקב/ביקורת, רק לא זכאית לדירוג.",
+    "בדיקת ה-QA היומית הורחבה: מסמנת בטלגרם כל מניה שזוהתה כ'נתון חשוד' (הסעיף הקודם), שומרת יומן חריגות מצטבר, ואוספת רשומת נתונים יומית מועשרת (דיוק יומי, מצב תג שורי/דובי, תשואת מדד בפועל) - הבסיס ליומן מסקנות מצטבר שנבנה אוטומטית כל יום ומנתח דיוק לפי מצב שוק, עם הגנה מובנית נגד מסקנות ממדגם קטן מדי.",
+  ]},
   { version: "5.4.4", date: "2026-09-05", items: [
     "כל גרסה ב'מה חדש' מציגה עכשיו גם את התאריך שבו נבנתה.",
     "נוסף מעקב גרסת מנוע: כל רשומת Top10 מתויגת עכשיו עם מספר הגרסה (engine_version) שחישבה אותה בפועל, ושורת 'נתונים עודכנו לאחרונה' מציגה איזו גרסה חישבה את Top10 האחרון. זה פותר ישירות בעיה שגילינו בבדיקה עמוקה: לא היה אפשר לדעת בלי לנחש לפי אילו שדות קיימים/חסרים איזה קוד בדיוק רץ ביום נתון.",
+    "הוקמה תשתית ניטור נפרדת (לא חלק ממספור גרסת האפליקציה): `daily_qa_check.py` + workflow יומי, בודקת תקינות נתונים (רשומות כפולות, מחירים פסולים, שדות חסרים, סטגנציה בפיד מחירים, דיוק חלש מתמשך) ושולחת סיכום לטלגרם.",
   ]},
   { version: "5.4.3", date: "2026-09-05", items: [
     "תוקן: לחיצה על '🔄 עדכן ניתוח' בסוף שבוע/חג (כשאין מסחר) הייתה נשארת תקועה על 'מחכה לסיום' עד שנגמר הזמן, במקום להסביר מיד שאין מה לעדכן. עכשיו השרת שולח סימון מפורש ('אין מסחר היום') והאפליקציה מציגה אותו ישר.",
@@ -1409,7 +1426,7 @@ function sortPreds(preds, mode) {
   return arr;
 }
 
-function predictionCardHtml(p, isFirst) {
+function predictionCardHtml(p, isFirst, extraBadgeHtml = "") {
   const ticker = (p.ticker || "").trim();
   const starred = starredTickers.has(ticker);
   const info = currentPrices[ticker];
@@ -1436,7 +1453,7 @@ function predictionCardHtml(p, isFirst) {
           <div class="card-id">
             <div class="card-ticker mono">
               <button class="star-btn" data-action="toggle-star" data-ticker="${ticker}" title="${starred ? "הסר ממעקב" : "הוסף למעקב"}" style="margin-left:3px;">${starred ? "⭐" : "☆"}</button>
-              ${ticker}${p.strong ? '<span class="hot-badge">🔥 חם</span>' : ""}
+              ${ticker}${p.strong ? '<span class="hot-badge">🔥 חם</span>' : ""}${extraBadgeHtml}
             </div>
             ${nameHtml}
           </div>
@@ -1537,6 +1554,27 @@ function renderStarredSection() {
   }
   const sorted = [...starred].sort((a, b) => Math.abs(b.score) - Math.abs(a.score));
   list.innerHTML = sorted.map(p => predictionCardHtml(p)).join("");
+  attachStarEvents(list);
+  section.classList.remove("hidden");
+}
+
+// Fixed research universe for the "מניות חשופות-קריפטו" section (v5.5.0) -
+// same 5 tickers as crypto_exposed.json on the backend, scored by the exact
+// same formula as everything else. Shown regardless of the "strong" flag
+// (unlike allTodayPreds), since the point is to always see where these 5
+// stand, not only on days they happen to cross the strong threshold.
+const CRYPTO_EXPOSED_TICKERS = ["COIN", "MSTR", "MARA", "RIOT", "CLSK"];
+
+function renderCryptoExposedSection() {
+  const section = document.getElementById("cryptoExposedSection");
+  const list = document.getElementById("cryptoExposedList");
+  const items = CRYPTO_EXPOSED_TICKERS.map(t => latestPredictionsByTicker[t]).filter(Boolean);
+  if (!items.length) {
+    section.classList.add("hidden");
+    return;
+  }
+  const badge = `<span style="background:#1c2230; border:1px solid #f7931a66; color:#f7931a; border-radius:8px; padding:2px 7px; font-size:10px; margin-right:5px;">₿ חשוף-קריפטו</span>`;
+  list.innerHTML = items.map(p => predictionCardHtml(p, false, badge)).join("");
   attachStarEvents(list);
   section.classList.remove("hidden");
 }
@@ -2075,6 +2113,7 @@ async function loadPredictions() {
     renderDataFreshnessNote(data);
     if (rows.length) render(); // refresh watchlist cards with fresh prediction badges
 
+    renderCryptoExposedSection();
     renderPredictionsList();
     renderBuySellQueue(data);
     section.classList.remove("hidden");

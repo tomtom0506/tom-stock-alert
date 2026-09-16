@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.4.4"
+BACKEND_VERSION = "5.5.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -55,6 +55,12 @@ CURRENT_PRICES_FILE = BASE_DIR / "current_prices.json"
 PREDICTIONS_FILE = BASE_DIR / "predictions.json"
 STARRED_FILE = BASE_DIR / "starred.json"
 MY_PORTFOLIO_FILE = BASE_DIR / "my_portfolio.json"
+# Fixed research universe (item: "מניות חשופות-קריפטו") - regular equities
+# with heavy crypto exposure/correlation, scored by the exact same formula
+# as everything else. Deliberately NOT direct crypto (BTC-USD etc.) - see
+# v5.5.0 CHANGELOG for why that was rejected (24/7 trading, no trading-day
+# calendar, no analyst/RS-Rating universe - a different architecture).
+CRYPTO_EXPOSED_FILE = BASE_DIR / "crypto_exposed.json"
 
 SP500_CSV_URL = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
 
@@ -176,16 +182,16 @@ def get_market_indices():
     return result
 
 
-def build_extra_price_tickers(watchlist_tickers, curated_tickers, starred, monthly_tickers):
+def build_extra_price_tickers(watchlist_tickers, curated_tickers, starred, monthly_tickers, crypto_exposed=()):
     """Which tickers besides the watchlist need a live price fetched every
     15 min for the frontend's price/% line - Top10/forecast picks, starred
-    tickers, AND monthly-portfolio holdings. Pulled out as its own pure
-    function (no network, no I/O) specifically so a ticker source silently
-    missing from this set - like monthly_tickers was before this fix - is
-    something a unit test can actually catch, instead of only showing up
-    as a flat 0.0% in the app days later."""
+    tickers, monthly-portfolio holdings, AND the crypto-exposed-stocks
+    section (added v5.5.0 - same reasoning as monthly_tickers below: a
+    ticker source silently missing from this set only shows up as a flat
+    0.0% in the app days later, so it's listed explicitly here). Pulled out
+    as its own pure function (no network, no I/O) so this is unit-testable."""
     return [
-        t for t in dict.fromkeys(list(curated_tickers) + list(starred) + list(monthly_tickers))
+        t for t in dict.fromkeys(list(curated_tickers) + list(starred) + list(monthly_tickers) + list(crypto_exposed))
         if t not in watchlist_tickers
     ]
 
@@ -200,9 +206,12 @@ def run_watchlist_alerts(state, prediction_store=None):
     if prediction_store:
         curated_tickers = (prediction_store.get("top_picks") or {}).get("tickers", [])
         monthly_tickers = [h["ticker"] for h in (prediction_store.get("monthly_portfolio") or {}).get("holdings", [])]
+    crypto_exposed_tickers = load_json(CRYPTO_EXPOSED_FILE, [])
     # keeps the dynamic predictions list's price/% line fresh every 15 min,
     # same as the manual watchlist - without re-running the full daily engine
-    extra_tickers = build_extra_price_tickers(watchlist_tickers, curated_tickers, starred, monthly_tickers)
+    extra_tickers = build_extra_price_tickers(
+        watchlist_tickers, curated_tickers, starred, monthly_tickers, crypto_exposed_tickers
+    )
 
     current_prices = {}
     for item in watchlist:
@@ -856,6 +865,32 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
     if n < 60:
         return None
 
+    # Data-sanity check (added v5.5.0, after the NFE incident): a single-day
+    # move this extreme is essentially never a real trading day for an
+    # operating company - almost always a stock split, reverse split, or
+    # debt-restructuring recapitalization whose unadjusted price history got
+    # mixed with the pre-event prices. Left undetected, that discontinuity
+    # contaminates every rolling average/support-resistance calc below with
+    # garbage, which is exactly what let NFE score high enough for Top10 on
+    # a bogus ~3770% "move". Flag it here instead of silently scoring it;
+    # the actual exclusion from Top10/strong happens where breadth is built.
+    data_suspect = False
+    data_suspect_reason = None
+    daily_returns = closes.pct_change().dropna()
+    if not daily_returns.empty:
+        max_move = float(daily_returns.abs().max())
+        if max_move > 2.0:  # >200% in a single day
+            data_suspect = True
+            bad_date = daily_returns.abs().idxmax()
+            try:
+                bad_date_str = bad_date.strftime("%Y-%m-%d")
+            except Exception:
+                bad_date_str = str(bad_date)
+            data_suspect_reason = (
+                f"תנועה יומית קיצונית ({max_move * 100:.0f}%) ב-{bad_date_str} - "
+                f"כנראה split/פעולה קונצרנית, לא תנועת מסחר אמיתית"
+            )
+
     price = float(closes.iloc[-1])
     window = closes.iloc[-252:] if n >= 252 else closes
     year_high, year_low = float(window.max()), float(window.min())
@@ -913,7 +948,10 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
         "sma200": sma200,
         "sma200_rising": sma200_rising,
         "vol_ratio": vol_ratio,
+        "data_suspect": data_suspect,
     }
+    if data_suspect_reason:
+        factors["data_suspect_reason"] = data_suspect_reason
     factors["trend_template"] = compute_trend_template(
         price, sma50, sma150, sma200, sma200_rising, year_high, year_low
     )
@@ -1173,6 +1211,8 @@ def build_prediction_universe():
     for t in load_json(TA_TICKERS_FILE, []):
         tickers.add(t)
     for t in load_json(STARRED_FILE, []):
+        tickers.add(t)
+    for t in load_json(CRYPTO_EXPOSED_FILE, []):
         tickers.add(t)
     try:
         existing_store = load_json(PREDICTIONS_FILE, {})
@@ -2588,7 +2628,14 @@ def run_predictions(store):
     # useful to know, but not something that helps pick individual names,
     # so it's reported separately from the curated list below. ---
     today_entries = [e for e in store["history"] if e["date"] == today]
-    breadth = [e for e in today_entries if abs(e["score"]) >= PREDICTION_SCORE_THRESHOLD]
+    # data_suspect entries (v5.5.0, see compute_technical_factors) are kept
+    # in history for visibility/audit but never eligible for curated/Top10 -
+    # their score is computed from a contaminated price series (see NFE
+    # incident, 2026-09) so it can't be trusted for ranking.
+    breadth = [
+        e for e in today_entries
+        if abs(e["score"]) >= PREDICTION_SCORE_THRESHOLD and not e.get("data_suspect")
+    ]
     breadth_up = sum(1 for e in breadth if e["predicted"] == "up")
     breadth_down = len(breadth) - breadth_up
 
@@ -2866,14 +2913,15 @@ def main():
     prediction_store = load_prediction_store()
     ensure_formula_blend_initialized(prediction_store)
 
-    run_watchlist_alerts(state, prediction_store)
-
-    try:
-        update_my_portfolio(prediction_store)
-    except Exception as e:
-        print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
-
     if not is_market_trading_day():
+        # Still refresh watchlist/live prices for display on off days, but
+        # skip grading/new predictions - nothing else changed since is a
+        # simple early return, same as before.
+        run_watchlist_alerts(state, prediction_store)
+        try:
+            update_my_portfolio(prediction_store)
+        except Exception as e:
+            print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
         print("Market hasn't traded today yet (weekend/holiday/pre-open) - "
               "skipping mover alerts, grading, and new predictions.")
         # explicit, timestamped signal the frontend's "🔄 עדכן ניתוח" button
@@ -2921,6 +2969,19 @@ def main():
         # Never let a prediction-engine bug wipe out the rest of the run -
         # watchlist alerts and price data must still get saved below.
         print(f"Prediction engine failed, continuing without it: {e}")
+
+    # Watchlist/live-price refresh runs AFTER run_predictions now (backlog
+    # item 1 fix, 2026-09-16): current_prices.json and the live "% today"
+    # figures get written against TODAY's fresh Top10, not yesterday's
+    # stale picks - this was causing a one-cycle lag / bogus 0.00% whenever
+    # Top10 rotated. update_my_portfolio/manage_monthly_portfolio moved
+    # down with it to keep their relative order unchanged.
+    run_watchlist_alerts(state, prediction_store)
+
+    try:
+        update_my_portfolio(prediction_store)
+    except Exception as e:
+        print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
 
     try:
         today_entries_for_mp = [e for e in prediction_store["history"] if e["date"] == today_str]
