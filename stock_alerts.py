@@ -2673,7 +2673,8 @@ def run_predictions(store):
     # so this can never drift from what "בדוק מניה" would compute for the
     # same ticker on the same day. ---
     watchlist_tickers = {item["ticker"] for item in load_json(WATCHLIST_FILE, [])}
-    breakdown_tickers = real_top10_tickers | watchlist_tickers
+    crypto_exposed_tickers = set(load_json(CRYPTO_EXPOSED_FILE, []))
+    breakdown_tickers = real_top10_tickers | watchlist_tickers | crypto_exposed_tickers
     for entry in today_entries:
         if entry["ticker"] not in breakdown_tickers:
             continue
