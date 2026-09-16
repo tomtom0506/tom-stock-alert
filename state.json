@@ -1,6 +1,6 @@
 {
   "AAPL_above_200": true,
-  "GOOGL_below_345": true,
+  "GOOGL_below_345": false,
   "GOOGL_above_350": false,
   "SPCX_above_115": true,
   "PLTR_above_163": true,
@@ -916,5 +916,15 @@
   "US_TEM_bigmove_2026-09-15": true,
   "US_ARWR_bigmove_2026-09-15": true,
   "US_CRCL_bigmove_2026-09-15": true,
-  "US_COIN_bigmove_2026-09-15": true
+  "US_COIN_bigmove_2026-09-15": true,
+  "US_SWKS_bigmove_2026-09-16": true,
+  "US_TEM_bigmove_2026-09-16": true,
+  "US_ENVA_bigmove_2026-09-16": true,
+  "US_ALHC_bigmove_2026-09-16": true,
+  "US_ARWR_bigmove_2026-09-16": true,
+  "US_WING_bigmove_2026-09-16": true,
+  "US_CRCL_bigmove_2026-09-16": true,
+  "US_RML_bigmove_2026-09-16": true,
+  "US_BOOT_bigmove_2026-09-16": true,
+  "US_COIN_bigmove_2026-09-16": true
 }
