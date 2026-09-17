@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2026-09-17",
+    "market_regime_bullish": true,
+    "sp500_pct_change": -0.45,
+    "ta125_pct_change": 1.04,
+    "strong_daily_accuracy": 30.0,
+    "data_suspect_count": 1
+  }
+]
