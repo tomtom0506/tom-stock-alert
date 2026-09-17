@@ -1,40 +1,40 @@
 {
-  "ticker": "SAE.TA",
+  "ticker": "NIQ",
   "predicted_direction": "up",
-  "raw_score": 0.64,
-  "overall_score": 28.6,
+  "raw_score": 1.91,
+  "overall_score": 37.1,
   "components": {
-    "original": 6.4,
-    "risk_reward": 1.7,
-    "leading_adjusted": 6.4,
-    "analyst": 100.0
+    "original": 19.1,
+    "risk_reward": 26.1,
+    "leading_adjusted": 19.1,
+    "analyst": 83.9
   },
   "excluded_from_blend": [],
-  "price": 3685.0,
-  "support": 3100.71,
-  "resistance": 4065.96,
-  "analyst_count": 1,
-  "sector": "Consumer Defensive",
+  "price": 18.010000228881836,
+  "support": 17.65,
+  "resistance": 19.24,
+  "analyst_count": 13,
+  "sector": null,
   "short_pct": null,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 1,
+    "criteria_met": 6,
     "criteria_total": 7,
     "passes": false,
-    "multiplier": 0.657
+    "multiplier": 0.943
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 7
+    "contractions": 8
   },
   "earnings": {
-    "date": "2026-11-26",
-    "days_away": 70
+    "date": "2026-11-12",
+    "days_away": 56
   },
-  "checked_at": "2026-09-16T21:40:09.816403+00:00",
-  "price_as_of_date": "2026-09-15",
+  "checked_at": "2026-09-17T16:06:06.119115+00:00",
+  "price_as_of_date": "2026-09-17",
   "market_status": {
-    "market": "ת\"א (TASE)",
+    "market": "ארה\"ב (US)",
     "is_trading_day": true
   }
 }
