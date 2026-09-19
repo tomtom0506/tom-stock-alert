@@ -1,4 +1,41 @@
 {
-  "ticker": "770016",
-  "error": "לא הצלחתי למשוך נתוני מחיר עבור '770016'. אם זו מניה מבורסת תל-אביב, נסה להוסיף בעצמך את הסיומת .TA (למשל SAE.TA)."
+  "ticker": "FTAL.TA",
+  "predicted_direction": "down",
+  "raw_score": -1.68,
+  "overall_score": 17.8,
+  "components": {
+    "original": 16.8,
+    "risk_reward": 19.9,
+    "leading_adjusted": 16.8,
+    "analyst": null
+  },
+  "excluded_from_blend": [
+    "analyst"
+  ],
+  "price": 66800.0,
+  "support": 65810.0,
+  "resistance": 66860.0,
+  "analyst_count": null,
+  "sector": "Consumer Cyclical",
+  "short_pct": null,
+  "rs_rating": null,
+  "trend_template": {
+    "criteria_met": 4,
+    "criteria_total": 7,
+    "passes": false,
+    "multiplier": 0.829
+  },
+  "vcp": {
+    "vcp_detected": false,
+    "contractions": 5
+  },
+  "earnings": null,
+  "checked_at": "2026-09-19T21:35:40.603163+00:00",
+  "tase_fallback_used": true,
+  "original_input": "FTAL",
+  "price_as_of_date": "2026-09-18",
+  "market_status": {
+    "market": "ת\"א (TASE)",
+    "is_trading_day": false
+  }
 }
