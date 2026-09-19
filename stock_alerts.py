@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.5.0"
+BACKEND_VERSION = "5.6.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -896,6 +896,19 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
     year_high, year_low = float(window.max()), float(window.min())
     range_pos = ((price - year_low) / (year_high - year_low) * 100) if year_high > year_low else None
 
+    # Dual Momentum's "absolute momentum" leg (v5.6.0) - feeds ONLY the
+    # parallel/experimental compute_dual_momentum_lowvol_score below, never
+    # the real score above. True = this ticker's trailing ~12-month return
+    # (same window as year_high/year_low above) is below a constant
+    # risk-free proxy - the classic Dual Momentum signal to step aside from
+    # this name, per the offline VectorBT research this formula is from
+    # (research/vectorbt_regime_momentum_research.py).
+    mom_negative = None
+    mom_window = window.dropna()
+    if len(mom_window) >= 200 and mom_window.iloc[0] > 0:
+        trailing_return_pct = float((mom_window.iloc[-1] - mom_window.iloc[0]) / mom_window.iloc[0] * 100)
+        mom_negative = trailing_return_pct < DUAL_MOMENTUM_RISK_FREE_ANNUAL_PCT
+
     run_up_30d = None
     if n >= 22:
         run_up_30d = float((closes.iloc[-1] - closes.iloc[-22]) / closes.iloc[-22] * 100)
@@ -949,6 +962,7 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
         "sma200_rising": sma200_rising,
         "vol_ratio": vol_ratio,
         "data_suspect": data_suspect,
+        "mom_negative": mom_negative,
     }
     if data_suspect_reason:
         factors["data_suspect_reason"] = data_suspect_reason
@@ -1354,6 +1368,14 @@ def recompute_accuracy(store):
     top10_leading_graded = [e for e in graded if e.get("top10_leading")]
     top10_leading_up_graded = [e for e in top10_leading_graded if e.get("predicted") == "up"]
 
+    # EXPERIMENTAL comparison group D (v5.6.0, see compute_fast_rs_score).
+    top10_fast_rs_graded = [e for e in graded if e.get("top10_fast_rs")]
+    top10_fast_rs_up_graded = [e for e in top10_fast_rs_graded if e.get("predicted") == "up"]
+
+    # EXPERIMENTAL comparison group E (v5.6.0, see compute_dual_momentum_lowvol_score).
+    top10_dml_graded = [e for e in graded if e.get("top10_dual_momentum_lowvol")]
+    top10_dml_up_graded = [e for e in top10_dml_graded if e.get("predicted") == "up"]
+
     # DAILY (not cumulative) Top 10 accuracy - only the most recently graded
     # prediction-date's entries, so the headline tile reflects "how did
     # yesterday's Top 10 do", not an all-time average. The cumulative number
@@ -1407,6 +1429,16 @@ def recompute_accuracy(store):
         "top10_leading_total": len(top10_leading_graded),
         "top10_leading_up_accuracy": calc(top10_leading_up_graded),
         "top10_leading_up_total": len(top10_leading_up_graded),
+        "top10_fast_rs_accuracy": calc(top10_fast_rs_graded),
+        "top10_fast_rs_hits": sum(1 for e in top10_fast_rs_graded if e["correct"]),
+        "top10_fast_rs_total": len(top10_fast_rs_graded),
+        "top10_fast_rs_up_accuracy": calc(top10_fast_rs_up_graded),
+        "top10_fast_rs_up_total": len(top10_fast_rs_up_graded),
+        "top10_dual_momentum_lowvol_accuracy": calc(top10_dml_graded),
+        "top10_dual_momentum_lowvol_hits": sum(1 for e in top10_dml_graded if e["correct"]),
+        "top10_dual_momentum_lowvol_total": len(top10_dml_graded),
+        "top10_dual_momentum_lowvol_up_accuracy": calc(top10_dml_up_graded),
+        "top10_dual_momentum_lowvol_up_total": len(top10_dml_up_graded),
         "top10_accuracy_daily": calc(top10_graded_daily),
         "top10_daily_hits": sum(1 for e in top10_graded_daily if e["correct"]),
         "top10_daily_total": len(top10_graded_daily),
@@ -1845,6 +1877,17 @@ def build_formula_comparison(store):
                 "accuracy": acc.get("top10_leading_up_accuracy"), "total": acc.get("top10_leading_up_total"),
                 **sim_stats("portfolio_sim_leading"),
             },
+            {
+                "key": "fast_rs", "label": "ניסיונית - RS מהיר (מומנטום יחסי 20-30 יום)",
+                "accuracy": acc.get("top10_fast_rs_up_accuracy"), "total": acc.get("top10_fast_rs_up_total"),
+                **sim_stats("portfolio_sim_fast_rs"),
+            },
+            {
+                "key": "dual_momentum_lowvol", "label": "ניסיונית - Dual Momentum + Low-Vol (מחקר VectorBT)",
+                "accuracy": acc.get("top10_dual_momentum_lowvol_up_accuracy"),
+                "total": acc.get("top10_dual_momentum_lowvol_up_total"),
+                **sim_stats("portfolio_sim_dual_momentum_lowvol"),
+            },
         ],
     }
     return store["formula_comparison"]
@@ -2148,6 +2191,90 @@ def compute_leading_adjusted_score(entry):
     return score
 
 
+# --- v5.6.0 parallel-tracked experiments (see the offline VectorBT research
+# this is lifted from: research/vectorbt_regime_momentum_research.py).
+# Neither touches the real Top10 selection - both tracked exactly like the
+# existing top10_experimental/top10_leading comparison formulas above,
+# under their own top10_fast_rs/top10_dual_momentum_lowvol flags. ---
+DUAL_MOMENTUM_RISK_FREE_ANNUAL_PCT = 4.0  # simplified constant risk-free proxy (T-bill-ish)
+LOW_BETA_THRESHOLD = 0.8
+LOW_BETA_BONUS = 1.5   # same order of magnitude as the other +/- nudges in compute_prediction_score
+FAST_RS_SCALE = 0.01   # steeper than the existing slow-RS nudge inside compute_prediction_score
+                        # (0.03/point, additive) - this one multiplies, and its whole point is
+                        # to react fast, so tracked in parallel to see empirically if it's too much
+
+
+def compute_beta_vs_spy(closes, spy_closes):
+    """Rolling beta of this ticker vs SPY over the trailing window they
+    overlap on - feeds ONLY compute_dual_momentum_lowvol_score's Low-Vol
+    tilt below, never the real score. Deliberately computed off a SEPARATE
+    SPY download (get_spy_close_series_for_beta, called once per
+    run_predictions run) rather than sharing get_market_regime()'s own SPY
+    fetch, so this new experimental plumbing can never accidentally affect
+    the tested, already-live market-regime calculation."""
+    s = closes.pct_change().dropna()
+    m = spy_closes.pct_change().dropna()
+    joined = pd.concat([s, m], axis=1, join="inner")
+    if len(joined) < 60:
+        return None
+    joined.columns = ["stock", "mkt"]
+    var = joined["mkt"].var()
+    if not var or (isinstance(var, float) and var != var):  # NaN check without importing math here
+        return None
+    cov = joined["stock"].cov(joined["mkt"])
+    return float(cov / var)
+
+
+def get_spy_close_series_for_beta():
+    """A dedicated SPY download for compute_beta_vs_spy above - deliberately
+    separate from get_market_regime()'s own SPY download (see that
+    function's docstring reasoning) rather than sharing it."""
+    try:
+        data = yf.download("SPY", period=PRICE_HISTORY_PERIOD, progress=False, auto_adjust=True)
+        s = _flatten_close_series(data["Close"]).dropna()
+        return s if len(s) >= 60 else None
+    except Exception as e:
+        print(f"SPY download for beta calc failed: {e}")
+        return None
+
+
+def compute_fast_rs_score(entry):
+    """EXPERIMENTAL (comparison formula D - tracked in parallel exactly like
+    compute_risk_reward_score/compute_leading_adjusted_score, under its own
+    top10_fast_rs flag/accuracy/portfolio-sim - see recompute_accuracy,
+    build_formula_comparison, main). Same base conviction score, but
+    weighted by fast_rs_rating - a ~20-30 trading day relative-strength
+    percentile (see run_predictions) instead of the existing RS Rating's
+    6-month one. The bet: rotate into whatever's leading RIGHT NOW faster
+    than the slow RS Rating or the SMA50/200 regime tag can react."""
+    score = abs(entry.get("score", 0))
+    fast_rs = entry.get("fast_rs_rating")
+    if fast_rs is not None:
+        score *= max(0.0, 1 + (fast_rs - 50) * FAST_RS_SCALE)
+    return score
+
+
+def compute_dual_momentum_lowvol_score(entry, market_regime):
+    """EXPERIMENTAL (comparison formula E - same tracking pattern as above,
+    under top10_dual_momentum_lowvol). Two independent pieces, both lifted
+    from the offline VectorBT research that motivated them, kept here as a
+    BINARY GATE plus a REGIME-GATED TILT rather than blended at the rank
+    level - deliberately, per that research's design:
+      - absolute momentum negative (mom_negative, see compute_technical_
+        factors) on a 'predicted up' entry excludes it from this formula's
+        Top10 entirely
+      - a low-beta bonus (compute_beta_vs_spy) only applies while the
+        existing SMA50/200 regime tag is bearish - never during a bullish
+        regime."""
+    if entry.get("predicted") == "up" and entry.get("mom_negative") is True:
+        return 0.0
+    score = abs(entry.get("score", 0))
+    beta = entry.get("beta_vs_spy")
+    if market_regime.get("bullish") is False and beta is not None and beta < LOW_BETA_THRESHOLD:
+        score += LOW_BETA_BONUS
+    return score
+
+
 MAX_PICKS_PER_SECTOR = 5  # 50% of a 10-pick list - keeps the experiment from concentrating in one sector
 
 # --- real Top10 formula blend (see calibrate_formula_blend) ---
@@ -2317,16 +2444,45 @@ def analyze_single_ticker(ticker):
     """Entry point for check_stock.py (the on-demand 'בדוק מניה' workflow).
     Downloads fresh data for just this one ticker - independent of the
     daily universe scan - and runs it through compute_single_ticker_score."""
-    ticker = ticker.strip().upper()
-    try:
-        data = yf.download(tickers=ticker, period=PRICE_HISTORY_PERIOD,
+    ticker_input = ticker.strip().upper()
+    ticker = ticker_input
+    tase_fallback_used = False
+
+    def _fetch(tk):
+        data = yf.download(tickers=tk, period=PRICE_HISTORY_PERIOD,
                             group_by="ticker", threads=False, progress=False, auto_adjust=True)
-        closes = _flatten_close_series(data["Close"] if "Close" in data else data[ticker]["Close"])
-        volumes = _flatten_close_series(data["Volume"] if "Volume" in data else data[ticker]["Volume"])
-        highs = _flatten_close_series(data["High"] if "High" in data else data[ticker]["High"])
-        lows = _flatten_close_series(data["Low"] if "Low" in data else data[ticker]["Low"])
-    except Exception as e:
-        return {"ticker": ticker, "error": f"לא הצלחתי למשוך נתוני מחיר: {e}"}
+        c = _flatten_close_series(data["Close"] if "Close" in data else data[tk]["Close"]).dropna()
+        if c.empty:
+            raise ValueError("no price data returned")
+        v = _flatten_close_series(data["Volume"] if "Volume" in data else data[tk]["Volume"])
+        h = _flatten_close_series(data["High"] if "High" in data else data[tk]["High"])
+        l = _flatten_close_series(data["Low"] if "Low" in data else data[tk]["Low"])
+        return c, v, h, l
+
+    try:
+        closes, volumes, highs, lows = _fetch(ticker)
+    except Exception as first_error:
+        # v5.6.0: a bare TASE ticker (e.g. "SAE" for Shufersal) fails here
+        # silently, because Yahoo Finance needs the ".TA" suffix. Before
+        # giving up, retry once with ".TA" appended - covers the common
+        # case without requiring the user to already know Yahoo's naming
+        # quirk. Only attempted when the input doesn't already end in .TA.
+        if not ticker.endswith(".TA"):
+            try:
+                ta_ticker = ticker + ".TA"
+                closes, volumes, highs, lows = _fetch(ta_ticker)
+                ticker = ta_ticker
+                tase_fallback_used = True
+            except Exception:
+                return {
+                    "ticker": ticker_input,
+                    "error": (
+                        f"לא הצלחתי למשוך נתוני מחיר עבור '{ticker_input}'. "
+                        f"אם זו מניה מבורסת תל-אביב, נסה להוסיף בעצמך את הסיומת .TA (למשל SAE.TA)."
+                    ),
+                }
+        else:
+            return {"ticker": ticker_input, "error": f"לא הצלחתי למשוך נתוני מחיר: {first_error}"}
 
     tf = compute_technical_factors(closes, volumes, highs, lows)
     if not tf:
@@ -2338,6 +2494,11 @@ def analyze_single_ticker(ticker):
     result = compute_single_ticker_score(ticker, tf, fund, market_regime, rs_reference=rs_ref)
     result["earnings"] = get_upcoming_earnings_date(ticker)
     result["checked_at"] = datetime.now(timezone.utc).isoformat()
+    if tase_fallback_used:
+        # v5.6.0: let the frontend tell the user "SAE not found, showing SAE.TA"
+        # instead of silently swapping tickers with no explanation.
+        result["tase_fallback_used"] = True
+        result["original_input"] = ticker_input
 
     # market-status awareness (item: "נתונים אמיתיים ונכונים") - which
     # date does this price actually reflect, and is that market even open
@@ -2508,6 +2669,7 @@ def run_predictions(store):
     print(f"Prediction universe: {len(universe)} tickers")
     market_regime = get_market_regime()
     print(f"Market regime: {market_regime}")
+    spy_close_for_beta = get_spy_close_series_for_beta()  # v5.6.0, see compute_beta_vs_spy
 
     technical = {}
     chart_data_by_ticker = {}
@@ -2535,6 +2697,8 @@ def run_predictions(store):
             try:
                 tf = compute_technical_factors(closes, volumes, highs, lows)
                 if tf:
+                    if spy_close_for_beta is not None:
+                        tf["beta_vs_spy"] = compute_beta_vs_spy(closes, spy_close_for_beta)
                     technical[symbol] = tf
                     chart_data_by_ticker[symbol] = build_chart_payload(closes.dropna(), tf)
             except Exception as e:
@@ -2562,6 +2726,18 @@ def run_predictions(store):
             "performances": [p[1] for p in perf_pairs],
         }
     print(f"RS Rating attached for {len(perf_pairs)} tickers")
+
+    # fast_rs_rating (v5.6.0): same idea as RS Rating above, but over a
+    # ~20-30 trading day window (run_up_30d) instead of 6 months - "who's
+    # leading right now". Feeds compute_fast_rs_score's parallel-tracked
+    # comparison formula only - never the real Top10 selection.
+    fast_perf_pairs = [(s, tf["run_up_30d"]) for s, tf in technical.items() if tf.get("run_up_30d") is not None]
+    if fast_perf_pairs:
+        fast_ranked = sorted(fast_perf_pairs, key=lambda p: p[1])
+        fast_total = len(fast_ranked)
+        for rank, (symbol, _) in enumerate(fast_ranked):
+            technical[symbol]["fast_rs_rating"] = round(rank / max(fast_total - 1, 1) * 100, 1)
+    print(f"Fast RS Rating attached for {len(fast_perf_pairs)} tickers")
 
     # stage 1: cheap technical-only score to decide who's worth the slow .info() call
     prelim_scores = {}
@@ -2777,6 +2953,24 @@ def run_predictions(store):
     for entry in today_entries:
         entry["top10_leading"] = entry["ticker"] in leading_tickers
 
+    # --- EXPERIMENT D (v5.6.0, parallel, doesn't touch the real picks): same
+    # breadth pool, ranked by short-term (~20-30d) relative strength instead
+    # of the existing 6-month RS Rating - see compute_fast_rs_score. ---
+    fast_rs_top10 = select_diversified_top10(breadth, compute_fast_rs_score)
+    fast_rs_tickers = {e["ticker"] for e in fast_rs_top10}
+    for entry in today_entries:
+        entry["top10_fast_rs"] = entry["ticker"] in fast_rs_tickers
+
+    # --- EXPERIMENT E (v5.6.0, parallel, doesn't touch the real picks): Dual
+    # Momentum binary gate + Low-Vol tilt gated to a bearish regime - see
+    # compute_dual_momentum_lowvol_score and the VectorBT research it's from. ---
+    dual_mom_lowvol_top10 = select_diversified_top10(
+        breadth, lambda e: compute_dual_momentum_lowvol_score(e, market_regime),
+    )
+    dual_mom_lowvol_tickers = {e["ticker"] for e in dual_mom_lowvol_top10}
+    for entry in today_entries:
+        entry["top10_dual_momentum_lowvol"] = entry["ticker"] in dual_mom_lowvol_tickers
+
     for entry in today_entries:
         ticker = entry["ticker"]
         if ticker in chart_eligible and ticker in chart_data_by_ticker:
@@ -2950,6 +3144,8 @@ def main():
         update_portfolio_simulation(prediction_store, "top10_experimental", "portfolio_sim_experimental")
         update_portfolio_simulation(prediction_store, "top10_leading", "portfolio_sim_leading")
         update_portfolio_simulation(prediction_store, "top10_original", "portfolio_sim_original")
+        update_portfolio_simulation(prediction_store, "top10_fast_rs", "portfolio_sim_fast_rs")
+        update_portfolio_simulation(prediction_store, "top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 
