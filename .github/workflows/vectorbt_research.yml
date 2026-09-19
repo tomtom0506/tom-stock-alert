@@ -1,0 +1,48 @@
+name: מחקר VectorBT - Dual Momentum + Low-Vol (אופליין)
+
+# הפעלה ידנית בלבד - workflow_dispatch, בלי cron, בלי טריגר אוטומטי משום סוג.
+# לא נוגע בשום קובץ בשימוש בפרודקשן (predictions.json, state.json וכו') -
+# רק מוריד נתונים היסטוריים, מריץ באקטסט, ושומר תוצאות כ-artifact להורדה.
+on:
+  workflow_dispatch:
+    inputs:
+      lookback_years:
+        description: "כמה שנות היסטוריה להוריד (ברירת מחדל 8)"
+        required: false
+        default: "8"
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy yfinance requests
+
+      - name: Override lookback years (if provided)
+        if: ${{ github.event.inputs.lookback_years != '' }}
+        run: |
+          sed -i "s/^LOOKBACK_YEARS = .*/LOOKBACK_YEARS = ${{ github.event.inputs.lookback_years }}/" research/vectorbt_regime_momentum_research.py
+
+      - name: Run research (offline, read-only against live data)
+        run: python research/vectorbt_regime_momentum_research.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: vectorbt-research-results
+          path: research/output/
+          retention-days: 30
