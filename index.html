@@ -871,12 +871,17 @@
 </div>
 
 <script>
-const APP_VERSION = "5.5.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.6.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "5.6.0", date: "2026-09-19", items: [
+    "תג ❌ 'לא מומלץ לרכישה כרגע' - מוצג אוטומטית בכל מקום שמופיע ציון כולל (Top10, מומלצות עכשיו, המניות שלי, מניות חשופות-קריפטו, בדוק מניה) עבור כל מניה עם ציון כולל מתחת ל-40, כדי שיהיה ברור בלי לפרש צבע/מספר.",
+    "'בדוק מניה' למניות ת\"א: הקלדת טיקר בלי סיומת (למשל SAE במקום SAE.TA) גרמה לכישלון שקט. עכשיו מנסה אוטומטית שוב עם .TA אם החיפוש הראשוני נכשל, ומציג הודעה ברורה איזה טיקר בפועל נבדק כשזה קרה.",
+    "שתי נוסחאות ניסיוניות חדשות נוספו למעקב מקביל (לא משפיעות על ה-Top10 האמיתי, ראו 'השוואת נוסחאות'): RS מהיר (מומנטום יחסי 20-30 יום, לא 6 חודשים) ו-Dual Momentum + Low-Vol (שער מומנטום מוחלט + בונוס יציבות בזמן שוק דובי) - מבוססות על מחקר VectorBT אופליין נפרד.",
+  ]},
   { version: "5.5.0", date: "2026-09-16", items: [
     "תוקן באג ישן מהבאקלוג: `run_predictions()` רץ עכשיו לפני `run_watchlist_alerts()` (במקום אחריו) - מתקן פער-מחזור שגרם להערכות חיות שגויות (0.00%) ביום שבו Top10 מתחלף, כי המחירים החיים נכתבו קודם מול ה-Top10 הישן.",
     "סקשן חדש: '₿ מניות חשופות-קריפטו' - יקום קבוע (COIN, MSTR, MARA, RIOT, CLSK), אותה נוסחה בדיוק כמו Top10, עם תג כתום נפרד כדי שיהיה ברור שזו קטגוריה נבדלת ולא חלק מ-Top10 הרשמי הנמדד. לא קריפטו ישיר (BTC-USD וכו') - זה נדחה בכוונה: מסחר 24/7 בלי לוח יום-מסחר, בלי יקום אנליסטים/RS Rating - ארכיטקטורה שונה לגמרי מהשאר.",
@@ -1833,6 +1838,16 @@ function scoreBreakdownCardHtml(data) {
     }
   }
 
+  // v5.6.0: TASE ".TA" auto-fallback note - tells the person their typed
+  // ticker was retried with the suffix, instead of silently swapping it.
+  let taseFallbackBanner = "";
+  if (data.tase_fallback_used) {
+    taseFallbackBanner = `
+      <div style="background:#1c2a3a; border:1px solid #4a7aa9; border-radius:10px; padding:8px 12px; margin-bottom:10px; font-size:12px; color:#8ec9ff;">
+        ℹ️ '${data.original_input}' לא נמצא - מציג את ${data.ticker} (מניה בבורסת תל-אביב)
+      </div>`;
+  }
+
   // earnings warning - shown as a standalone banner, not part of the score
   const earnings = data.earnings;
   let earningsBanner = "";
@@ -1862,8 +1877,13 @@ function scoreBreakdownCardHtml(data) {
   }
   const tagsRow = tags.length ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;">${tags.join("")}</div>` : "";
 
+  const notRecommendedHtml = data.overall_score != null && data.overall_score < 40
+    ? `<div style="text-align:center; color:#ff5c5c; font-size:13px; font-weight:700; margin-top:-6px; margin-bottom:10px;">❌ לא מומלץ לרכישה כרגע</div>`
+    : "";
+
   return `
     <div class="panel" style="margin-top:10px; padding:16px; border-radius:14px;">
+      ${taseFallbackBanner}
       ${marketStatusBanner}
       ${earningsBanner}
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1876,6 +1896,7 @@ function scoreBreakdownCardHtml(data) {
         </div>
         <div style="font-size:12px; color:var(--text-faint);">ציון כולל מתוך 100</div>
       </div>
+      ${notRecommendedHtml}
       <div style="font-size:12px; color:var(--text-faint); display:flex; justify-content:space-between; margin-bottom:6px;">
         <span>מחיר: <span class="mono">${data.price ?? "—"}</span></span>
         <span>תמיכה: <span class="mono">${data.support ?? "—"}</span></span>
@@ -1908,10 +1929,18 @@ function overallScoreBadgeHtml(p) {
   if (p.overall_score == null) return "";
   const color = p.overall_score >= 60 ? "#5ee6a0" : (p.overall_score >= 40 ? "#ffd76a" : "#ff9a8a");
   const idx = scoreBadgeRegistry.push(p) - 1;
+  // v5.6.0: explicit not-recommended flag below the score badge, so a low
+  // score doesn't rely on the person correctly reading the badge's color -
+  // shows everywhere this function is called (Top10, מומלצות עכשיו,
+  // המניות שלי, מניות חשופות-קריפטו).
+  const notRecommendedHtml = p.overall_score < 40
+    ? `<div style="color:#ff5c5c; font-size:12px; font-weight:700; margin-top:5px;">❌ לא מומלץ לרכישה כרגע</div>`
+    : "";
   return `
     <button class="score-badge-btn" data-idx="${idx}" style="background:#1c2230; border:1px solid ${color}66; color:${color}; border-radius:10px; padding:6px 14px; font-size:15px; font-weight:800; margin-top:8px; cursor:pointer;">
       🎯 ${p.overall_score.toFixed(1)}
-    </button>`;
+    </button>
+    ${notRecommendedHtml}`;
 }
 
 function fmtNum1(v) {
