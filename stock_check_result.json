@@ -1,42 +1,4 @@
 {
-  "ticker": "SAE.TA",
-  "predicted_direction": "up",
-  "raw_score": 1.56,
-  "overall_score": 33.8,
-  "components": {
-    "original": 15.6,
-    "risk_reward": 4.1,
-    "leading_adjusted": 15.6,
-    "analyst": 100.0
-  },
-  "excluded_from_blend": [],
-  "price": 3683.0,
-  "support": 3102.35,
-  "resistance": 4065.96,
-  "analyst_count": 1,
-  "sector": "Consumer Defensive",
-  "short_pct": null,
-  "rs_rating": null,
-  "trend_template": {
-    "criteria_met": 1,
-    "criteria_total": 7,
-    "passes": false,
-    "multiplier": 0.657
-  },
-  "vcp": {
-    "vcp_detected": false,
-    "contractions": 6
-  },
-  "earnings": {
-    "date": "2026-11-26",
-    "days_away": 67
-  },
-  "checked_at": "2026-09-19T17:46:21.539806+00:00",
-  "tase_fallback_used": true,
-  "original_input": "SAE",
-  "price_as_of_date": "2026-09-18",
-  "market_status": {
-    "market": "ת\"א (TASE)",
-    "is_trading_day": false
-  }
+  "ticker": "770016",
+  "error": "לא הצלחתי למשוך נתוני מחיר עבור '770016'. אם זו מניה מבורסת תל-אביב, נסה להוסיף בעצמך את הסיומת .TA (למשל SAE.TA)."
 }
