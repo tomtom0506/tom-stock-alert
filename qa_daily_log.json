@@ -22,5 +22,13 @@
     "ta125_pct_change": 0.95,
     "strong_daily_accuracy": 60.0,
     "data_suspect_count": 1
+  },
+  {
+    "date": "2026-09-22",
+    "market_regime_bullish": true,
+    "sp500_pct_change": 1.49,
+    "ta125_pct_change": 0.95,
+    "strong_daily_accuracy": 80.0,
+    "data_suspect_count": 1
   }
 ]
