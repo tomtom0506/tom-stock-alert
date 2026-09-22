@@ -1,37 +1,37 @@
 {
-  "ticker": "SPCX",
+  "ticker": "PLTR",
   "predicted_direction": "up",
-  "raw_score": 4.74,
-  "overall_score": 62.3,
+  "raw_score": 2.08,
+  "overall_score": 28.1,
   "components": {
-    "original": 47.4,
-    "risk_reward": 94.8,
-    "leading_adjusted": 23.7,
-    "analyst": 83.3
+    "original": 20.8,
+    "risk_reward": 1.7,
+    "leading_adjusted": 10.4,
+    "analyst": 79.7
   },
   "excluded_from_blend": [],
-  "price": 154.72000122070312,
-  "support": 153.0,
-  "resistance": 170.86,
-  "analyst_count": 19,
-  "sector": "Industrials",
-  "short_pct": 2.76,
+  "price": 184.99000549316406,
+  "support": 177.29,
+  "resistance": 186.38,
+  "analyst_count": 27,
+  "sector": "Technology",
+  "short_pct": 3.0299999,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 1,
-    "criteria_total": 2,
+    "criteria_met": 6,
+    "criteria_total": 7,
     "passes": false,
-    "multiplier": 0.8
+    "multiplier": 0.943
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 3
+    "contractions": 7
   },
   "earnings": {
-    "date": "2026-11-03",
-    "days_away": 41
+    "date": "2026-11-02",
+    "days_away": 40
   },
-  "checked_at": "2026-09-22T21:17:11.187167+00:00",
+  "checked_at": "2026-09-22T21:26:21.544274+00:00",
   "price_as_of_date": "2026-09-22",
   "market_status": {
     "market": "ארה\"ב (US)",
