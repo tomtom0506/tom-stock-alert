@@ -1,40 +1,4 @@
 {
-  "ticker": "PLTR",
-  "predicted_direction": "up",
-  "raw_score": 2.08,
-  "overall_score": 28.1,
-  "components": {
-    "original": 20.8,
-    "risk_reward": 1.7,
-    "leading_adjusted": 10.4,
-    "analyst": 79.7
-  },
-  "excluded_from_blend": [],
-  "price": 184.99000549316406,
-  "support": 177.29,
-  "resistance": 186.38,
-  "analyst_count": 27,
-  "sector": "Technology",
-  "short_pct": 3.0299999,
-  "rs_rating": null,
-  "trend_template": {
-    "criteria_met": 6,
-    "criteria_total": 7,
-    "passes": false,
-    "multiplier": 0.943
-  },
-  "vcp": {
-    "vcp_detected": false,
-    "contractions": 7
-  },
-  "earnings": {
-    "date": "2026-11-02",
-    "days_away": 40
-  },
-  "checked_at": "2026-09-22T21:26:21.544274+00:00",
-  "price_as_of_date": "2026-09-22",
-  "market_status": {
-    "market": "ארה\"ב (US)",
-    "is_trading_day": true
-  }
+  "ticker": "GOOGLE",
+  "error": "לא הצלחתי למשוך נתוני מחיר עבור 'GOOGLE'. אם זו מניה מבורסת תל-אביב, נסה להוסיף בעצמך את הסיומת .TA (למשל SAE.TA)."
 }
