@@ -1,4 +1,40 @@
 {
-  "ticker": "GOOGLE",
-  "error": "לא הצלחתי למשוך נתוני מחיר עבור 'GOOGLE'. אם זו מניה מבורסת תל-אביב, נסה להוסיף בעצמך את הסיומת .TA (למשל SAE.TA)."
+  "ticker": "GOOGL",
+  "predicted_direction": "up",
+  "raw_score": 6.84,
+  "overall_score": 63.8,
+  "components": {
+    "original": 68.4,
+    "risk_reward": 27.8,
+    "leading_adjusted": 68.4,
+    "analyst": 90.6
+  },
+  "excluded_from_blend": [],
+  "price": 354.9700012207031,
+  "support": 343.32,
+  "resistance": 366.79,
+  "analyst_count": 54,
+  "sector": "Communication Services",
+  "short_pct": 1.3200001,
+  "rs_rating": null,
+  "trend_template": {
+    "criteria_met": 7,
+    "criteria_total": 7,
+    "passes": true,
+    "multiplier": 1.0
+  },
+  "vcp": {
+    "vcp_detected": false,
+    "contractions": 7
+  },
+  "earnings": {
+    "date": "2026-10-28",
+    "days_away": 35
+  },
+  "checked_at": "2026-09-23T05:13:06.466658+00:00",
+  "price_as_of_date": "2026-09-21",
+  "market_status": {
+    "market": "ארה\"ב (US)",
+    "is_trading_day": true
+  }
 }
