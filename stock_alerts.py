@@ -134,6 +134,23 @@ def send_telegram_message_chunked(header, lines, parse_mode=None, sep="\n"):
 # ---------- target-price watchlist alerts ----------
 
 def get_price_and_prev_close(ticker):
+    # TASE (.TA) tickers skip fast_info entirely and go straight to
+    # the multi-day history fallback below. fast_info was returning the same
+    # value for last_price and previous_close for at least some TASE names
+    # (FTAL.TA, AZRG.TA - always showing 0% change in "נהל אחזקות") -
+    # suspected cause: TASE's trading day (Sun-Thu, ends ~17:30 IL time)
+    # is already over by the time this runs relative to the US-market-hours
+    # schedule, and fast_info's "current session" logic doesn't handle that
+    # correctly for this exchange. .history() is more reliable for a plain
+    # close-to-close diff regardless of session boundaries.
+    if is_israeli(ticker):
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period="5d")
+        closes = hist["Close"].dropna()
+        if len(closes) < 2:
+            return None, None
+        return float(closes.iloc[-1]), float(closes.iloc[-2])
+
     stock = yf.Ticker(ticker)
     price = stock.fast_info.get("last_price")
     prev_close = stock.fast_info.get("previous_close")
