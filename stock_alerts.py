@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.6.0"
+BACKEND_VERSION = "5.7.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -1393,6 +1393,10 @@ def recompute_accuracy(store):
     top10_dml_graded = [e for e in graded if e.get("top10_dual_momentum_lowvol")]
     top10_dml_up_graded = [e for e in top10_dml_graded if e.get("predicted") == "up"]
 
+    # EXPERIMENTAL comparison group F (v5.7.0, see compute_analyst_momentum_score).
+    top10_am_graded = [e for e in graded if e.get("top10_analyst_momentum")]
+    top10_am_up_graded = [e for e in top10_am_graded if e.get("predicted") == "up"]
+
     # DAILY (not cumulative) Top 10 accuracy - only the most recently graded
     # prediction-date's entries, so the headline tile reflects "how did
     # yesterday's Top 10 do", not an all-time average. The cumulative number
@@ -1456,6 +1460,11 @@ def recompute_accuracy(store):
         "top10_dual_momentum_lowvol_total": len(top10_dml_graded),
         "top10_dual_momentum_lowvol_up_accuracy": calc(top10_dml_up_graded),
         "top10_dual_momentum_lowvol_up_total": len(top10_dml_up_graded),
+        "top10_analyst_momentum_accuracy": calc(top10_am_graded),
+        "top10_analyst_momentum_hits": sum(1 for e in top10_am_graded if e["correct"]),
+        "top10_analyst_momentum_total": len(top10_am_graded),
+        "top10_analyst_momentum_up_accuracy": calc(top10_am_up_graded),
+        "top10_analyst_momentum_up_total": len(top10_am_up_graded),
         "top10_accuracy_daily": calc(top10_graded_daily),
         "top10_daily_hits": sum(1 for e in top10_graded_daily if e["correct"]),
         "top10_daily_total": len(top10_graded_daily),
@@ -1556,7 +1565,25 @@ MONTHLY_MIN_BELOW_HIGH_PCT = 15   # must be at least 15% below its 52-week high
 MONTHLY_MAX_ABOVE_LOW_PCT = 25    # AND within 25% of its 52-week low - both conditions together, not either
 
 
-def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
+def _monthly_portfolio_meets_criteria(e, sp500_tickers):
+    """Shared qualification check - large-cap S&P500, predicted up, trading
+    low enough relative to its own 52-week range. Single source of truth
+    used both to pick NEW monthly-portfolio candidates (select_monthly_
+    portfolio_candidates below) and to re-check an EXISTING holding at a
+    rotation checkpoint (see manage_monthly_portfolio) - so a holding is
+    judged by the exact same bar it was originally picked with."""
+    if e.get("ticker") not in sp500_tickers or e.get("predicted") != "up":
+        return False
+    if not (e.get("year_high") and e.get("year_low") and e.get("price")):
+        return False
+    if (e.get("market_cap") or 0) < LARGE_CAP_MIN_MARKET_CAP:
+        return False
+    below_high_pct = (e["year_high"] - e["price"]) / e["year_high"] * 100
+    above_low_pct = (e["price"] - e["year_low"]) / e["year_low"] * 100
+    return below_high_pct >= MONTHLY_MIN_BELOW_HIGH_PCT and above_low_pct <= MONTHLY_MAX_ABOVE_LOW_PCT
+
+
+def select_monthly_portfolio_candidates(today_entries, sp500_tickers, limit=10, exclude_tickers=None):
     """Monthly-portfolio-specific selection - deliberately NOT just today's
     Top 10 (that's a short-term-momentum pick, which is exactly why almost
     every monthly holding was showing an early-warning divergence flag -
@@ -1575,6 +1602,13 @@ def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
     score and would never reach that gate on its own, even though it's
     exactly the kind of name this selection is looking for.
 
+    limit/exclude_tickers (v5.7.0): lets manage_monthly_portfolio ask for
+    just enough NEW candidates to refill the slots that actually turned
+    over at a rotation checkpoint (or a single replacement mid-cycle),
+    excluding tickers already held so a kept holding is never "replaced"
+    with itself. Defaults (limit=10, no exclusions) reproduce the original
+    full-list behavior.
+
     Fallback (per Tomer): the $50B/15%/25% bar is strict and some months
     may not produce 10 qualifiers on its own - rather than ship a
     half-empty or empty monthly portfolio, unfilled slots are backfilled
@@ -1582,9 +1616,13 @@ def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
     conditions (never relaxing the market-cap bar itself - that one stays
     non-negotiable). Each returned entry carries "backup_pick": True/False
     so the frontend can mark backfilled picks with a subtle, non-market-cap
-    -relaxing indicator."""
+    -relaxing indicator.
+    """
+    exclude_tickers = exclude_tickers or set()
     pool = []
     for e in today_entries:
+        if e["ticker"] in exclude_tickers:
+            continue
         if e["ticker"] not in sp500_tickers or e.get("predicted") != "up":
             continue
         if e.get("year_high") and e.get("year_low") and e.get("price"):
@@ -1613,9 +1651,9 @@ def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
     for e in qualified:
         e["backup_pick"] = False
 
-    result = qualified[:10]
+    result = qualified[:limit]
 
-    if len(result) < 10:
+    if len(result) < limit:
         chosen = {e["ticker"] for e in result}
         runner_ups = [e for e in large_cap_pool if e["ticker"] not in chosen]
 
@@ -1627,78 +1665,174 @@ def select_monthly_portfolio_candidates(today_entries, sp500_tickers):
             return high_shortfall + low_shortfall
 
         runner_ups.sort(key=distance_from_qualifying)
-        for e in runner_ups[:10 - len(result)]:
+        for e in runner_ups[:limit - len(result)]:
             e["backup_pick"] = True
             result.append(e)
 
     return result
 
 
+def compound_monthly_portfolio_sim(store, closed_holding):
+    """Realizes one closed monthly-portfolio holding's return into a single
+    running ₪100,000-equivalent index (10 always-equal 10%-slots) that
+    compounds forward across rotation checkpoints AND mid-cycle
+    replacements alike - never resets, the same "decisions compound
+    forward" pattern as my_portfolio_sim/portfolio_sim. A closed holding's
+    contribution is always 10% of the total (one of the 10 slots),
+    regardless of how many days it was actually held - kept simple, and
+    consistent with the equal-weighted-₪100,000 framing already used
+    elsewhere for this portfolio. Good exits compound the index up, bad
+    exits compound it down, in direct proportion to the replace/keep
+    decisions actually made - not to overall market movement, since a KEPT
+    holding contributes nothing here until it eventually closes."""
+    if closed_holding.get("return_pct") is None:
+        return
+    sim = store.setdefault("monthly_portfolio_sim", {
+        "start_value": 100000, "currency": "ILS", "value": 100000.0, "trade_log": [],
+    })
+    sim["value"] = sim["value"] * (1 + closed_holding["return_pct"] / 100 * 0.10)
+    sim["trade_log"].append({
+        "ticker": closed_holding["ticker"], "exit_date": closed_holding["exit_date"],
+        "return_pct": closed_holding["return_pct"], "exit_reason": closed_holding.get("exit_reason"),
+        "value_after": round(sim["value"], 2),
+    })
+    sim["trade_log"] = sim["trade_log"][-200:]
+    sim["total_return_pct"] = round((sim["value"] / sim["start_value"] - 1) * 100, 2)
+
+
 def manage_monthly_portfolio(store, today_entries):
     """A slower, buy-and-hold alternative to the daily-rebalanced ₪100,000
     simulation: picks large-cap S&P 500 names trading low relative to
-    their own 52-week range once (see select_monthly_portfolio_candidates -
-    deliberately NOT the same short-term-momentum Top10 picks), holds them
-    for ~30 days (no daily trading costs eating the return), and refreshes
-    the list at the end of the cycle. In between, watches each holding
-    daily and fires an urgent, separate Telegram alert the moment one
-    breaks down - a stop loss, a support breakdown, or the technical
-    signal flipping negative - so a bad holding doesn't just get silently
-    ridden out for a month."""
+    their own 52-week range (see select_monthly_portfolio_candidates -
+    deliberately NOT the same short-term-momentum Top10 picks), and aims
+    to hold each one for as long as it keeps qualifying - not a forced
+    full reshuffle every 30 days (2026-09-23 redesign, per Tomer: buy/sell
+    costs mean turnover should be minimized, and which stocks stay or go
+    should be decided by each stock's own strength/warnings, never by
+    overall market direction).
+
+    Two separate turnover triggers, both close a holding into
+    compound_monthly_portfolio_sim (a single running ₪100,000-equivalent
+    index that never resets - see that function) and both get reported in
+    the rotation-checkpoint Telegram summary:
+      1. Urgent warning, ANY day: a holding that breaks down (stop loss /
+         support break / technical flip) is replaced immediately with the
+         next-best qualifying candidate not already held - see the warned-
+         holdings loop below. If no replacement candidate is available
+         that day, it's retried on subsequent days until one is, or the
+         next rotation checkpoint forces a close either way.
+      2. Rotation checkpoint (every MONTHLY_HOLD_DAYS days): every holding
+         still standing is re-checked against the SAME bar it was
+         originally picked with (_monthly_portfolio_meets_criteria) - one
+         that still qualifies is KEPT AS-IS (entry_date/entry_price
+         untouched, so its running return stays continuous, exactly like
+         "holding, not re-buying"). Only holdings that no longer qualify
+         are closed and refilled."""
     print(f"manage_monthly_portfolio: starting, {len(today_entries)} entries for today")
     today = date.today().isoformat()
     mp = store.setdefault("monthly_portfolio", {
         "start_date": None,
         "next_refresh_date": None,
         "holdings": [],
+        "mid_cycle_trades": [],  # urgent-warning replacements since the last checkpoint, flushed into history there
         "history": [],
     })
+    mp.setdefault("mid_cycle_trades", [])
     entries_by_ticker = {e["ticker"]: e for e in today_entries}
+    sp500_tickers = set(get_sp500_tickers())
 
     needs_refresh = mp["next_refresh_date"] is None or today >= mp["next_refresh_date"]
     print(f"manage_monthly_portfolio: needs_refresh={needs_refresh}, "
           f"next_refresh_date={mp['next_refresh_date']}, current_holdings={len(mp['holdings'])}")
 
     if needs_refresh:
-        if mp["holdings"]:
-            closed = []
-            for h in mp["holdings"]:
-                current = entries_by_ticker.get(h["ticker"])
-                exit_price = current["price"] if current and current.get("price") else h["entry_price"]
-                pct = (exit_price - h["entry_price"]) / h["entry_price"] * 100 if h.get("entry_price") else None
-                closed.append({**h, "exit_date": today, "exit_price": exit_price, "return_pct": round(pct, 2) if pct is not None else None})
-            valid_returns = [c["return_pct"] for c in closed if c["return_pct"] is not None]
-            avg_return = round(sum(valid_returns) / len(valid_returns), 2) if valid_returns else None
-            mp["history"].append({
-                "cycle_start": mp["start_date"], "cycle_end": today,
-                "holdings": closed, "avg_return_pct": avg_return,
-            })
-            mp["history"] = mp["history"][-24:]  # keep ~2 years of monthly cycles
+        kept, closed_now = [], []
+        for h in mp["holdings"]:
+            current = entries_by_ticker.get(h["ticker"])
+            if current is not None and current.get("market_cap") is None:
+                try:
+                    current.update(get_fundamental_factors(h["ticker"]))
+                except Exception as ex:
+                    print(f"Monthly-portfolio re-qualify fetch failed for {h['ticker']}: {ex}")
+            still_qualifies = (
+                not h.get("warned") and current is not None
+                and _monthly_portfolio_meets_criteria(current, sp500_tickers)
+            )
+            if still_qualifies:
+                kept.append({**h, "early_warned": False})  # fresh evaluation window starts now
+                continue
+            exit_price = current["price"] if current and current.get("price") else h["entry_price"]
+            pct = (exit_price - h["entry_price"]) / h["entry_price"] * 100 if h.get("entry_price") else None
+            reason = "warned" if h.get("warned") else ("no_longer_qualifies" if current else "no_price_today")
+            closed_h = {**h, "exit_date": today, "exit_price": exit_price,
+                        "return_pct": round(pct, 2) if pct is not None else None, "exit_reason": reason}
+            closed_now.append(closed_h)
+            compound_monthly_portfolio_sim(store, closed_h)
 
-        sp500_tickers = set(get_sp500_tickers())
-        new_top10 = select_monthly_portfolio_candidates(today_entries, sp500_tickers)
-        print(f"manage_monthly_portfolio: found {len(new_top10)} qualifying large-cap/low-price entries among today's {len(today_entries)}")
-        mp["holdings"] = [
+        all_closed_this_period = mp["mid_cycle_trades"] + closed_now
+        valid_returns = [c["return_pct"] for c in all_closed_this_period if c["return_pct"] is not None]
+        avg_return = round(sum(valid_returns) / len(valid_returns), 2) if valid_returns else None
+        mp["history"].append({
+            "period_start": mp["start_date"], "period_end": today,
+            "kept_tickers": [h["ticker"] for h in kept],
+            "closed": all_closed_this_period, "avg_return_pct": avg_return,
+        })
+        mp["history"] = mp["history"][-24:]  # keep ~2 years of rotation checkpoints
+
+        slots_to_fill = 10 - len(kept)
+        new_candidates = []
+        if slots_to_fill > 0:
+            # exclude not just kept tickers, but everything held BEFORE this
+            # checkpoint (including what was just closed above) - a ticker
+            # closed this run for no longer qualifying must not immediately
+            # get re-bought as a backup-fill in the same breath
+            previously_held = {h["ticker"] for h in mp["holdings"]}
+            new_candidates = select_monthly_portfolio_candidates(
+                today_entries, sp500_tickers, limit=slots_to_fill,
+                exclude_tickers=previously_held,
+            )
+        print(f"manage_monthly_portfolio: kept {len(kept)}, closed {len(all_closed_this_period)} "
+              f"({len(mp['mid_cycle_trades'])} mid-cycle + {len(closed_now)} at checkpoint), "
+              f"filling {slots_to_fill} slot(s) with {len(new_candidates)} new candidate(s)")
+
+        new_holdings = [
             {
                 "ticker": e["ticker"], "entry_date": today, "entry_price": e.get("price"),
                 "entry_score": e["score"], "warned": False, "early_warned": False,
                 "backup_pick": e.get("backup_pick", False),
             }
-            for e in new_top10 if e.get("price")
+            for e in new_candidates if e.get("price")
         ]
+        mp["holdings"] = kept + new_holdings
+        mp["mid_cycle_trades"] = []
         mp["start_date"] = today
         mp["next_refresh_date"] = (date.today() + timedelta(days=MONTHLY_HOLD_DAYS)).isoformat()
-        print(f"manage_monthly_portfolio: created new cycle with {len(mp['holdings'])} holdings, "
+        print(f"manage_monthly_portfolio: cycle checkpoint done, {len(mp['holdings'])} holdings, "
               f"next refresh {mp['next_refresh_date']}")
 
-        if mp["holdings"]:
-            lines = [f"{h['ticker']}: מחיר כניסה {h['entry_price']}" for h in mp["holdings"]]
-            send_telegram_message_chunked(
-                f"📅 תיק חודשי חדש - הרשימה עודכנה (מחזור הבא ב-{mp['next_refresh_date']})",
-                lines, sep="\n",
-            )
+        mid_cycle_count = sum(1 for c in all_closed_this_period if c.get("exit_reason") == "warned")
+        other_count = len(all_closed_this_period) - mid_cycle_count
+        lines = [
+            f"נשארו ללא שינוי: {len(kept)}",
+            f"נסגרו/הוחלפו במחזור: {len(all_closed_this_period)}",
+            f"  מתוכן עקב אזהרה דחופה: {mid_cycle_count}",
+            f"  מתוכן בסוף המחזור (לא עומדות יותר בקריטריונים): {other_count}",
+        ]
+        if avg_return is not None:
+            lines.append(f"תשואה ממוצעת על מה שנסגר במחזור: {avg_return:+.2f}%")
+        sim = store.get("monthly_portfolio_sim")
+        if sim:
+            lines.append(f"מדד מצטבר (₪100,000, לא מתאפס בין מחזורים): {sim['total_return_pct']:+.2f}%")
+        if new_holdings:
+            lines.append("")
+            lines.append("החזקות חדשות שנכנסו:")
+            lines += [f"{h['ticker']}: מחיר כניסה {h['entry_price']}" for h in new_holdings]
+        send_telegram_message_chunked(
+            f"📅 תיק חודשי - סיכום מחזור (הבא ב-{mp['next_refresh_date']})", lines, sep="\n",
+        )
         return
 
+    # --- daily monitoring between checkpoints ---
     for h in mp["holdings"]:
         if h.get("warned") or not h.get("entry_price"):
             continue
@@ -1745,9 +1879,63 @@ def manage_monthly_portfolio(store, today_entries):
             h["warned"] = True
             send_telegram_message_chunked(
                 f"🚨 אזהרה - תיק חודשי: {h['ticker']}",
-                [f"{warning_reason}\nמחיר כניסה: {h['entry_price']} | מחיר נוכחי: {price} ({pct_from_entry:+.1f}%)\nשקול למכור."],
+                [f"{warning_reason}\nמחיר כניסה: {h['entry_price']} | מחיר נוכחי: {price} ({pct_from_entry:+.1f}%)\n"
+                 f"מחפש תחליף איכותי להחלפה מיידית..."],
                 sep="\n",
             )
+
+    # --- immediate mid-cycle replacement for ANY currently-warned holding
+    # (whether it just got warned above, or was warned on an earlier day
+    # and no replacement candidate was available yet - retried here every
+    # run until one is found or the next checkpoint closes it anyway) ---
+    warned_holdings = [h for h in mp["holdings"] if h.get("warned")]
+    if warned_holdings:
+        held_tickers = {h["ticker"] for h in mp["holdings"]}
+        # deliberately STRICT here (no backup_pick/runner-up fallback, unlike
+        # the checkpoint refill above) - an urgent replacement should only
+        # swap into a name that genuinely qualifies ("מניה טובה"), never into
+        # a "closest we could find" backup just to fill the slot immediately.
+        # If nothing genuinely qualifies today, the warned holding stays put
+        # (already alerted) and this is retried again next run.
+        strict_pool = [
+            e for e in today_entries
+            if e["ticker"] not in held_tickers and _monthly_portfolio_meets_criteria(e, sp500_tickers)
+        ]
+        for e in strict_pool:
+            if e.get("market_cap") is None:
+                try:
+                    e.update(get_fundamental_factors(e["ticker"]))
+                except Exception as ex:
+                    print(f"Monthly-portfolio replacement fetch failed for {e['ticker']}: {ex}")
+        strict_pool = [e for e in strict_pool if _monthly_portfolio_meets_criteria(e, sp500_tickers)]
+        strict_pool.sort(key=lambda e: abs(e["score"]), reverse=True)
+        replacements = [e for e in strict_pool[:len(warned_holdings)] if e.get("price")]
+        for h, new_e in zip(warned_holdings, replacements):
+            current = entries_by_ticker.get(h["ticker"])
+            exit_price = current["price"] if current and current.get("price") else h["entry_price"]
+            pct = (exit_price - h["entry_price"]) / h["entry_price"] * 100 if h.get("entry_price") else None
+            closed_h = {**h, "exit_date": today, "exit_price": exit_price,
+                        "return_pct": round(pct, 2) if pct is not None else None, "exit_reason": "warned"}
+            mp["mid_cycle_trades"].append(closed_h)
+            compound_monthly_portfolio_sim(store, closed_h)
+
+            idx = next(i for i, x in enumerate(mp["holdings"]) if x["ticker"] == h["ticker"])
+            mp["holdings"][idx] = {
+                "ticker": new_e["ticker"], "entry_date": today, "entry_price": new_e.get("price"),
+                "entry_score": new_e["score"], "warned": False, "early_warned": False,
+                "backup_pick": new_e.get("backup_pick", False),
+            }
+            return_txt = f"{closed_h['return_pct']:+.1f}%" if closed_h['return_pct'] is not None else "—"
+            send_telegram_message_chunked(
+                f"🔄 הוחלפה - תיק חודשי: {h['ticker']} → {new_e['ticker']}",
+                [f"{h['ticker']} נסגרה ({return_txt})\n"
+                 f"הוחלפה ב-{new_e['ticker']} (מחיר כניסה {new_e.get('price')})"],
+                sep="\n",
+            )
+        still_unmatched = len(warned_holdings) - len(replacements)
+        if still_unmatched > 0:
+            print(f"manage_monthly_portfolio: {still_unmatched} warned holding(s) still without a "
+                  f"replacement candidate today - will retry next run")
 
 
 def update_portfolio_simulation(store, flag_key="top10", sim_key="portfolio_sim"):
@@ -1904,6 +2092,12 @@ def build_formula_comparison(store):
                 "accuracy": acc.get("top10_dual_momentum_lowvol_up_accuracy"),
                 "total": acc.get("top10_dual_momentum_lowvol_up_total"),
                 **sim_stats("portfolio_sim_dual_momentum_lowvol"),
+            },
+            {
+                "key": "analyst_momentum", "label": "ניסיונית - מומנטום ציון-אנליסטים (30 יום)",
+                "accuracy": acc.get("top10_analyst_momentum_up_accuracy"),
+                "total": acc.get("top10_analyst_momentum_up_total"),
+                **sim_stats("portfolio_sim_analyst_momentum"),
             },
         ],
     }
@@ -2208,7 +2402,57 @@ def compute_leading_adjusted_score(entry):
     return score
 
 
-# --- v5.6.0 parallel-tracked experiments (see the offline VectorBT research
+# --- v5.7.0 parallel-tracked experiment: analyst-score momentum ("lazy"
+# Zacks-style, per Tomer 2026-09-23) - tracks the CHANGE in the app's own
+# analyst_score_0_100 over the trailing ~30 days, instead of a new external
+# earnings-estimate-revision data source (OpenBB/Zacks). Cheap: no new
+# network calls, since recommendation_mean/upside_pct are already fetched
+# for the whole PREFILTER_THRESHOLD candidate pool (see run_predictions) -
+# only the delta-vs-history computation is new. ---
+ANALYST_MOMENTUM_LOOKBACK_DAYS = 30
+ANALYST_MOMENTUM_SCALE = 0.02  # additive-score-multiplier per point of analyst_score change
+
+
+def build_analyst_score_history_index(history, today_str, lookback_days=ANALYST_MOMENTUM_LOOKBACK_DAYS):
+    """One pass over store['history'] (excluding today) collecting, per
+    ticker, the EARLIEST analyst_score seen within the trailing
+    lookback_days - the baseline compute_analyst_score_delta compares
+    today's analyst_score against. O(n) once per run rather than a
+    per-ticker rescan."""
+    cutoff = (date.fromisoformat(today_str) - timedelta(days=lookback_days)).isoformat()
+    earliest = {}
+    for e in history:
+        d = e.get("date")
+        if d is None or d >= today_str or d < cutoff:
+            continue
+        score = e.get("analyst_score")
+        if score is None:
+            continue
+        ticker = e["ticker"]
+        if ticker not in earliest or d < earliest[ticker][0]:
+            earliest[ticker] = (d, score)
+    return {ticker: score for ticker, (d, score) in earliest.items()}
+
+
+def compute_analyst_momentum_score(entry):
+    """EXPERIMENTAL (comparison formula F - tracked in parallel exactly like
+    compute_fast_rs_score/compute_dual_momentum_lowvol_score, under its own
+    top10_analyst_momentum flag/accuracy/portfolio-sim - see
+    recompute_accuracy, build_formula_comparison, main). Same base
+    conviction score, weighted by how much this ticker's analyst_score has
+    RISEN over the trailing ~30 days (analyst_score_delta) - the bet: a
+    rising analyst-sentiment trend is a better signal than the existing
+    formula's static analyst-score LEVEL (which can saturate to 100 from a
+    thin/stale rating with no information about direction, a known
+    weakness - see the 2026-09 research writeup)."""
+    score = abs(entry.get("score", 0))
+    delta = entry.get("analyst_score_delta")
+    if delta is not None:
+        score *= max(0.0, 1 + delta * ANALYST_MOMENTUM_SCALE)
+    return score
+
+
+
 # this is lifted from: research/vectorbt_regime_momentum_research.py).
 # Neither touches the real Top10 selection - both tracked exactly like the
 # existing top10_experimental/top10_leading comparison formulas above,
@@ -2883,6 +3127,24 @@ def run_predictions(store):
             print(f"Earnings lookup failed for {entry['ticker']}: {e}")
             entry["earnings"] = None
 
+    # --- analyst-score momentum (v5.7.0, see compute_analyst_momentum_score):
+    # widen analyst_score beyond just breakdown_tickers above to EVERY entry
+    # that already has the underlying recommendation_mean/upside_pct (fetched
+    # for the whole PREFILTER_THRESHOLD candidate pool earlier - no new
+    # network calls here), so the parallel comparison formula has a real
+    # breadth pool to rank, not just today's already-curated Top10/watchlist. ---
+    for entry in today_entries:
+        if entry.get("analyst_score") is None:
+            entry["analyst_score"] = analyst_score_0_100(
+                entry.get("recommendation_mean"), entry.get("upside_pct")
+            )
+    baseline_by_ticker = build_analyst_score_history_index(store["history"], today)
+    for entry in today_entries:
+        if entry.get("analyst_score") is not None and entry["ticker"] in baseline_by_ticker:
+            entry["analyst_score_delta"] = round(entry["analyst_score"] - baseline_by_ticker[entry["ticker"]], 1)
+    print(f"Analyst-score momentum: {len(baseline_by_ticker)} tickers had a usable "
+          f"{ANALYST_MOMENTUM_LOOKBACK_DAYS}-day-old baseline today")
+
     # --- sell queue (item 22): tickers picked for Top10 within the last
     # 30 days that are STILL in today's scanned universe (so we have
     # fresh technical data for them) and now show a strong SELL signal -
@@ -2987,6 +3249,13 @@ def run_predictions(store):
     dual_mom_lowvol_tickers = {e["ticker"] for e in dual_mom_lowvol_top10}
     for entry in today_entries:
         entry["top10_dual_momentum_lowvol"] = entry["ticker"] in dual_mom_lowvol_tickers
+
+    # --- EXPERIMENT F (v5.7.0, parallel, doesn't touch the real picks):
+    # analyst-score momentum - see compute_analyst_momentum_score. ---
+    analyst_momentum_top10 = select_diversified_top10(breadth, compute_analyst_momentum_score)
+    analyst_momentum_tickers = {e["ticker"] for e in analyst_momentum_top10}
+    for entry in today_entries:
+        entry["top10_analyst_momentum"] = entry["ticker"] in analyst_momentum_tickers
 
     for entry in today_entries:
         ticker = entry["ticker"]
@@ -3163,6 +3432,7 @@ def main():
         update_portfolio_simulation(prediction_store, "top10_original", "portfolio_sim_original")
         update_portfolio_simulation(prediction_store, "top10_fast_rs", "portfolio_sim_fast_rs")
         update_portfolio_simulation(prediction_store, "top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol")
+        update_portfolio_simulation(prediction_store, "top10_analyst_momentum", "portfolio_sim_analyst_momentum")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 
