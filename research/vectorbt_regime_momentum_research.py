@@ -3,10 +3,25 @@
 מופעל רק דרך .github/workflows/vectorbt_research.yml (workflow_dispatch,
 הפעלה ידנית בלבד), שומר תוצאות כ-artifact להורדה.
 
-שאלת המחקר: האם הוספת שני רכיבים - Dual Momentum (מומנטום מוחלט) ו-
-Low-Volatility tilt - משפרת בפועל את הביצועים בזמן שוק דובי, בלי
-"להרוג" יותר מדי הזדמנויות אמיתיות בזמן שוק שורי? (ראו הבריפינג/סיכום
-המחקר הקודם - זו הסיבה שהמחקר הזה בעדיפות עליונה).
+v2 (2026-09-23) - שלוש תוספות על הגרסה הראשונה, בעקבות הממצא שהיקום
+הראשון (50 ענקיות בלו-צ'יפ, 8 שנים) כמעט ואף פעם לא הפעיל את Dual
+Momentum/Low-Vol בפועל - לא כי הרעיונות לא עובדים, אלא כי לא נתנו להם
+תנאים אמיתיים להיבדק:
+1. LOOKBACK_YEARS הוארך ל-26 שנה - כדי לתפוס בפועל משברי-דובי מתמשכים
+   (2000-2002, 2008-2009), לא רק את הירידות הקצרות-יחסית של 2019-2026.
+2. RESEARCH_UNIVERSE הורחב והתגוון - לא רק ענקיות יציבות (שבהגדרה כמעט
+   אף פעם לא מפתחות מומנטום-מוחלט שלילי) אלא גם שמות תנודתיים/מחזוריים
+   יותר (טיסות, נסיעות, שבבים קטנים, ביוטק) שבהם ל-Dual Momentum/Low-Vol
+   יש סיכוי אמיתי להראות הבדל.
+3. קונפיגורציה שישית - "RS מהיר": בונוס לפי מומנטום-יחסי קצר-טווח
+   (20-30 יום, אחוזון חוצה-יקום) בכל תאריך-רה-בלנס, בדיוק כמו
+   compute_fast_rs_score שכבר חי בפרודקשן (v5.6.0) - נבדק כאן במקביל
+   כדי לראות אם התוצאה החיה (שעוד אין לה מספיק מדגם) עקבית עם באקטסט
+   היסטורי ארוך.
+
+שאלת המחקר המקורית עדיין בתוקף: האם הוספת הרכיבים האלה משפרת בפועל את
+הביצועים בזמן שוק דובי, בלי "להרוג" יותר מדי הזדמנויות אמיתיות בזמן
+שוק שורי?
 
 חשוב - שתי מגבלות מכוונות של המחקר הזה, שלא פוגמות בהשוואה בין
 הקונפיגורציות (כולן סובלות מהן באופן שווה), אבל צריך לזכור אותן
@@ -46,25 +61,44 @@ import stock_alerts as sa  # noqa: E402  (reuse the real production formula)
 # --------------------------------------------------------------------------
 # Config - safe to tweak between runs without touching the logic below
 # --------------------------------------------------------------------------
-LOOKBACK_YEARS = 8
+LOOKBACK_YEARS = 26             # v2: long enough to include 2000-02 and 2008-09
 TOP_N = 10
 RISK_FREE_ANNUAL_PCT = 4.0      # simplified constant risk-free proxy (T-bill-ish)
 MOMENTUM_LOOKBACK_DAYS = 252    # ~12 months, per the Dual Momentum literature
+FAST_MOMENTUM_LOOKBACK_DAYS = 21  # ~1 trading month, matches compute_fast_rs_score in production
+FAST_RS_ADDITIVE_MAX = 2.0      # additive nudge scale - see config_fast_rs's docstring for why additive, not multiplicative
 LOW_BETA_THRESHOLD = 0.8
 LOW_BETA_BONUS = 1.5            # same order of magnitude as the other +/- nudges in compute_prediction_score
 MIN_HISTORY_DAYS = 260          # must clear this before a ticker is eligible for a rebalance date
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
 
-# Trimmed, liquid research universe - keeps a GitHub Actions run fast and
-# avoids yfinance rate-limit flakiness on 500+ tickers. Swap in
-# sa.get_sp500_tickers() for a full-universe run once this is stable.
+# v2: expanded and diversified - not just mega-cap blue chips (which almost
+# never develop negative absolute momentum, so Dual Momentum/Low-Vol barely
+# ever fired on the original 50-name universe) but a deliberate mix across
+# volatility/cyclicality profiles, so those signals get a real chance to
+# differentiate. Some names won't have the full 26-year history (recent
+# IPOs) - that's fine, they simply join the study from whenever they have
+# MIN_HISTORY_DAYS of data (handled per-rebalance-date, not by exclusion).
 RESEARCH_UNIVERSE = [
+    # mega-cap / stable (original core, kept for continuity with v1 results)
     "AAPL", "MSFT", "GOOGL", "AMZN", "NVDA", "META", "TSLA", "BRK-B", "JPM", "V",
     "UNH", "XOM", "MA", "PG", "HD", "MRK", "ABBV", "COST", "PEP", "KO",
     "AVGO", "CSCO", "TMO", "MCD", "ADBE", "CRM", "ACN", "LIN", "ABT", "DHR",
     "WMT", "NKE", "TXN", "NEE", "PM", "UPS", "ORCL", "INTC", "QCOM", "AMD",
     "HON", "IBM", "UNP", "LOW", "SBUX", "CAT", "GE", "BA", "GS", "AMGN",
+    # cyclical / travel / consumer-discretionary (historically hit hard in
+    # both 2008-09 and 2020, good test cases for absolute momentum)
+    "DAL", "UAL", "AAL", "CCL", "RCL", "MGM", "LVS", "F", "GM", "MAR",
+    # energy (volatile, cyclical, historically low-correlation stretches to
+    # the broad market - a natural test bed for the low-vol/defensive tilt)
+    "SLB", "HAL", "OXY", "MRO", "DVN", "COP",
+    # financials (hit especially hard in 2008-09 specifically)
+    "C", "BAC", "WFC", "MS", "AIG",
+    # volatile tech / biotech / small-mid-cap (high-beta, meant to actually
+    # trigger the low-beta-bonus comparison and show real dispersion)
+    "PLTR", "COIN", "MRNA", "MSTR", "SMCI", "CRWD", "NET", "DKNG", "RIVN", "SNAP",
 ]
+
 
 
 def log(msg):
@@ -133,9 +167,18 @@ def rolling_beta(closes_upto_t, spy_closes_upto_t):
     return float(cov / var)
 
 
+def fast_momentum_return(closes_upto_t):
+    """v2: trailing ~1-month return, feeds the cross-sectional 'RS מהיר'
+    percentile below - same window as production's run_up_30d."""
+    s = closes_upto_t.dropna()
+    if len(s) < FAST_MOMENTUM_LOOKBACK_DAYS + 1:
+        return None
+    return float((s.iloc[-1] - s.iloc[-FAST_MOMENTUM_LOOKBACK_DAYS]) / s.iloc[-FAST_MOMENTUM_LOOKBACK_DAYS] * 100)
+
+
 # --------------------------------------------------------------------------
 # One rebalance date: score every ticker with the REAL production formula,
-# then build all 5 config variants from the same scored universe.
+# then build all config variants from the same scored universe.
 # --------------------------------------------------------------------------
 def score_universe_at(frames, spy_close_full, t_idx, dates):
     asof = dates[t_idx]
@@ -157,7 +200,18 @@ def score_universe_at(frames, spy_close_full, t_idx, dates):
         entry = {"ticker": ticker, "score": score, "predicted": predicted, **tf}
         entry["mom_negative"] = absolute_momentum_negative(sl["Close"])
         entry["beta"] = rolling_beta(sl["Close"], spy_close_full.loc[:asof])
+        entry["fast_momentum_return"] = fast_momentum_return(sl["Close"])
         entries[ticker] = entry
+
+    # v2: cross-sectional "RS מהיר" percentile at this date, same style as
+    # production's fast_rs_rating (see run_predictions in stock_alerts.py)
+    fast_pairs = [(t, e["fast_momentum_return"]) for t, e in entries.items() if e["fast_momentum_return"] is not None]
+    if fast_pairs:
+        ranked = sorted(fast_pairs, key=lambda p: p[1])
+        total = len(ranked)
+        for rank, (ticker, _) in enumerate(ranked):
+            entries[ticker]["fast_rs_rating"] = round(rank / max(total - 1, 1) * 100, 1)
+
     return market_regime, entries
 
 
@@ -207,6 +261,23 @@ def config_combined(regime):
             base += LOW_BETA_BONUS
         return base
     return fn
+
+
+def config_fast_rs(e, rank_a, rank_b):
+    """v2: cross-sectional ~1-month RS percentile (fast_rs_rating, see
+    score_universe_at), nudging the SAME rank-based blended score every
+    other config here uses. Deliberately ADDITIVE, not multiplicative -
+    compute_blended_top10_score returns a rank-based value that's usually
+    negative (closer to 0 = better rank), so multiplying it by a >1 factor
+    would push a good rank the WRONG way. Scaled to the same rough
+    magnitude as LOW_BETA_BONUS above, not copied from production's
+    compute_fast_rs_score (which multiplies abs(raw score) - a different,
+    always-positive quantity that multiplication works correctly on)."""
+    base = sa.compute_blended_top10_score(e, 1.0, rank_a, rank_b)
+    fast_rs = e.get("fast_rs_rating")
+    if fast_rs is not None:
+        base += (fast_rs - 50) / 50 * FAST_RS_ADDITIVE_MAX
+    return base
 
 
 # --------------------------------------------------------------------------
@@ -281,6 +352,7 @@ def main():
         "baseline": config_baseline,
         "dual_momentum_gate": config_dual_momentum_gate,
         "dual_momentum_penalty": config_dual_momentum_penalty,
+        "fast_rs": config_fast_rs,
     }
 
     rows = []
@@ -309,7 +381,7 @@ def main():
     detail_df.to_csv(detail_path, index=False)
     log(f"Wrote per-period detail: {detail_path}")
 
-    all_config_names = ["baseline", "dual_momentum_gate", "dual_momentum_penalty", "lowvol_tilt", "combined"]
+    all_config_names = ["baseline", "dual_momentum_gate", "dual_momentum_penalty", "fast_rs", "lowvol_tilt", "combined"]
     summary = [summarize(rows, name) for name in all_config_names]
     summary_path = OUTPUT_DIR / "vectorbt_research_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
