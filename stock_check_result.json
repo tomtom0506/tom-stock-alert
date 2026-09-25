@@ -1,21 +1,21 @@
 {
-  "ticker": "PLTR",
+  "ticker": "QCOM",
   "predicted_direction": "up",
-  "raw_score": 4.46,
-  "overall_score": 37.4,
+  "raw_score": 1.28,
+  "overall_score": 24.4,
   "components": {
-    "original": 44.6,
-    "risk_reward": 3.6,
-    "leading_adjusted": 22.3,
-    "analyst": 79.0
+    "original": 12.8,
+    "risk_reward": 11.4,
+    "leading_adjusted": 12.8,
+    "analyst": 60.8
   },
   "excluded_from_blend": [],
-  "price": 191.8000030517578,
-  "support": 177.29,
-  "resistance": 194.17,
-  "analyst_count": 26,
+  "price": 203.48500061035156,
+  "support": 193.84,
+  "resistance": 224.89,
+  "analyst_count": 30,
   "sector": "Technology",
-  "short_pct": 3.0299999,
+  "short_pct": 4.01,
   "rs_rating": null,
   "trend_template": {
     "criteria_met": 6,
@@ -25,14 +25,14 @@
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 7
+    "contractions": 6
   },
   "earnings": {
-    "date": "2026-11-02",
-    "days_away": 39
+    "date": "2026-11-04",
+    "days_away": 40
   },
-  "checked_at": "2026-09-24T15:52:16.635960+00:00",
-  "price_as_of_date": "2026-09-24",
+  "checked_at": "2026-09-25T18:46:06.315434+00:00",
+  "price_as_of_date": "2026-09-25",
   "market_status": {
     "market": "ארה\"ב (US)",
     "is_trading_day": true
