@@ -545,6 +545,8 @@
     <div class="stat-tile"><div class="stat-num mono" id="statHit">—</div><div class="stat-label">הגיעו ליעד</div></div>
   </div>
   <div id="homeDashboardDonut" data-tab="home"></div>
+  <div id="homeDashboardTiles" data-tab="home"></div>
+  <div id="homeDashboardVerdict" data-tab="home"></div>
 
   <div id="trackRecordSection" class="hidden" data-tab="simulation" data-subtab="performance">
     <div class="section-title" id="trackRecordToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -658,10 +660,7 @@
       🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div id="dataFreshnessNote" style="font-size:11px; color:var(--text-faint); margin-bottom:8px;"></div>
-    <div class="view-toggle-group">
-      <button id="showTop10Btn" class="top-toggle-btn view-active">הצג Top 10 (למעקב והוכחה)</button>
-      <button id="showForecastBtn" class="top-toggle-btn">🔮 10 המומלצות עכשיו (מתעדכן חופשי)</button>
-    </div>
+    <div id="top10SectorDonut"></div>
     <div class="predictions-controls">
       <select id="sortSelect" class="sort-select">
         <option value="score">מיון: לפי הנוסחה (ברירת מחדל)</option>
@@ -672,9 +671,7 @@
         <option value="near_support">מיון: הכי קרוב לתמיכה (קנייה)</option>
         <option value="near_resistance">מיון: הכי קרוב להתנגדות (מכירה/שורט)</option>
       </select>
-      <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב מחדש את 10 המומלצות עכשיו, על נתונים עדכניים לרגע זה - לא נשמר להיסטוריה ולא נבדק">🔁 רענן המלצות עכשיו</button>
     </div>
-    <div id="tomorrowForecastStatus"></div>
 
     <div id="buySellQueueSection">
       <div class="section-title" id="buySellQueueToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px; font-size:14px;">
@@ -689,6 +686,17 @@
     </div>
 
     <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
+  </div>
+
+  <div id="recommendedSection" data-tab="stocks" data-subtab="recommended">
+    <div class="section-title">🔮 10 המומלצות עכשיו (מתעדכן חופשי)</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
+      אותה נוסחה בדיוק כמו Top10 הרשמי, מחושבת מחדש על נתונים עדכניים לרגע הבקשה - לא נשמר להיסטוריה ולא נבדק לצורך מדידת דיוק.
+    </div>
+    <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב מחדש את 10 המומלצות עכשיו, על נתונים עדכניים לרגע זה - לא נשמר להיסטוריה ולא נבדק">🔁 רענן המלצות עכשיו</button>
+    <div id="tomorrowForecastStatus"></div>
+    <div id="recommendedSectorDonut"></div>
+    <div class="predictions-panel" id="recommendedListPanel"><div id="recommendedList"></div></div>
   </div>
 
   <div id="checkStockSection" data-tab="check">
@@ -1216,6 +1224,7 @@ async function loadCurrentPrices() {
 }
 
 function renderMarketIndices(indices) {
+  window.__dashboardData.sp500Pct = indices.sp500 && indices.sp500.pct_change != null ? indices.sp500.pct_change : null;
   const row = document.getElementById("indicesRow");
   const order = ["sp500", "ta125", "usdils", "btc"];
   const keysPresent = order.filter(k => indices[k] && indices[k].price != null);
@@ -1244,6 +1253,7 @@ function renderMarketIndices(indices) {
 
 let lastMarketRegime = null;
 let lastAccData = null;
+window.__dashboardData = { top10Sim: null, sinceChange: null, monthlyPortfolioSim: null, sp500Pct: null };
 let lastMarketBreadth = null;
 
 function renderRegimeBadge(marketRegime, marketBreadth) {
@@ -1637,55 +1647,86 @@ function renderCryptoExposedSection() {
 
 let lastHotPick = null;
 
-let predictionsView = "top10"; // "top10" | "forecast" - two separate persistent buttons (see showTop10Btn/showForecastBtn), not a single toggling one, per Tomer's request after the toggle button proved confusing
 let tomorrowForecastPicks = [];
+let lastHotPickSource = "top10";
 
-function updateViewButtons() {
-  document.getElementById("showTop10Btn").classList.toggle("view-active", predictionsView === "top10");
-  document.getElementById("showForecastBtn").classList.toggle("view-active", predictionsView === "forecast");
+function renderSectorAllocationDonut(containerId, stockList) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const withSector = (stockList || []).filter(p => p.sector);
+  if (!withSector.length) { container.innerHTML = ""; return; }
+  const counts = {};
+  withSector.forEach(p => { counts[p.sector] = (counts[p.sector] || 0) + 1; });
+  const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const total = withSector.length;
+  const colors = ["#5ee6a0", "#ffd76a", "#8ec9ff", "#ff9a8a", "#c99aff", "#6adfe0", "#ff8ac9", "#b0c4de"];
+  let cumulative = 0;
+  const R = 60, CX = 70, CY = 70;
+  const arcs = entries.map(([sector, count], i) => {
+    const pct = count / total;
+    const startAngle = cumulative * 2 * Math.PI - Math.PI / 2;
+    cumulative += pct;
+    const endAngle = cumulative * 2 * Math.PI - Math.PI / 2;
+    const x1 = CX + R * Math.cos(startAngle), y1 = CY + R * Math.sin(startAngle);
+    const x2 = CX + R * Math.cos(endAngle), y2 = CY + R * Math.sin(endAngle);
+    const largeArc = pct > 0.5 ? 1 : 0;
+    const color = colors[i % colors.length];
+    const path = pct >= 0.999
+      ? `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="${color}" stroke-width="20"/>`
+      : `<path d="M ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2}" fill="none" stroke="${color}" stroke-width="20"/>`;
+    return { path, color, sector, pct: (pct * 100).toFixed(0) };
+  });
+  container.innerHTML = `
+    <div style="display:flex; align-items:center; gap:16px; margin:10px 0 16px;">
+      <svg viewBox="0 0 140 140" style="width:90px; height:90px; flex-shrink:0;">${arcs.map(a => a.path).join("")}</svg>
+      <div style="font-size:11.5px; line-height:1.8; flex:1; min-width:0;">
+        ${arcs.map(a => `<div style="display:flex; align-items:center; gap:6px;">
+          <span style="width:8px; height:8px; border-radius:50%; background:${a.color}; flex-shrink:0;"></span>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.sector}</span>
+          <span class="mono" style="color:var(--text-faint); margin-right:auto;">${a.pct}%</span>
+        </div>`).join("")}
+      </div>
+    </div>`;
 }
 
 function renderPredictionsList() {
-  const list = document.getElementById("predictionsList");
   document.getElementById("statPredictions").textContent = allTodayPreds.length;
-  updateViewButtons();
-
   renderHomeDashboardDonut();
 
-  let shown;
-  if (predictionsView === "forecast") {
-    shown = sortPreds(tomorrowForecastPicks, sortMode);
+  // filter by the actual official top10 flag - NOT just "top 10 of
+  // whatever the current sort happens to be", so this always matches
+  // the real picks the accuracy/simulation numbers are tracking
+  const top10Shown = sortPreds(allTodayPreds, sortMode).filter(p => p.top10);
+  const forecastShown = sortPreds(tomorrowForecastPicks, "score");
+
+  const list = document.getElementById("predictionsList");
+  if (top10Shown.length === 0) {
+    list.innerHTML = `<div class="predictions-empty">אין חיזויים חזקים כרגע</div>`;
   } else {
-    // filter by the actual official top10 flag - NOT just "top 10 of
-    // whatever the current sort happens to be", so this always matches
-    // the real picks the accuracy/simulation numbers are tracking
-    shown = sortPreds(allTodayPreds, sortMode).filter(p => p.top10);
+    list.innerHTML = top10Shown.map((p, i) => predictionCardHtml(p, i === 0)).join("");
+    attachStarEvents(list);
+  }
+  renderSectorAllocationDonut("top10SectorDonut", top10Shown);
+
+  const recList = document.getElementById("recommendedList");
+  if (recList) {
+    if (forecastShown.length === 0) {
+      recList.innerHTML = `<div class="predictions-empty">אין עדיין "מומלצות עכשיו" - לחץ "רענן המלצות עכשיו" כדי לחשב.</div>`;
+    } else {
+      recList.innerHTML = forecastShown.map((p, i) => predictionCardHtml(p, i === 0)).join("");
+      attachStarEvents(recList);
+    }
+    renderSectorAllocationDonut("recommendedSectorDonut", forecastShown);
   }
 
-  if (shown.length === 0) {
-    list.innerHTML = predictionsView === "forecast"
-      ? `<div class="predictions-empty">אין עדיין "מומלצות עכשיו" - לחץ "רענן המלצות עכשיו" כדי לחשב.</div>`
-      : `<div class="predictions-empty">אין חיזויים חזקים כרגע</div>`;
-    lastHotPick = null;
-    renderStarredSection();
-    return;
-  }
-  lastHotPick = shown[0];
-  list.innerHTML = shown.map((p, i) => predictionCardHtml(p, i === 0)).join("");
-  attachStarEvents(list);
+  if (top10Shown.length) { lastHotPick = top10Shown[0]; lastHotPickSource = "top10"; }
+  else if (forecastShown.length) { lastHotPick = forecastShown[0]; lastHotPickSource = "forecast"; }
+  else { lastHotPick = null; }
   renderStarredSection();
 }
 
 document.getElementById("sortSelect").addEventListener("change", (e) => {
   sortMode = e.target.value;
-  renderPredictionsList();
-});
-document.getElementById("showTop10Btn").addEventListener("click", () => {
-  predictionsView = "top10";
-  renderPredictionsList();
-});
-document.getElementById("showForecastBtn").addEventListener("click", () => {
-  predictionsView = "forecast";
   renderPredictionsList();
 });
 
@@ -2211,6 +2252,8 @@ async function loadPredictions() {
     renderMonthlyPortfolio(data.monthly_portfolio, currentPrices);
     lastPortfolioSimReal = data.portfolio_sim || null;
     renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
+    window.__dashboardData.monthlyPortfolioSim = data.monthly_portfolio_sim || null;
+    renderHomeDashboardTiles();
   } catch (e) {
     section.classList.add("hidden");
   }
@@ -2346,6 +2389,7 @@ document.getElementById("liveEstimateOverlay").addEventListener("click", (e) => 
 });
 
 function renderPortfolioSim(sim, acc) {
+  window.__dashboardData.top10Sim = sim || null;
   renderLiveEstimate();
   const section = document.getElementById("portfolioSimSection");
   const officialTiles = document.getElementById("officialSimTiles");
@@ -2458,6 +2502,7 @@ function renderFactorAnalysis(analysis) {
 }
 
 function renderFormulaComparison(fc) {
+  window.__dashboardData.sinceChange = (fc && fc.since_change) || null;
   const section = document.getElementById("rrExperimentSection");
   if (!fc || !fc.formulas || !fc.formulas.length) {
     section.classList.add("hidden");
@@ -2904,7 +2949,7 @@ function showHotPickExplanation() {
   const reversionItems = items.filter(i => i.cat === "reversion");
   const fundItems = items.filter(i => i.cat === "fund");
 
-  const viewLabel = predictionsView === "forecast" ? '"10 המומלצות עכשיו"' : '"Top 10"';
+  const viewLabel = lastHotPickSource === "forecast" ? '"10 המומלצות עכשיו"' : '"Top 10"';
   const selectionNote = `זו המניה המדורגת ראשונה כרגע ב-${viewLabel}, לפי הנוסחה (עוצמת חיזוי + יחס סיכוי/סיכון + אינדיקטורים מקדימים, ואצל Top10 גם דירוג אנליסטים אם קיים).`;
 
   let html = `
@@ -3597,6 +3642,7 @@ const TAB_IDS = ["home", "stocks", "simulation"]; // "check" is a special screen
 const SUBTABS = {
   stocks: [
     { id: "top10", label: "Top10", icon: "🔮" },
+    { id: "recommended", label: "מומלצות עכשיו", icon: "🔁" },
     { id: "monthly", label: "תיק חודשי", icon: "📅" },
     { id: "holdings", label: "התיק שלי", icon: "💼" },
   ],
@@ -3720,6 +3766,95 @@ function renderHomeDashboardDonut() {
         <div><span style="color:var(--up, #5ee6a0);">▲</span> ${upCount} עלייה</div>
         <div><span style="color:var(--down, #ff5c5c);">▼</span> ${downCount} ירידה</div>
       </div>
+    </div>`;
+}
+
+function renderHomeDashboardTiles() {
+  const container = document.getElementById("homeDashboardTiles");
+  if (!container) return;
+  const d = window.__dashboardData;
+  const tile = (label, valueHtml) => `
+    <div class="index-tile">
+      <div class="index-label">${label}</div>
+      <div class="index-value mono">${valueHtml}</div>
+    </div>`;
+
+  const top10ValueHtml = d.top10Sim && d.top10Sim.value != null
+    ? `₪${Math.round(d.top10Sim.value).toLocaleString("en-US")}`
+    : "—";
+  const sinceChangeHtml = d.sinceChange && d.sinceChange.portfolio_return_pct != null
+    ? `<span class="${d.sinceChange.portfolio_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${d.sinceChange.portfolio_return_pct >= 0 ? "+" : ""}${d.sinceChange.portfolio_return_pct}%</span>`
+    : "—";
+  const monthlyHtml = d.monthlyPortfolioSim && d.monthlyPortfolioSim.total_return_pct != null
+    ? `<span class="${d.monthlyPortfolioSim.total_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${d.monthlyPortfolioSim.total_return_pct >= 0 ? "+" : ""}${d.monthlyPortfolioSim.total_return_pct}%</span>`
+    : "—";
+
+  container.innerHTML = `
+    <div class="indices-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom:14px;">
+      ${tile("שווי תיק Top10 (₪100,000)", top10ValueHtml)}
+      ${tile("תשואה מאז שינוי הנוסחה", sinceChangeHtml)}
+      ${tile("תשואת תיק חודשי (מצטבר)", monthlyHtml)}
+    </div>`;
+  renderHomeDashboardVerdict();
+}
+
+// Rule-based daily verdict (v_test 2026-09-26, per Tomer): deterministic,
+// re-evaluated fresh each day from today's own metrics - deliberately NOT
+// an average/trend over time, and NOT connected to the monthly
+// consolidated-review cadence that actually decides app changes. Purely a
+// same-day diagnostic snapshot. Each component scores -1/0/+1; the
+// lowest-scoring component drives the one-line recommendation shown.
+function computeDailyVerdict() {
+  const liveEst = computeLiveTop10Estimate();
+  const sp500Pct = window.__dashboardData.sp500Pct;
+  const accDaily = lastAccData ? lastAccData.top10_accuracy_daily : null;
+  const components = [];
+
+  if (liveEst && sp500Pct != null) {
+    const diff = liveEst.avg - sp500Pct;
+    components.push({
+      score: diff > 0.2 ? 1 : (diff < -0.2 ? -1 : 0),
+      badMsg: "Top10 מפגר אחרי S&P500 היום - שווי לבדוק אם זה יום בודד או מגמה נמשכת",
+    });
+  }
+  if (accDaily != null) {
+    components.push({
+      score: accDaily >= 55 ? 1 : (accDaily < 45 ? -1 : 0),
+      badMsg: `אחוז ההצלחה היומי נמוך (${accDaily}%) - שווי לעקוב אם זה נמשך כמה ימים ברצף לפני שמסיקים מסקנה על הנוסחה`,
+    });
+  }
+  if (liveEst) {
+    components.push({
+      score: liveEst.avg > 0.1 ? 1 : (liveEst.avg < -0.1 ? -1 : 0),
+      badMsg: "התיק המדומה בירידה היום",
+    });
+  }
+  if (!components.length) return null;
+
+  const total = components.reduce((a, c) => a + c.score, 0);
+  let tier, tierClass;
+  if (total >= 2) { tier = "🟢 יום טוב"; tierClass = "prediction-dir-up"; }
+  else if (total <= -2) { tier = "🔴 יום מאכזב"; tierClass = "prediction-dir-down"; }
+  else { tier = "🟡 יום מעורב"; tierClass = ""; }
+
+  const worst = components.reduce((a, c) => (c.score < a.score ? c : a), components[0]);
+  const recommendation = worst.score < 0 ? worst.badMsg : "אין המלצת שינוי היום - הכל נראה תקין לפי המדדים הזמינים.";
+
+  return { tier, tierClass, total, recommendation };
+}
+
+function renderHomeDashboardVerdict() {
+  const container = document.getElementById("homeDashboardVerdict");
+  if (!container) return;
+  const v = computeDailyVerdict();
+  if (!v) { container.innerHTML = ""; return; }
+  container.innerHTML = `
+    <div class="panel" style="padding:14px 16px; margin-bottom:14px;">
+      <div style="font-size:15px; font-weight:700; margin-bottom:6px;" class="${v.tierClass}">${v.tier}</div>
+      <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">
+        ציון יומי מבוסס-כללים (${v.total >= 0 ? "+" : ""}${v.total}) - נחשב מחדש כל יום מהנתונים של אותו יום בלבד, לא קשור לסבב הביקורת החודשי שבו נעשים שינויים באפליקציה.
+      </div>
+      <div style="font-size:13px;">💡 ${v.recommendation}</div>
     </div>`;
 }
 
