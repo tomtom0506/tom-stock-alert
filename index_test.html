@@ -377,17 +377,20 @@
     position: absolute; top: 2px; left: 8px; width: 8px; height: 8px; border-radius: 50%;
     background: var(--down, #ff5c5c);
   }
-  .bottom-util-bar {
-    position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
-    display: flex; justify-content: space-around; align-items: center;
-    background: var(--bg); border-top: 1px solid var(--border);
-    padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+  .sub-tab-bar {
+    display: flex; gap: 6px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+    margin: 0 0 14px; scrollbar-width: none;
   }
-  .bottom-util-bar .gear-btn { font-size: 17px; }
-  body.has-bottom-bar { padding-bottom: 56px; }
+  .sub-tab-bar::-webkit-scrollbar { display: none; }
+  .sub-tab-btn {
+    flex: 0 0 auto; background: var(--panel-2, rgba(255,255,255,0.05)); border: 1px solid var(--border);
+    color: var(--text-faint); font-size: 12.5px; font-family: inherit; font-weight: 600;
+    padding: 7px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+  }
+  .sub-tab-btn.active { color: var(--bg); background: var(--gold); border-color: var(--gold); }
 </style>
 </head>
-<body class="has-bottom-bar">
+<body>
 
 <div class="tape-wrap" id="tapeWrap" style="display:none;">
   <div class="tape-track mono" id="tapeTrack"></div>
@@ -413,11 +416,10 @@
 
   <nav class="top-tab-bar" id="topTabBar">
     <button class="top-tab-btn active" data-tab-target="home" id="tabBtn-home"><span class="top-tab-icon">🏠</span><span id="tabLabel-home">היום</span></button>
-    <button class="top-tab-btn" data-tab-target="holdings" id="tabBtn-holdings"><span class="top-tab-icon">💼</span><span id="tabLabel-holdings">האחזקות שלי</span></button>
-    <button class="top-tab-btn" data-tab-target="monthly" id="tabBtn-monthly"><span class="top-tab-icon">📅</span><span id="tabLabel-monthly">תיק חודשי</span><span class="top-tab-badge hidden" id="tabBadge-monthly"></span></button>
-    <button class="top-tab-btn" data-tab-target="check" id="tabBtn-check"><span class="top-tab-icon">🔍</span><span id="tabLabel-check">בדוק מניה</span></button>
-    <button class="top-tab-btn" data-tab-target="formulas" id="tabBtn-formulas"><span class="top-tab-icon">🧮</span><span id="tabLabel-formulas">השוואת נוסחאות</span></button>
+    <button class="top-tab-btn" data-tab-target="stocks" id="tabBtn-stocks"><span class="top-tab-icon">📈</span><span id="tabLabel-stocks">מניות</span><span class="top-tab-badge hidden" id="tabBadge-stocks"></span></button>
+    <button class="top-tab-btn" data-tab-target="simulation" id="tabBtn-simulation"><span class="top-tab-icon">🧮</span><span id="tabLabel-simulation">סימולציה</span></button>
   </nav>
+  <nav class="sub-tab-bar hidden" id="subTabBar"></nav>
 
   <div id="regimeBadge" class="regime-badge hidden"></div>
   <div id="indicesRow" class="indices-row hidden"></div>
@@ -542,8 +544,9 @@
     <div class="stat-tile"><div class="stat-num mono" id="statTracked">—</div><div class="stat-label">מניות במעקב</div></div>
     <div class="stat-tile"><div class="stat-num mono" id="statHit">—</div><div class="stat-label">הגיעו ליעד</div></div>
   </div>
+  <div id="homeDashboardDonut" data-tab="home"></div>
 
-  <div id="trackRecordSection" class="hidden" data-tab="home">
+  <div id="trackRecordSection" class="hidden" data-tab="simulation" data-subtab="performance">
     <div class="section-title" id="trackRecordToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🔥 ביצועי תחזיות חזקות <span id="trackRecordArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -556,7 +559,7 @@
     <div class="predictions-panel hidden" id="trackListPanel"><div id="trackList"></div></div>
   </div>
 
-  <div id="portfolioSimSection" class="hidden" data-tab="home">
+  <div id="portfolioSimSection" class="hidden" data-tab="simulation" data-subtab="performance">
     <div class="section-title">💰 סימולציית תיק ₪100,000</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
       תיק מדומה: משקיע ₪100,000 בחלוקה שווה בין מניות ה-Top 10 שהומלצו לעלייה בכל יום (לפי עוצמת האות, קבוע - לא מושפע מהמיון שבחרת ברשימה למטה), ומתעדכן יום אחרי יום לפי הביצוע בפועל. הערכה בלבד - ללא עמלות/מרווחים, וללא המרות מטבע.
@@ -599,7 +602,7 @@
     </div>
   </div>
 
-  <div id="benchmarkComparisonSection" class="hidden" data-tab="home">
+  <div id="benchmarkComparisonSection" class="hidden" data-tab="simulation" data-subtab="performance">
     <div class="section-title" id="benchmarkComparisonToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       📊 Top 10 מול התיק שלי ומול המדדים <span id="benchmarkComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -609,7 +612,7 @@
     <div class="predictions-panel hidden" id="benchmarkComparisonPanel"><div id="benchmarkComparisonList"></div></div>
   </div>
 
-  <div id="factorAnalysisSection" class="hidden" data-tab="home">
+  <div id="factorAnalysisSection" class="hidden" data-tab="simulation" data-subtab="triggers">
     <div class="section-title" id="factorAnalysisToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🧪 ניתוח טריגרים - מה עובד ומה פחות <span id="factorAnalysisArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -617,7 +620,7 @@
     <div class="predictions-panel hidden" id="factorAnalysisPanel"><div id="factorAnalysisList"></div></div>
   </div>
 
-  <div id="rrExperimentSection" class="hidden" data-tab="formulas">
+  <div id="rrExperimentSection" class="hidden" data-tab="simulation" data-subtab="formulas">
     <div class="section-title" id="formulaComparisonToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🧮 השוואת נוסחאות (Top 10) <span id="formulaComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -626,7 +629,7 @@
     <div class="predictions-panel hidden" id="formulaComparisonPanel"><div id="formulaComparisonList"></div></div>
   </div>
 
-  <div id="monthlyPortfolioSection" class="hidden" data-tab="monthly">
+  <div id="monthlyPortfolioSection" class="hidden" data-tab="stocks" data-subtab="monthly">
     <div class="section-title" id="monthlyPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       📅 תיק חודשי <span id="monthlyPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -637,7 +640,7 @@
     <div class="predictions-panel hidden" id="monthlyPortfolioPanel"><div id="monthlyPortfolioList"></div></div>
   </div>
 
-  <div id="predictionsSection" class="hidden" data-tab="home">
+  <div id="predictionsSection" class="hidden" data-tab="stocks" data-subtab="top10">
     <div id="starredSection" class="hidden">
       <div class="section-title">⭐ מניות במעקב</div>
       <div id="starredList"></div>
@@ -689,6 +692,7 @@
   </div>
 
   <div id="checkStockSection" data-tab="check">
+    <button class="sub-tab-btn" style="margin-bottom:10px;" onclick="switchTab(preCheckTab)">← חזרה</button>
     <div class="section-title">🔍 בדוק מניה</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
       ניתוח לפי דרישה לכל טיקר - לא קשור לרשימת המעקב היומית. מריץ את אותן שלוש הנוסחאות שמריצות את Top 10, בתוספת דירוג אנליסטים, ונותן ציון כולל 1-100. לוקח כדקה-שתיים (מפעיל ריצה חדשה בגיטהאב, לא מיידי).
@@ -804,7 +808,7 @@
 
   <div class="loading hidden" id="loadingMsg">טוען...</div>
 
-  <div id="myPortfolioSection" class="hidden" data-tab="holdings">
+  <div id="myPortfolioSection" class="hidden" data-tab="stocks" data-subtab="holdings">
     <div class="section-title" id="myPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       💼 התיק שלי <span id="myPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -838,7 +842,7 @@
     </div>
   </div>
 
-  <div id="watchlistSection" class="hidden" data-tab="holdings">
+  <div id="watchlistSection" class="hidden" data-tab="stocks" data-subtab="holdings">
     <div class="section-title" id="watchlistToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       המניות שלי <span id="watchlistArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -858,15 +862,8 @@
   </div>
 </div>
 
-<button class="add-btn" id="floatingRecomputeBtn" title="מפעיל ריצה חדשה של המנוע בגיטהאב">🔄 עדכן ניתוח</button>
+<button class="add-btn hidden" id="contextActionBtn" title="">🔄 עדכן ניתוח</button>
 <div id="floatingRecomputeStatus" style="position:fixed; bottom:78px; left:50%; transform:translateX(-50%); z-index:10; max-width:90vw;"></div>
-
-<nav class="bottom-util-bar" id="bottomUtilBar">
-  <button class="gear-btn" aria-label="מדריך שימוש" title="מדריך שימוש" onclick="document.getElementById('guideBtn').click()">📖</button>
-  <button class="gear-btn" aria-label="מצב תצוגה בהיר/כהה" title="החלפת מצב תצוגה" onclick="document.getElementById('themeToggleBtn').click()">🌙</button>
-  <button class="gear-btn" aria-label="בדיקת עדכון" title="רענון גרסה" onclick="document.getElementById('refreshBtn').click()">⟳</button>
-  <button class="gear-btn" aria-label="הגדרות" onclick="document.getElementById('gearBtn').click()">⚙</button>
-</nav>
 
 <div class="modal-overlay hidden" id="legalOverlay" style="z-index:200;">
   <div class="panel modal-box" id="legalPanel">
@@ -1653,6 +1650,8 @@ function renderPredictionsList() {
   document.getElementById("statPredictions").textContent = allTodayPreds.length;
   updateViewButtons();
 
+  renderHomeDashboardDonut();
+
   let shown;
   if (predictionsView === "forecast") {
     shown = sortPreds(tomorrowForecastPicks, sortMode);
@@ -1754,7 +1753,11 @@ async function triggerFullRecompute(statusElId) {
   }
 }
 
-document.getElementById("floatingRecomputeBtn").addEventListener("click", () => triggerFullRecompute("floatingRecomputeStatus"));
+document.getElementById("contextActionBtn").addEventListener("click", () => {
+  if (activeTab === "home") triggerFullRecompute("floatingRecomputeStatus");
+  else if (activeTab === "stocks") switchTab("check");
+  else if (activeTab === "simulation") document.getElementById("refreshBtn").click();
+});
 document.getElementById("forecastRecomputeBtn").addEventListener("click", async () => {
   const statusEl = document.getElementById("tomorrowForecastStatus");
   if (!owner || !repo || !token) {
@@ -3160,7 +3163,6 @@ function renderMyPortfolio(snapshot, sim) {
     document.getElementById("myPortfolioCompare").innerHTML = "";
     document.getElementById("myPortfolioList").innerHTML = "";
     document.getElementById("myPortfolioUnpriced").innerHTML = "";
-    window.__tabState.myPortfolioDailyPct = null;
     updateTabLabels();
     return;
   }
@@ -3236,7 +3238,6 @@ function renderMyPortfolio(snapshot, sim) {
       </div>`;
   }
   document.getElementById("myPortfolioCompare").innerHTML = compareHtml;
-  window.__tabState.myPortfolioDailyPct = totalReturn != null ? totalReturn : null;
   updateTabLabels();
 
   document.getElementById("myPortfolioList").innerHTML = priced.map(r => {
@@ -3588,18 +3589,85 @@ if (!legalAlreadyAccepted) showLegalGate(true);
    v_test (2026-09-23) - top/bottom nav shell for the test environment:
    tab switching, dynamic tab labels, and the holdings-allocation donut.
    -------------------------------------------------------------------- */
-const TAB_IDS = ["home", "holdings", "monthly", "check", "formulas"];
+/* --------------------------------------------------------------------
+   v_test (2026-09-23, rev2) - 3 top tabs + sub-tabs + one contextual
+   action circle, per Tomer's feedback on the first pass.
+   -------------------------------------------------------------------- */
+const TAB_IDS = ["home", "stocks", "simulation"]; // "check" is a special screen, reached via the action circle only - not a top tab
+const SUBTABS = {
+  stocks: [
+    { id: "top10", label: "Top10", icon: "🔮" },
+    { id: "monthly", label: "תיק חודשי", icon: "📅" },
+    { id: "holdings", label: "התיק שלי", icon: "💼" },
+  ],
+  simulation: [
+    { id: "triggers", label: "ניתוח טריגרים", icon: "🧪" },
+    { id: "formulas", label: "השוואת נוסחאות", icon: "🧮" },
+    { id: "performance", label: "ביצועים", icon: "📈" },
+  ],
+};
+const CONTEXT_ACTION = {
+  home: { icon: "🔄", label: "עדכן ניתוח" },
+  stocks: { icon: "🔍", label: "בדוק מניה" },
+  simulation: { icon: "⟳", label: "רענון" },
+};
+
 let activeTab = "home";
+let activeSubtab = null;
+let preCheckTab = "home"; // where to return to when leaving the "check" screen
+
+function applyVisibility() {
+  document.querySelectorAll("[data-tab]").forEach(el => {
+    const tab = el.getAttribute("data-tab");
+    const sub = el.getAttribute("data-subtab");
+    const tabMatches = tab === activeTab;
+    const subMatches = !sub || sub === activeSubtab;
+    el.classList.toggle("tab-hidden", !(tabMatches && subMatches));
+  });
+}
+
+function renderSubTabBar() {
+  const bar = document.getElementById("subTabBar");
+  const subs = SUBTABS[activeTab];
+  if (!subs) { bar.classList.add("hidden"); bar.innerHTML = ""; return; }
+  bar.classList.remove("hidden");
+  bar.innerHTML = subs.map(s => `
+    <button class="sub-tab-btn ${s.id === activeSubtab ? "active" : ""}" data-subtab-target="${s.id}">
+      ${s.icon} ${s.label}
+    </button>`).join("");
+  bar.querySelectorAll(".sub-tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => switchSubtab(btn.getAttribute("data-subtab-target")));
+  });
+}
+
+function updateContextActionBtn() {
+  const btn = document.getElementById("contextActionBtn");
+  const cfg = CONTEXT_ACTION[activeTab];
+  if (!cfg) { btn.classList.add("hidden"); return; }
+  btn.classList.remove("hidden");
+  btn.textContent = `${cfg.icon} ${cfg.label}`;
+}
+
+function switchSubtab(subtabId) {
+  activeSubtab = subtabId;
+  renderSubTabBar();
+  applyVisibility();
+}
 
 function switchTab(tabId) {
-  if (!TAB_IDS.includes(tabId)) return;
+  if (tabId === "check") {
+    if (activeTab !== "check") preCheckTab = activeTab;
+  } else if (!TAB_IDS.includes(tabId)) {
+    return;
+  }
   activeTab = tabId;
-  document.querySelectorAll("[data-tab]").forEach(el => {
-    el.classList.toggle("tab-hidden", el.getAttribute("data-tab") !== tabId);
-  });
+  activeSubtab = SUBTABS[tabId] ? SUBTABS[tabId][0].id : null;
   document.querySelectorAll(".top-tab-btn").forEach(btn => {
     btn.classList.toggle("active", btn.getAttribute("data-tab-target") === tabId);
   });
+  renderSubTabBar();
+  applyVisibility();
+  updateContextActionBtn();
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 }
 TAB_IDS.forEach(id => {
@@ -3610,23 +3678,49 @@ TAB_IDS.forEach(id => {
 // updateTabLabels reads whatever's been computed so far by the render
 // functions below (set via the globals they update) - decoupled this way
 // so it doesn't need to know every render function's internal call order.
-window.__tabState = { myPortfolioDailyPct: null, monthlyWarnedCount: null };
+window.__tabState = { monthlyWarnedCount: null, todayUpCount: null, todayDownCount: null };
 
 function updateTabLabels() {
   const s = window.__tabState;
-  const holdingsLabel = document.getElementById("tabLabel-holdings");
-  if (holdingsLabel) {
-    if (s.myPortfolioDailyPct != null) {
-      const cls = s.myPortfolioDailyPct >= 0 ? "prediction-dir-up" : "prediction-dir-down";
-      holdingsLabel.innerHTML = `האחזקות שלי <span class="mono ${cls}" style="font-size:10px;">${s.myPortfolioDailyPct >= 0 ? "+" : ""}${s.myPortfolioDailyPct.toFixed(2)}%</span>`;
-    } else {
-      holdingsLabel.textContent = "האחזקות שלי";
-    }
+  const stocksBadge = document.getElementById("tabBadge-stocks");
+  if (stocksBadge) {
+    stocksBadge.classList.toggle("hidden", !s.monthlyWarnedCount);
   }
-  const monthlyBadge = document.getElementById("tabBadge-monthly");
-  if (monthlyBadge) {
-    monthlyBadge.classList.toggle("hidden", !s.monthlyWarnedCount);
-  }
+}
+
+function renderHomeDashboardDonut() {
+  const container = document.getElementById("homeDashboardDonut");
+  if (!container) return;
+  const top10Today = allTodayPreds.filter(p => p.top10);
+  if (!top10Today.length) { container.innerHTML = ""; return; }
+  const upCount = top10Today.filter(p => p.predicted === "up").length;
+  const downCount = top10Today.length - upCount;
+  window.__tabState.todayUpCount = upCount;
+  window.__tabState.todayDownCount = downCount;
+
+  const total = upCount + downCount;
+  const upPct = total ? upCount / total : 0;
+  const R = 60, CX = 70, CY = 70;
+  const upEndAngle = upPct * 2 * Math.PI - Math.PI / 2;
+  const x1 = CX + R * Math.cos(-Math.PI / 2), y1 = CY + R * Math.sin(-Math.PI / 2);
+  const x2 = CX + R * Math.cos(upEndAngle), y2 = CY + R * Math.sin(upEndAngle);
+  const largeArc = upPct > 0.5 ? 1 : 0;
+  const upArc = upCount === 0 ? "" : (upPct >= 0.999
+    ? `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--up, #5ee6a0)" stroke-width="20"/>`
+    : `<path d="M ${x1} ${y1} A ${R} ${R} 0 ${largeArc} 1 ${x2} ${y2}" fill="none" stroke="var(--up, #5ee6a0)" stroke-width="20"/>`);
+  const downArc = downCount === 0 ? "" : (upPct <= 0.001
+    ? `<circle cx="${CX}" cy="${CY}" r="${R}" fill="none" stroke="var(--down, #ff5c5c)" stroke-width="20"/>`
+    : `<path d="M ${x2} ${y2} A ${R} ${R} 0 ${1 - largeArc} 1 ${x1} ${y1}" fill="none" stroke="var(--down, #ff5c5c)" stroke-width="20"/>`);
+
+  container.innerHTML = `
+    <div class="panel" style="display:flex; align-items:center; gap:16px; margin-bottom:14px; padding:14px 16px;">
+      <svg viewBox="0 0 140 140" style="width:90px; height:90px; flex-shrink:0;">${upArc}${downArc}</svg>
+      <div style="font-size:13px; line-height:1.9;">
+        <div style="font-weight:700; margin-bottom:2px;">פילוח Top10 להיום</div>
+        <div><span style="color:var(--up, #5ee6a0);">▲</span> ${upCount} עלייה</div>
+        <div><span style="color:var(--down, #ff5c5c);">▼</span> ${downCount} ירידה</div>
+      </div>
+    </div>`;
 }
 
 function renderPortfolioDonut(rows) {
