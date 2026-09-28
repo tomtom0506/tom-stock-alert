@@ -1,40 +1,4 @@
 {
-  "ticker": "QCOM",
-  "predicted_direction": "up",
-  "raw_score": 1.28,
-  "overall_score": 24.4,
-  "components": {
-    "original": 12.8,
-    "risk_reward": 11.4,
-    "leading_adjusted": 12.8,
-    "analyst": 60.8
-  },
-  "excluded_from_blend": [],
-  "price": 203.48500061035156,
-  "support": 193.84,
-  "resistance": 224.89,
-  "analyst_count": 30,
-  "sector": "Technology",
-  "short_pct": 4.01,
-  "rs_rating": null,
-  "trend_template": {
-    "criteria_met": 6,
-    "criteria_total": 7,
-    "passes": false,
-    "multiplier": 0.943
-  },
-  "vcp": {
-    "vcp_detected": false,
-    "contractions": 6
-  },
-  "earnings": {
-    "date": "2026-11-04",
-    "days_away": 40
-  },
-  "checked_at": "2026-09-25T18:46:06.315434+00:00",
-  "price_as_of_date": "2026-09-25",
-  "market_status": {
-    "market": "ארה\"ב (US)",
-    "is_trading_day": true
-  }
+  "ticker": "SAVGO",
+  "error": "לא הצלחתי למשוך נתוני מחיר עבור 'SAVGO'. אם זו מניה מבורסת תל-אביב, נסה להוסיף בעצמך את הסיומת .TA (למשל SAE.TA)."
 }
