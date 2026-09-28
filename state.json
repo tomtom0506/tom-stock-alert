@@ -1127,5 +1127,8 @@
   "US_MDB_bigmove_2026-09-28": true,
   "US_GFI_bigmove_2026-09-28": true,
   "US_MOD_bigmove_2026-09-28": true,
-  "US_CRDO_bigmove_2026-09-28": true
+  "US_CRDO_bigmove_2026-09-28": true,
+  "US_MAAS_bigmove_2026-09-28": true,
+  "US_ABCL_bigmove_2026-09-28": true,
+  "US_AUR_bigmove_2026-09-28": true
 }
