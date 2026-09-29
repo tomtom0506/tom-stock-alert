@@ -42,6 +42,22 @@ data_suspect) מיובאת ומופעלת ישירות מ-stock_alerts.py - לא
 כדי שהמחקר יבדוק את הנוסחה האמיתית, לא גרסה משוערכת שלה.
 """
 
+# v3 (29.9.2026) - after v2 showed none of the component tweaks beat the
+# baseline, two questions v2 could not answer:
+#   1. Does the formula beat simply HOLDING the same universe? v2 only
+#      compared configs to each other; its 18% a year is inflated by
+#      survivorship (the universe is today's survivors). Added benchmarks:
+#      benchmark_equal_weight (every eligible ticker, equal weight, same
+#      monthly schedule - suffers the same survivorship, so the comparison
+#      is fair even though the absolute level isn't) and benchmark_spy.
+#   2. Does protection work at the EXPOSURE level instead of stock choice?
+#      Added baseline_exposure_50 / baseline_exposure_0 (hold 50% / 100%
+#      cash while SPY is below its 200-day average) and spy_exposure_0 (the
+#      classic SPY 200-day rule, for reference).
+#   Also: a handful of long-term decliners that are still listed (a partial
+#   survivorship fix - truly delisted names have no yfinance history), and
+#   the summary now lists exactly which tickers loaded.
+
 import json
 import sys
 import warnings
@@ -71,6 +87,7 @@ LOW_BETA_THRESHOLD = 0.8
 LOW_BETA_BONUS = 1.5            # same order of magnitude as the other +/- nudges in compute_prediction_score
 MIN_HISTORY_DAYS = 260          # must clear this before a ticker is eligible for a rebalance date
 OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+CASH_MONTHLY = (1 + RISK_FREE_ANNUAL_PCT / 100) ** (1 / 12) - 1  # v3: return on the cash part of the exposure configs (same simplified constant as above)
 
 # v2: expanded and diversified - not just mega-cap blue chips (which almost
 # never develop negative absolute momentum, so Dual Momentum/Low-Vol barely
@@ -97,7 +114,11 @@ RESEARCH_UNIVERSE = [
     # volatile tech / biotech / small-mid-cap (high-beta, meant to actually
     # trigger the low-beta-bonus comparison and show real dispersion)
     "PLTR", "COIN", "MRNA", "MSTR", "SMCI", "CRWD", "NET", "DKNG", "RIVN", "SNAP",
+    # v3: long-term decliners that are still listed - a partial counterweight
+    # to survivorship bias (delisted names can't be loaded at all)
+    "M", "KSS", "GAP", "LUMN", "XRX", "NOK", "NWL", "VFC",
 ]
+EXPOSURE_SMA_DAYS = 200         # v3: SPY trend filter for the exposure configs
 
 
 
@@ -316,6 +337,7 @@ def summarize(rows, config_name):
     rets = df[config_name].tolist()
     bull = df[df["regime_bullish"] == True][config_name].tolist()
     bear = df[df["regime_bullish"] == False][config_name].tolist()
+    below200 = df[df["spy_above_200"] == False][config_name].tolist() if "spy_above_200" in df else []
     total_return = float(np.prod([1 + r for r in rets]) - 1)
     n_years = max(len(rets) / 12, 0.01)
     annualized = float((1 + total_return) ** (1 / n_years) - 1)
@@ -330,7 +352,27 @@ def summarize(rows, config_name):
         "bull_avg_return_pct": round(100 * float(np.mean(bull)), 2) if bull else None,
         "bear_periods": len(bear),
         "bear_avg_return_pct": round(100 * float(np.mean(bear)), 2) if bear else None,
+        "spy_below_200_periods": len(below200),
+        "spy_below_200_avg_return_pct": round(100 * float(np.mean(below200)), 2) if below200 else None,
     }
+
+
+def add_benchmark_comparison(rows, summary, benchmark="benchmark_equal_weight"):
+    """v3: the question v2 couldn't answer - does each config beat simply
+    holding the whole (equally survivorship-biased) universe? Adds, per
+    config: annualized excess return vs the benchmark, and the share of
+    months it beat the benchmark (only months where both have a value)."""
+    by_name = {s["config"]: s for s in summary}
+    bench = by_name.get(benchmark) or {}
+    for s in summary:
+        if s["config"] == benchmark or not s.get("n_periods"):
+            continue
+        pairs = [(r[s["config"]], r[benchmark]) for r in rows
+                 if r.get(s["config"]) is not None and r.get(benchmark) is not None]
+        if not pairs or bench.get("annualized_return_pct") is None:
+            continue
+        s["excess_vs_equal_weight_annualized_pct"] = round(s["annualized_return_pct"] - bench["annualized_return_pct"], 1)
+        s["months_beating_equal_weight_pct"] = round(100 * sum(1 for a, b in pairs if a > b) / len(pairs), 1)
 
 
 def main():
@@ -372,6 +414,19 @@ def main():
         picks_combined = select_top_n(entries, config_combined(regime))
         row["combined"] = forward_basket_return(frames, picks_combined, t_date, t_next_date)
 
+        # v3: benchmarks + exposure rule (see header note)
+        spy_upto = spy_close.loc[:t_date].dropna()
+        sma = spy_upto.rolling(EXPOSURE_SMA_DAYS).mean().iloc[-1] if len(spy_upto) >= EXPOSURE_SMA_DAYS else np.nan
+        above = bool(spy_upto.iloc[-1] >= sma) if pd.notna(sma) else True
+        row["spy_above_200"] = above
+        row["benchmark_equal_weight"] = forward_basket_return(frames, list(entries.keys()), t_date, t_next_date)
+        spy_ret = forward_basket_return(frames, ["SPY"], t_date, t_next_date)
+        row["benchmark_spy"] = spy_ret
+        base = row["baseline"]
+        row["baseline_exposure_50"] = None if base is None else (base if above else 0.5 * base + 0.5 * CASH_MONTHLY)
+        row["baseline_exposure_0"] = None if base is None else (base if above else CASH_MONTHLY)
+        row["spy_exposure_0"] = None if spy_ret is None else (spy_ret if above else CASH_MONTHLY)
+
         rows.append(row)
         if n % 6 == 0:
             log(f"  processed {n}/{len(month_end_positions) - 1} rebalance points ({t_date.date()})...")
@@ -381,8 +436,13 @@ def main():
     detail_df.to_csv(detail_path, index=False)
     log(f"Wrote per-period detail: {detail_path}")
 
-    all_config_names = ["baseline", "dual_momentum_gate", "dual_momentum_penalty", "fast_rs", "lowvol_tilt", "combined"]
+    all_config_names = [
+        "baseline", "dual_momentum_gate", "dual_momentum_penalty", "fast_rs", "lowvol_tilt", "combined",
+        "baseline_exposure_50", "baseline_exposure_0",
+        "benchmark_equal_weight", "benchmark_spy", "spy_exposure_0",
+    ]
     summary = [summarize(rows, name) for name in all_config_names]
+    add_benchmark_comparison(rows, summary)
     summary_path = OUTPUT_DIR / "vectorbt_research_summary.json"
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump({
@@ -390,9 +450,15 @@ def main():
             "backend_version_tested_against": sa.BACKEND_VERSION,
             "lookback_years": LOOKBACK_YEARS,
             "universe_size": len(RESEARCH_UNIVERSE),
+            "usable_tickers": len([t for t in frames if t != "SPY"]),
+            "skipped_tickers": sorted(set(RESEARCH_UNIVERSE) - set(frames)),
+            "first_period": rows[0]["date"] if rows else None,
+            "last_period": rows[-1]["date"] if rows else None,
             "limitations": [
                 "no analyst-score component (no historical recommendationMean data)",
                 "no sector diversification cap (no point-in-time sector data)",
+                "survivorship bias: universe is chosen today; compare configs to benchmark_equal_weight, not to absolute returns",
+                "cash earns a constant RISK_FREE_ANNUAL_PCT, not the historical T-bill rate",
             ],
             "results": summary,
         }, f, ensure_ascii=False, indent=2)
