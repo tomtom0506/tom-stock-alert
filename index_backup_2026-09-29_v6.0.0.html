@@ -420,13 +420,11 @@
     <button class="top-tab-btn active" data-tab-target="home" id="tabBtn-home"><span class="top-tab-icon">🏠</span><span id="tabLabel-home">היום</span></button>
     <button class="top-tab-btn" data-tab-target="stocks" id="tabBtn-stocks"><span class="top-tab-icon">📈</span><span id="tabLabel-stocks">מניות</span><span class="top-tab-badge hidden" id="tabBadge-stocks"></span></button>
     <button class="top-tab-btn" data-tab-target="simulation" id="tabBtn-simulation"><span class="top-tab-icon">🧮</span><span id="tabLabel-simulation">סימולציה</span></button>
-    <button class="top-tab-btn" data-tab-target="recs" id="tabBtn-recs"><span class="top-tab-icon">🎯</span><span id="tabLabel-recs">המלצות</span></button>
   </nav>
   <nav class="sub-tab-bar hidden" id="subTabBar"></nav>
 
   <div id="regimeBadge" class="regime-badge hidden"></div>
   <div id="indicesRow" class="indices-row hidden"></div>
-  <div id="portfolioDailyRow" class="indices-row hidden" style="margin-top:-10px;"></div>
 
   <div class="modal-overlay hidden" id="marketReviewOverlay" style="z-index:150;">
     <div class="panel modal-box" id="marketReviewPanel">
@@ -553,11 +551,6 @@
   <div id="homeDashboardDonut" data-tab="home"></div>
   <div id="homeDashboardTiles" data-tab="home"></div>
   <div id="homeDashboardVerdict" data-tab="home"></div>
-
-  <div id="recsSection" data-tab="recs">
-    <div class="section-title">🎯 סיכום והמלצות</div>
-    <div id="recsBody"></div>
-  </div>
 
   <div id="strategiesSection" data-tab="simulation" data-subtab="performance">
     <div class="section-title">⚖️ השוואת אסטרטגיות מול benchmark</div>
@@ -955,17 +948,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.1.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.0.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.1.0", date: "2026-09-29", items: [
-    "טאב חדש '🎯 המלצות': סיכום מעודכן בכל ריצה (כל 15 דקות) וכפתור 'נתח עכשיו'. כולל: חשיפה מומלצת וחלוקה לשכבות, המלצת קנייה לטווח קצר (1-3 מניות מה-Top10 שעוברות את כל התנאים, עם כניסה, יעד, סטופ ומשקל - או 'אין קנייה היום'), המלצה לטווח ארוך (הסקטור המוביל ברשימת האיכות ו-1-3 מניות בתזמון כניסה), אזהרות על מניות בתיקים שלך, ומה עובד עכשיו מול S&P 500. מבוסס כללים קבועים, ללא עלות (backend 5.10.0).",
-    "📏 כל המלצה לטווח קצר נמדדת: סימולציה של 'קניתי כל מה שהומלץ', עם רקורד שחושב לאחור מ-4.9 לפי אותם כללים ועל נתוני כל יום בלבד. מוצג בראש ההמלצות וגם בהשוואת האסטרטגיות.",
-    "ריבועי תשואה יומית חדשים מתחת למדדים: תיק חודשי, Top10, מומלצות עכשיו וטווח ארוך - ממוצע התשואה היומית לפי המחירים החיים. מניות 'מומלצות עכשיו' ו'טווח ארוך' נוספו לרשימת המחירים החיים.",
-  ]},
   { version: "6.0.0", date: "2026-09-29", items: [
     "שינוי בתפקיד האפליקציה, בעקבות מחקר של 26 שנה (VectorBT v3): לנוסחת ה-Top10 אין יתרון מובהק על פני החזקה של כל המניות, אבל כלל חשיפה פשוט חתך את הנפילה המקסימלית בחצי. האפליקציה בנויה עכשיו משלוש שכבות: ליבה (מדד + כלל חשיפה), טווח ארוך (מניות איכות) וטווח קצר (Top10, מסומן כניסוי). backend 5.9.0.",
     "🧭 כרטיס חשיפה בראש 'היום': S&P 500 מעל ממוצע 200 יום = חשיפה מלאה, מתחת = 50% מזומן. כולל מרחק מהממוצע ותאריך ההחלפה האחרונה.",
@@ -1861,7 +1849,6 @@ document.getElementById("contextActionBtn").addEventListener("click", () => {
   if (activeTab === "home") triggerFullRecompute("floatingRecomputeStatus");
   else if (activeTab === "stocks") switchTab("check");
   else if (activeTab === "simulation") document.getElementById("refreshBtn").click();
-  else if (activeTab === "recs") triggerFullRecompute("floatingRecomputeStatus");
 });
 document.getElementById("forecastRecomputeBtn").addEventListener("click", async () => {
   const statusEl = document.getElementById("tomorrowForecastStatus");
@@ -2728,149 +2715,6 @@ function renderStrategies(data) {
     </div>`).join("");
 }
 
-// ---------- v6.1.0: daily-return tiles for each list ----------
-function avgLivePct(tickers) {
-  const vals = [];
-  const seen = new Set();
-  (tickers || []).forEach(t => {
-    if (!t || seen.has(t)) return;
-    seen.add(t);
-    const p = currentPrices[t];
-    if (p && p.pct_change != null && Number.isFinite(Number(p.pct_change))) vals.push(Number(p.pct_change));
-  });
-  return { avg: vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null, n: vals.length, total: seen.size };
-}
-
-function renderPortfolioDailyTiles(data) {
-  const row = document.getElementById("portfolioDailyRow");
-  if (!row) return;
-  const lists = [
-    { label: "📅 תיק חודשי", tickers: ((data.monthly_portfolio || {}).holdings || []).map(h => h.ticker) },
-    { label: "⚡ Top10", tickers: allTodayPreds.filter(p => p.top10).map(p => p.ticker) },
-    { label: "🔁 מומלצות עכשיו", tickers: (tomorrowForecastPicks || []).map(p => p.ticker) },
-    { label: "🏛 טווח ארוך", tickers: ((data.long_term_picks || {}).picks || []).map(p => p.ticker) },
-  ].filter(l => l.tickers.length);
-  if (!lists.length) { row.classList.add("hidden"); return; }
-  row.innerHTML = lists.map(l => {
-    const r = avgLivePct(l.tickers);
-    const cls = r.avg == null ? "flat" : (r.avg >= 0 ? "up" : "down");
-    return `
-      <div class="index-tile" title="ממוצע התשואה היומית של המניות ברשימה, לפי המחירים החיים">
-        <div class="index-label">${l.label}</div>
-        <div class="index-pct mono ${cls}" style="font-size:14px; margin-top:4px;">${r.avg == null ? "—" : signedPct(r.avg, 2)}</div>
-        <div class="index-label" style="margin-top:2px;">${r.n}/${r.total} מניות</div>
-      </div>`;
-  }).join("");
-  row.style.gridTemplateColumns = `repeat(${lists.length}, 1fr)`;
-  row.classList.remove("hidden");
-}
-
-// ---------- v6.1.0: "🎯 סיכום והמלצות" tab ----------
-function recCard(title, body, accent) {
-  return `
-    <div class="panel" style="padding:14px 16px; border-radius:14px; margin-bottom:12px; ${accent ? `border:1px solid ${accent};` : ""}">
-      <div style="font-size:14px; font-weight:800; margin-bottom:8px;">${title}</div>
-      ${body}
-    </div>`;
-}
-
-function renderRecommendations(data) {
-  const el = document.getElementById("recsBody");
-  if (!el) return;
-  const r = data.recommendations;
-  if (!r) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">ההמלצות יחושבו בריצה הבאה (עד 15 דקות), או לחץ "נתח עכשיו".</div>`; return; }
-  const small = t => `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-top:6px;">${t}</div>`;
-  const parts = [];
-
-  // header
-  parts.push(`<div style="font-size:11px; color:var(--text-faint); margin-bottom:10px;">עודכן ${new Date(r.generated_at).toLocaleString("he-IL")} · מבוסס כללים קבועים על נתוני האפליקציה · <b>לא ייעוץ השקעות</b></div>`);
-
-  // 1. exposure & allocation
-  const ex = r.exposure || {};
-  const full = r.exposure_pct >= 100;
-  parts.push(recCard("🧭 מצב השוק ומה עושים", `
-    <div style="font-size:13px; line-height:1.7;">
-      ${full ? "S&amp;P 500 מעל ממוצע 200 יום" : "S&amp;P 500 מתחת לממוצע 200 יום"}${ex.pct_vs_sma != null ? ` (<span class="mono">${signedPct(ex.pct_vs_sma)}</span>)` : ""} → <b>חשיפה ${r.exposure_pct}% למניות</b>${r.cash_pct ? `, <b>${r.cash_pct}% מזומן</b>` : ""}.
-    </div>
-    <div style="display:grid; grid-template-columns:repeat(${r.cash_pct ? 4 : 3},1fr); gap:6px; margin-top:8px;">
-      ${[["🧭 מדד", r.layers.core], ["🏛 ארוך", r.layers.long], ["⚡ קצר", r.layers.short]].concat(r.cash_pct ? [["💵 מזומן", r.cash_pct]] : [])
-        .map(([n, v]) => `<div class="index-tile"><div class="index-label">${n}</div><div class="mono" style="font-weight:800;">${v}%</div></div>`).join("")}
-    </div>
-    ${small("חלוקה מוצעת בלבד. ההחלטה ומשקלי התיק האמיתיים הם שלך.")}`, full ? "var(--up)" : "#ffd76a"));
-
-  // 2. short term
-  const recSim = data.portfolio_sim_recommendations || {};
-  const recRet = recSim.value != null ? (recSim.value / 100000 - 1) * 100 : null;
-  const recTrack = recRet != null
-    ? `<div style="background:${recRet >= 0 ? "var(--up-bg)" : "var(--down-bg)"}; border-radius:10px; padding:8px 10px; margin-bottom:10px; font-size:12px; line-height:1.6;">
-        📏 <b>הרקורד של הכללים האלה:</b> מי שקנה כל המלצה לטווח קצר מאז ${fmtDateIL(r.rec_backfilled_from)} - <span class="mono" style="font-weight:800; color:${recRet >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(recRet, 2)}</span>. ${recRet < 0 ? "עד שהרקורד יתהפך - רק על נייר." : ""}
-        ${r.rec_backfilled_from ? `<div style="font-size:10.5px; color:var(--text-faint);">הימים שלפני ${fmtDateIL(r.date)} חושבו לאחור לפי אותם כללים, על נתוני כל יום בלבד.</div>` : ""}
-       </div>`
-    : "";
-  let shortBody;
-  if (r.short.length) {
-    shortBody = r.short.map(x => `
-      <div style="border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-weight:800; font-size:15px;">✅ לקנות ${x.ticker}</span>
-          <span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}% מהתיק</span>
-        </div>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; font-size:12px; text-align:center;">
-          <div>כניסה<br><span class="mono" style="font-weight:700;">${fmtPrice(x.price)}</span></div>
-          <div style="color:#5ee6a0;">🎯 יעד<br><span class="mono" style="font-weight:700;">${fmtPrice(x.target)}</span> <span class="mono">(${signedPct(x.upside_pct)})</span></div>
-          <div style="color:#ff9a8a;">🛑 סטופ<br><span class="mono" style="font-weight:700;">${fmtPrice(x.stop)}</span> <span class="mono">(${signedPct(x.downside_pct)})</span></div>
-        </div>
-        <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">
-          תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span> · רווח/סיכון <span class="mono">${x.reward_risk}</span>${x.sector ? ` · ${x.sector}` : ""}${x.trend_template ? ` · Minervini ${x.trend_template.criteria_met}/${x.trend_template.criteria_total}` : ""}
-        </div>
-      </div>`).join("");
-  } else {
-    shortBody = `<div style="font-size:13px; font-weight:700; margin-bottom:6px;">⏸ אין קנייה לטווח קצר היום</div>
-      <div style="font-size:12px; color:var(--text-dim);">אף מניה ב-Top10 לא עוברת את כל התנאים. גם זו המלצה - לא חייבים לקנות כל יום.</div>`;
-  }
-  const near = (r.short_near_miss || []).length
-    ? `<details style="margin-top:6px;"><summary style="font-size:12px; color:var(--text-dim); cursor:pointer;">קרובות אבל לא עברו (${r.short_near_miss.length})</summary>
-        ${r.short_near_miss.map(x => `<div style="font-size:11.5px; padding:4px 0; border-bottom:1px solid var(--border);"><b>${x.ticker}</b> - ${x.failed.join(" · ")}</div>`).join("")}
-       </details>` : "";
-  parts.push(recCard("⚡ טווח קצר (ימים עד שבועות) · ניסוי", recTrack + shortBody + near + small(`התנאים: ${r.short_rules}. יוצאים כשהמחיר מגיע ליעד או יורד לסטופ.`)));
-
-  // 3. long term
-  let longBody;
-  if (!(r.long_sectors || []).length) {
-    longBody = `<div style="font-size:12px; color:var(--text-dim);">רשימת הטווח הארוך עוד נבנית - נאספו ${r.long_coverage_pct ?? 0}% מהדוחות של S&amp;P 500. ההמלצה תופיע כשהרשימה מוכנה.</div>`;
-  } else {
-    const lead = r.long_sectors[0];
-    longBody = `
-      <div style="font-size:13px; line-height:1.7; margin-bottom:8px;">📌 <b>הסקטור המוביל: ${r.long_lead_sector}</b> - ${lead.count} מניות ברשימת האיכות, ציון ממוצע <span class="mono">${lead.avg_long_term_score}</span>, ${lead.enter_count} בתזמון כניסה.</div>
-      ${r.long.length ? r.long.map(x => `
-        <div style="border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px;">
-          <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">✅ לקנות ${x.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
-          <div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${x.sector || ""} · מחיר <span class="mono">${fmtPrice(x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span></div>
-        </div>`).join("") : `<div style="font-size:12px; color:var(--text-dim);">⏳ אף מניה ברשימה לא בתזמון כניסה היום - להמתין.</div>`}
-      ${(r.long_watch || []).length ? `<div style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">👀 במעקב (איכותיות, מחכות לתזמון): ${r.long_watch.map(w => `<b>${w.ticker}</b>`).join(", ")}</div>` : ""}`;
-  }
-  parts.push(recCard("🏛 טווח ארוך (חודשים עד שנים)", longBody + small("הרשימה מתעדכנת פעם בחודש לפי איכות עסקית ודירוג אנליסטים. ציון האיכות לא נבדק היסטורית - נמדד מהיום.")));
-
-  // 4. holdings warnings
-  const w = r.warnings || [];
-  parts.push(recCard("⚠️ מה לבדוק בתיקים שלך", w.length
-    ? w.map(x => `<div style="font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--border);"><b>${x.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">(${x.source} · <span class="mono">${fmtPrice(x.price)}</span>)</span><br><span style="color:#ff9a8a;">${x.reasons.join(" · ")}</span></div>`).join("")
-      + small("זו לא המלצת מכירה אוטומטית - סימן לבדוק את המניה ב'בדוק מניה' ולהחליט.")
-    : `<div style="font-size:12px; color:var(--text-dim);">✅ אין כרגע איתותי אזהרה על המניות בתיקים שלך.</div>`
-    + ((r.not_scanned || []).length ? small(`לא נבדקו (מחוץ לטווח הסריקה): ${r.not_scanned.join(", ")}`) : "")));
-
-  // 5. what works
-  const wk = r.working || [];
-  if (wk.length) {
-    parts.push(recCard("📊 מה עובד עכשיו (מול S&amp;P 500)", wk.map(x => `
-      <div style="display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid var(--border);">
-        <span>${x.label} <span style="color:var(--text-faint); font-size:10.5px;">מאז ${fmtDateIL(x.start_date)}</span></span>
-        <span class="mono" style="font-weight:700; color:${x.vs_sp500_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(x.vs_sp500_pct, 2)}</span>
-      </div>`).join("") + small("תקופות קצרות הן בעיקר רעש. משמעות אמיתית מתחילה אחרי כמה חודשים.")));
-  }
-  el.innerHTML = parts.join("");
-}
-
 function renderDataFreshnessNote(data) {
   const el = document.getElementById("dataFreshnessNote");
   const parts = [];
@@ -2934,8 +2778,6 @@ async function loadPredictions() {
       renderLayersCard(data);
       renderLongTerm(data);
       renderStrategies(data);
-      renderRecommendations(data);
-      renderPortfolioDailyTiles(data);
     } catch (e) { console.error("three-layer render failed", e); }
     section.classList.remove("hidden");
     renderTrackRecord(history, acc);
@@ -4334,7 +4176,7 @@ if (!legalAlreadyAccepted) showLegalGate(true);
    v_test (2026-09-23, rev2) - 3 top tabs + sub-tabs + one contextual
    action circle, per Tomer's feedback on the first pass.
    -------------------------------------------------------------------- */
-const TAB_IDS = ["home", "stocks", "simulation", "recs"]; // "check" is a special screen, reached via the action circle only - not a top tab
+const TAB_IDS = ["home", "stocks", "simulation"]; // "check" is a special screen, reached via the action circle only - not a top tab
 const SUBTABS = {
   stocks: [
     { id: "top10", label: "טווח קצר", icon: "⚡" },
@@ -4353,7 +4195,6 @@ const CONTEXT_ACTION = {
   home: { icon: "🔄", label: "עדכן ניתוח" },
   stocks: { icon: "🔍", label: "בדוק מניה" },
   simulation: { icon: "⟳", label: "רענון" },
-  recs: { icon: "🔄", label: "נתח עכשיו" },
 };
 
 let activeTab = "home";

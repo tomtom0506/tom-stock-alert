@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.9.0"
+BACKEND_VERSION = "5.10.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -223,6 +223,16 @@ def run_watchlist_alerts(state, prediction_store=None):
     if prediction_store:
         curated_tickers = (prediction_store.get("top_picks") or {}).get("tickers", [])
         monthly_tickers = [h["ticker"] for h in (prediction_store.get("monthly_portfolio") or {}).get("holdings", [])]
+        # v5.10.0: the new daily-return tiles average the live % of each list,
+        # so every list shown needs a live price - "מומלצות עכשיו" and the
+        # long-term list weren't in this set before, and the real Top10 isn't
+        # guaranteed to be a subset of the curated shortlist.
+        today_iso = date.today().isoformat()
+        curated_tickers = list(curated_tickers) + [
+            e["ticker"] for e in prediction_store.get("history", []) if e.get("date") == today_iso and e.get("top10")
+        ] + [p["ticker"] for p in ((prediction_store.get("tomorrow_forecast") or {}).get("picks") or [])] + [
+            p["ticker"] for p in ((prediction_store.get("long_term_picks") or {}).get("picks") or [])
+        ]
     crypto_exposed_tickers = load_json(CRYPTO_EXPOSED_FILE, [])
     # keeps the dynamic predictions list's price/% line fresh every 15 min,
     # same as the manual watchlist - without re-running the full daily engine
@@ -3935,6 +3945,8 @@ def build_strategy_comparison(store):
         if v is None:
             return
         start = sim.get("start_date") or ((sim.get("daily_log") or [{}])[0].get("date"))
+        if not start:
+            return  # not started yet (e.g. long-term list still collecting fundamentals)
         rows.append({"key": key, "label": label, "layer": layer, "start_date": start,
                      "value": round(float(v), 2), "return_pct": round((float(v) / 100000 - 1) * 100, 2)})
 
@@ -3944,6 +3956,7 @@ def build_strategy_comparison(store):
     add("long_term_exposure", "🏛 טווח ארוך + כלל חשיפה", "long", "long_term_sim_exposure")
     add("top10", "⚡ טווח קצר - Top10 (ניסוי)", "short", "portfolio_sim")
     add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
+    add("recommendations", "🎯 ההמלצות לטווח קצר (טאב המלצות)", "short", "portfolio_sim_recommendations")
     add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
     store["strategy_comparison"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows}
 
@@ -3961,6 +3974,200 @@ def update_three_layer_views(store):
     build_exposure_sim(store, _returns_from_value_log(lt_log), "long_term_sim_exposure", "טווח ארוך + כלל חשיפה",
                        start_date=lt_log[0]["date"] if lt_log else None)
     build_strategy_comparison(store)
+
+
+# ===========================================================================
+# v5.10.0 - "🎯 סיכום והמלצות" tab: a rules-based recommendation sheet,
+# rebuilt every cycle from data the app already has (no paid API). Every
+# rule is explicit so the tab can say exactly WHY something is recommended,
+# and the short-term recommendations are flagged on the history entries
+# (rec_short) so they get graded and simulated like any other list.
+# ===========================================================================
+REC_SHORT_MAX = 3
+REC_SHORT_MIN_RR = 1.5             # (target - price) / (price - stop) must be at least this
+REC_SHORT_EARNINGS_BLACKOUT_DAYS = 7
+REC_LONG_MAX = 3
+REC_LAYER_SHARE = {"core": 70, "long": 20, "short": 10}   # % of the portfolio, a suggestion (see the tab's disclaimer)
+REC_WARN_FLIP_SCORE = 1.5
+
+
+def _short_rec_candidate(e):
+    """Returns (ok, reward_risk, stop, reasons_failed) for one Top10 entry."""
+    failed = []
+    if e.get("verdict") is None or e.get("timing_score") is None:
+        # entry written before its breakdown existed (e.g. the day a new
+        # backend version ships mid-day) - compute it now, same formula
+        b = build_score_breakdown(e, e.get("recommendation_mean"), e.get("upside_pct"))
+        e.setdefault("timing_score", b["timing_score"])
+        e.setdefault("long_term_score", b["long_term_score"])
+        if e.get("verdict") is None:
+            e["verdict"] = b["verdict"]
+    price, sup, res = e.get("price"), e.get("support"), e.get("resistance")
+    if e.get("predicted") != "up":
+        failed.append("התחזית אינה לעלייה")
+    if e.get("verdict") != "buy":
+        failed.append("אין תג ✅")
+    if not (e.get("trend_template") or {}).get("passes"):
+        failed.append("מגמת Minervini לא תקינה")
+    if e.get("data_suspect"):
+        failed.append("נתון חשוד")
+    stop = sup * SELL_STOP_BUFFER if sup else None
+    rr = None
+    if price and stop and res and price > stop:
+        rr = (res - price) / (price - stop)
+        if rr < REC_SHORT_MIN_RR:
+            failed.append(f"יחס רווח/סיכון {rr:.1f} (נדרש {REC_SHORT_MIN_RR})")
+    else:
+        failed.append("אין יעד/סטופ")
+    earn = e.get("earnings") or {}
+    if earn.get("days_away") is not None and earn["days_away"] <= REC_SHORT_EARNINGS_BLACKOUT_DAYS:
+        failed.append(f"דוח כספי בעוד {earn['days_away']} ימים")
+    return (not failed), rr, stop, failed
+
+
+def backfill_rec_flags(store):
+    """One-time: apply the short-term recommendation rules to past days'
+    Top10 entries (each day judged only on that day's own data - no look-
+    ahead), so the recommendations sim has a track record from day one
+    instead of starting empty. Marked as backfilled in the UI."""
+    if store.get("rec_backfill_done"):
+        return
+    today = date.today().isoformat()
+    by_date = {}
+    for e in store.get("history", []):
+        if e.get("top10") and e.get("date", "") < today:
+            by_date.setdefault(e["date"], []).append(e)
+    first = None
+    for d in sorted(by_date):
+        passing = []
+        for e in by_date[d]:
+            probe = dict(e)
+            ok, rr, _, _ = _short_rec_candidate(probe)
+            if ok:
+                passing.append((probe.get("timing_score") or 0, rr or 0, e["ticker"]))
+        chosen = {t for _, _, t in sorted(passing, reverse=True)[:REC_SHORT_MAX]}
+        for e in by_date[d]:
+            e["rec_short"] = e["ticker"] in chosen
+        if chosen and first is None:
+            first = d
+    store["rec_backfill_done"] = {"at": today, "first_rec_date": first}
+
+
+def build_recommendations(store):
+    today = date.today().isoformat()
+    exposure = store.get("exposure") or {}
+    exp_pct = exposure.get("recommended_exposure_pct", 100)
+    todays = [e for e in store.get("history", []) if e.get("date") == today]
+    by_ticker = {e["ticker"]: e for e in todays}
+    top10 = [e for e in todays if e.get("top10")]
+
+    # --- short term ---
+    passing, near_miss = [], []
+    for e in top10:
+        ok, rr, stop, failed = _short_rec_candidate(e)
+        row = {"ticker": e["ticker"], "price": _round_price(e.get("price")), "target": _round_price(e.get("resistance")),
+               "stop": _round_price(stop), "reward_risk": round(rr, 2) if rr is not None else None,
+               "timing_score": e.get("timing_score"), "long_term_score": e.get("long_term_score"),
+               "sector": e.get("sector"), "trend_template": e.get("trend_template"), "earnings": e.get("earnings"),
+               "failed": failed}
+        (passing if ok else near_miss).append(row)
+    passing.sort(key=lambda r: ((r["timing_score"] or 0), r["reward_risk"] or 0), reverse=True)
+    short = passing[:REC_SHORT_MAX]
+    layer_short = REC_LAYER_SHARE["short"] * exp_pct / 100
+    for r in short:
+        r["weight_pct"] = round(layer_short / len(short), 1)
+        r["upside_pct"] = round((r["target"] / r["price"] - 1) * 100, 1) if r["price"] and r["target"] else None
+        r["downside_pct"] = round((r["stop"] / r["price"] - 1) * 100, 1) if r["price"] and r["stop"] else None
+    # flag for grading/simulation (deterministic within a day: today's entries don't change after the daily run)
+    short_set = {r["ticker"] for r in short}
+    for e in todays:
+        if e.get("top10"):
+            e["rec_short"] = e["ticker"] in short_set
+    near_miss.sort(key=lambda r: len(r["failed"]))
+
+    # --- long term ---
+    lt = store.get("long_term_picks") or {}
+    picks = lt.get("picks") or []
+    sectors = {}
+    for p in picks:
+        sectors.setdefault(p.get("sector") or "לא ידוע", []).append(p)
+    sector_rows = []
+    for name, ps in sectors.items():
+        scores = [p["long_term_score"] for p in ps if p.get("long_term_score") is not None]
+        sector_rows.append({"sector": name, "count": len(ps),
+                            "avg_long_term_score": round(sum(scores) / len(scores), 1) if scores else None,
+                            "enter_count": sum(1 for p in ps if p.get("entry_tag") == "enter")})
+    sector_rows.sort(key=lambda r: ((r["enter_count"] > 0), r["avg_long_term_score"] or 0, r["count"]), reverse=True)
+    lead = sector_rows[0]["sector"] if sector_rows else None
+    enter = sorted([p for p in picks if p.get("entry_tag") == "enter"],
+                   key=lambda p: ((p.get("sector") or "לא ידוע") == lead, p.get("long_term_score") or 0), reverse=True)
+    long_recs = [{"ticker": p["ticker"], "company_name": p.get("company_name"), "sector": p.get("sector"),
+                  "price": p.get("price"), "long_term_score": p.get("long_term_score"),
+                  "quality_score": p.get("quality_score"), "analyst_score": p.get("analyst_score"),
+                  "timing_score": p.get("timing_score")} for p in enter[:REC_LONG_MAX]]
+    layer_long = REC_LAYER_SHARE["long"] * exp_pct / 100
+    for r in long_recs:
+        r["weight_pct"] = round(layer_long / max(len(long_recs), 1), 1)
+    watch = [{"ticker": p["ticker"], "sector": p.get("sector"), "long_term_score": p.get("long_term_score"),
+              "timing_score": p.get("timing_score")} for p in picks if p.get("entry_tag") == "wait"]
+
+    # --- your holdings ---
+    warnings = []
+    my = load_json(MY_PORTFOLIO_FILE, [])
+    holdings = [("התיק שלי", h.get("ticker")) for h in my if h.get("ticker")]
+    holdings += [("תיק חודשי", h.get("ticker")) for h in (store.get("monthly_portfolio") or {}).get("holdings", [])]
+    not_scanned = []
+    for src, t in holdings:
+        e = by_ticker.get(t)
+        if not e:
+            not_scanned.append(t)
+            continue
+        why = []
+        if e.get("predicted") == "down" and abs(e.get("score") or 0) >= REC_WARN_FLIP_SCORE:
+            why.append("תחזית ירידה משמעותית")
+        tt = e.get("trend_template") or {}
+        if tt.get("criteria_total") and tt.get("criteria_met", 7) <= 2:
+            why.append(f"מגמה חלשה ({tt.get('criteria_met')}/{tt.get('criteria_total')})")
+        earn = e.get("earnings") or {}
+        if earn.get("days_away") is not None and earn["days_away"] <= REC_SHORT_EARNINGS_BLACKOUT_DAYS:
+            why.append(f"דוח כספי בעוד {earn['days_away']} ימים")
+        if why:
+            warnings.append({"source": src, "ticker": t, "price": _round_price(e.get("price")), "reasons": why})
+
+    # --- what's working ---
+    rows = (store.get("strategy_comparison") or {}).get("rows") or []
+    sp = next((r for r in rows if r["key"] == "sp500"), None)
+    working = []
+    for r in rows:
+        if r["key"] == "sp500" or sp is None:
+            continue
+        working.append({"label": r["label"], "start_date": r["start_date"], "return_pct": r["return_pct"],
+                        "vs_sp500_pct": round(r["return_pct"] - sp["return_pct"], 2)})
+    working.sort(key=lambda r: r["vs_sp500_pct"], reverse=True)
+
+    rec_sim = store.get("portfolio_sim_recommendations") or {}
+    store["recommendations"] = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "date": today,
+        "exposure_pct": exp_pct,
+        "exposure": {k: exposure.get(k) for k in ("above_sma", "pct_vs_sma", "last_flip_date")},
+        # every layer scales with the exposure rule; the rest is cash
+        "layers": {k: round(v * exp_pct / 100, 1) for k, v in REC_LAYER_SHARE.items()},
+        "cash_pct": round(100 - exp_pct, 1),
+        "short": short,
+        "short_near_miss": near_miss[:5],
+        "short_rules": f"מתוך ה-Top10: תג ✅, מגמת Minervini תקינה, יחס רווח/סיכון {REC_SHORT_MIN_RR} לפחות, ואין דוח כספי ב-{REC_SHORT_EARNINGS_BLACKOUT_DAYS} הימים הקרובים",
+        "long_lead_sector": lead,
+        "long_sectors": sector_rows,
+        "long": long_recs,
+        "long_watch": watch,
+        "long_coverage_pct": lt.get("fundamentals_coverage_pct"),
+        "warnings": warnings,
+        "not_scanned": sorted(set(not_scanned)),
+        "working": working,
+        "rec_sim": {k: rec_sim.get(k) for k in ("value", "last_processed_date")} if rec_sim else None,
+        "rec_backfilled_from": (store.get("rec_backfill_done") or {}).get("first_rec_date"),
+    }
 
 
 def main():
@@ -4007,6 +4214,7 @@ def main():
         update_portfolio_simulation(prediction_store, "top10_fast_rs", "portfolio_sim_fast_rs")
         update_portfolio_simulation(prediction_store, "top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol")
         update_portfolio_simulation(prediction_store, "top10_analyst_momentum", "portfolio_sim_analyst_momentum")
+        update_portfolio_simulation(prediction_store, "rec_short", "portfolio_sim_recommendations")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 
@@ -4057,6 +4265,12 @@ def main():
         build_strategy_comparison(prediction_store)
     except Exception as e:
         print(f"Long-term picks failed: {type(e).__name__}: {e}")
+
+    try:
+        backfill_rec_flags(prediction_store)
+        build_recommendations(prediction_store)
+    except Exception as e:
+        print(f"Recommendations failed: {type(e).__name__}: {e}")
 
     prediction_store["last_run_status"] = {
         "checked_at": datetime.now(timezone.utc).isoformat(),
