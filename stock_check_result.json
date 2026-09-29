@@ -1,21 +1,21 @@
 {
-  "ticker": "6367.T",
-  "predicted_direction": "up",
-  "raw_score": 2.84,
-  "overall_score": 33.5,
+  "ticker": "LMT",
+  "predicted_direction": "down",
+  "raw_score": -0.39,
+  "overall_score": 18.3,
   "components": {
-    "original": 28.4,
-    "risk_reward": 16.6,
-    "leading_adjusted": 28.4,
-    "analyst": 60.7
+    "original": 3.9,
+    "risk_reward": 1.2,
+    "leading_adjusted": 3.9,
+    "analyst": 64.3
   },
   "excluded_from_blend": [],
-  "price": 20705.0,
-  "support": 20521.89,
-  "resistance": 20972.98,
-  "analyst_count": 13,
+  "price": 518.0999755859375,
+  "support": 508.88,
+  "resistance": 530.44,
+  "analyst_count": 19,
   "sector": "Industrials",
-  "short_pct": null,
+  "short_pct": 1.25,
   "rs_rating": null,
   "trend_template": {
     "criteria_met": 3,
@@ -25,14 +25,14 @@
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 7
+    "contractions": 6
   },
   "earnings": {
-    "date": "2026-11-04",
-    "days_away": 35
+    "date": "2026-10-20",
+    "days_away": 21
   },
-  "checked_at": "2026-09-29T08:40:24.880499+00:00",
-  "price_as_of_date": "2026-09-29",
+  "checked_at": "2026-09-29T09:14:08.612404+00:00",
+  "price_as_of_date": "2026-09-28",
   "market_status": {
     "market": "ארה\"ב (US)",
     "is_trading_day": true
