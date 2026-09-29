@@ -1,37 +1,37 @@
 {
-  "ticker": "DEMANT.CO",
+  "ticker": "6367.T",
   "predicted_direction": "up",
-  "raw_score": 1.55,
-  "overall_score": 27.3,
+  "raw_score": 2.84,
+  "overall_score": 33.5,
   "components": {
-    "original": 15.5,
-    "risk_reward": 7.0,
-    "leading_adjusted": 15.5,
-    "analyst": 71.2
+    "original": 28.4,
+    "risk_reward": 16.6,
+    "leading_adjusted": 28.4,
+    "analyst": 60.7
   },
   "excluded_from_blend": [],
-  "price": 319.20001220703125,
-  "support": 288.6,
-  "resistance": 353.59,
-  "analyst_count": 20,
-  "sector": "Healthcare",
+  "price": 20705.0,
+  "support": 20521.89,
+  "resistance": 20972.98,
+  "analyst_count": 13,
+  "sector": "Industrials",
   "short_pct": null,
   "rs_rating": null,
   "trend_template": {
-    "criteria_met": 7,
+    "criteria_met": 3,
     "criteria_total": 7,
-    "passes": true,
-    "multiplier": 1.0
+    "passes": false,
+    "multiplier": 0.771
   },
   "vcp": {
     "vcp_detected": false,
-    "contractions": 10
+    "contractions": 7
   },
   "earnings": {
-    "date": "2027-02-02",
-    "days_away": 126
+    "date": "2026-11-04",
+    "days_away": 35
   },
-  "checked_at": "2026-09-29T08:35:20.946502+00:00",
+  "checked_at": "2026-09-29T08:40:24.880499+00:00",
   "price_as_of_date": "2026-09-29",
   "market_status": {
     "market": "ארה\"ב (US)",
