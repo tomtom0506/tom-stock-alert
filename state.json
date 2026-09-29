@@ -1142,5 +1142,7 @@
   "US_IOVA_bigmove_2026-09-29": true,
   "US_CCL_bigmove_2026-09-29": true,
   "US_BE_bigmove_2026-09-29": true,
-  "US_FICO_bigmove_2026-09-29": true
+  "US_FICO_bigmove_2026-09-29": true,
+  "US_WRBY_bigmove_2026-09-29": true,
+  "US_NESR_bigmove_2026-09-29": true
 }
