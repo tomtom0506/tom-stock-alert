@@ -133,7 +133,11 @@ def check_support_resistance(store, today_str, issues):
 
 def check_required_fields(store, today_str, issues):
     todays = [e for e in store.get("history", []) if e["date"] == today_str]
-    missing_overall = {e["ticker"] for e in todays if "overall_score" not in e}
+    # v5.8.0: only the Top10 is guaranteed a breakdown (watchlist/crypto get
+    # one too, but the rest of the scanned universe never does, by design -
+    # see run_predictions). The old version checked EVERY scanned ticker, so
+    # it fired daily with hundreds of names and its warning became noise.
+    missing_overall = {e["ticker"] for e in todays if e.get("top10") and e.get("overall_score") is None}
     missing_engine = {e["ticker"] for e in todays if "engine_version" not in e}
     sell_queue = store.get("sell_queue") or {}
     if missing_overall:
@@ -142,6 +146,9 @@ def check_required_fields(store, today_str, issues):
         issues.append(f"engine_version חסר עבור: {', '.join(sorted(missing_engine))}")
     if todays and sell_queue.get("date") != today_str:
         issues.append(f"sell_queue לא עודכן היום (תאריך אחרון: {sell_queue.get('date')})")
+    hold_queue = store.get("hold_queue")
+    if todays and hold_queue is not None and hold_queue.get("date") != today_str:
+        issues.append(f"hold_queue לא עודכן היום (תאריך אחרון: {hold_queue.get('date')})")
 
 
 def check_monthly_portfolio_prices(store, prices_data, issues):
@@ -246,6 +253,161 @@ def check_data_suspect_flags(store, today_str, outliers_section):
     save_json(QA_OUTLIERS_LOG, log)
 
 
+# ---------------------------------------------------------------------------
+# v5.8.0 - LOGIC checks. Everything above verifies the data is well-formed;
+# none of it could notice a feature whose condition can never fire (the
+# permanently-empty sell queue) or a score whose meaning is inverted (the
+# direction-blind abs() score). Both bugs were found by Tomer, not by QA,
+# on 29.9.2026 - these checks exist so the next one of that kind is caught
+# here first. Each is deliberately cheap and reads only files already in
+# the repo.
+# ---------------------------------------------------------------------------
+DEAD_FEATURE_DAYS = 10          # trading days in a row with an empty output before it's flagged
+ANALYST_GAP_POINTS = 50         # |our overall - analyst score| above this -> listed for manual review
+REDUNDANT_CORR = 0.85           # two score components this correlated are effectively one signal (the pre-5.8.0 original/leading pair ran at ~0.90)
+MIN_CORR_SAMPLES = 10
+PRICE_MAX_DECIMALS = 2
+STALE_SIM_DAYS = 5              # a parallel portfolio sim not advanced for this many days is stuck
+
+# metrics recorded daily (see record_daily_log) whose outputs should NOT be
+# empty for DEAD_FEATURE_DAYS straight trading days in normal operation
+DEAD_FEATURE_METRICS = {
+    "sell_queue_count": "תור המכירה",
+    "hold_queue_count": "תור ההחזקה",
+    "verdict_buy_count": "תג ✅ מומלץ",
+    # verdict_avoid_count is recorded but NOT checked here: verdicts are only
+    # computed for Top10 + watchlist + crypto names, which are mostly bullish
+    # picks, so days with no ❌ at all are normal - it would false-alarm.
+}
+
+
+def check_dead_features(daily_log, issues):
+    recent = daily_log[-DEAD_FEATURE_DAYS:]
+    if len(recent) < DEAD_FEATURE_DAYS:
+        return  # not enough days recorded yet
+    for key, label in DEAD_FEATURE_METRICS.items():
+        vals = [r.get(key) for r in recent]
+        if all(v is not None for v in vals) and all(v == 0 for v in vals):
+            issues.append(
+                f"פיצ'ר מת? '{label}' ריק {DEAD_FEATURE_DAYS} ימי מסחר ברציפות - "
+                f"לבדוק שהתנאי שלו בכלל יכול להתקיים."
+            )
+
+
+def check_direction_consistency(store, today_str, issues):
+    """The timing score is directional by design (50 = neutral). An up
+    prediction scoring below 50, or a 'buy' verdict on a down prediction,
+    means the score and the prediction disagree - exactly the class of bug
+    the old abs() formula had."""
+    todays = [e for e in store.get("history", []) if e["date"] == today_str and e.get("timing_score") is not None]
+    bad = []
+    for e in todays:
+        t = e["timing_score"]
+        if (e.get("predicted") == "up" and t < 50) or (e.get("predicted") == "down" and t > 50):
+            bad.append(f"{e['ticker']} ({e.get('predicted')}, {t})")
+        elif e.get("verdict") == "buy" and e.get("predicted") == "down":
+            bad.append(f"{e['ticker']} (buy על תחזית ירידה)")
+    if bad:
+        issues.append(f"סתירת כיוון בין הציון לתחזית: {', '.join(bad[:8])}")
+
+
+def check_analyst_gap(store, today_str, info):
+    todays = [e for e in store.get("history", []) if e["date"] == today_str]
+    gaps = []
+    for e in todays:
+        a = (e.get("score_components") or {}).get("analyst")
+        o = e.get("overall_score")
+        if a is not None and o is not None and abs(o - a) > ANALYST_GAP_POINTS:
+            gaps.append((abs(o - a), f"{e['ticker']} (שלנו {o} מול אנליסטים {a})"))
+    if gaps:
+        gaps.sort(reverse=True)
+        info.append("פער חריג מול אנליסטים (לבדיקה ידנית, לא תקלה): " + ", ".join(g[1] for g in gaps[:5]))
+
+
+def _corr(xs, ys):
+    n = len(xs)
+    mx, my = sum(xs) / n, sum(ys) / n
+    sx = sum((x - mx) ** 2 for x in xs) ** 0.5
+    sy = sum((y - my) ** 2 for y in ys) ** 0.5
+    if sx == 0 or sy == 0:
+        return None
+    return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / (sx * sy)
+
+
+def check_component_redundancy(store, today_str, issues):
+    todays = [e for e in store.get("history", []) if e["date"] == today_str and e.get("score_components")]
+    keys = sorted({k for e in todays for k in e["score_components"]})
+    for i, a in enumerate(keys):
+        for b in keys[i + 1:]:
+            pairs = [(e["score_components"][a], e["score_components"][b]) for e in todays
+                     if e["score_components"].get(a) is not None and e["score_components"].get(b) is not None]
+            if len(pairs) < MIN_CORR_SAMPLES:
+                continue
+            c = _corr([p[0] for p in pairs], [p[1] for p in pairs])
+            if c is not None and c > REDUNDANT_CORR:
+                issues.append(f"רכיבי ציון כפולים: '{a}' ו-'{b}' במתאם {c:.2f} (n={len(pairs)}) - בפועל אותו סיגנל")
+
+
+def _too_many_decimals(v):
+    if not isinstance(v, float):
+        return False
+    return abs(round(v, PRICE_MAX_DECIMALS) - v) > 1e-9
+
+
+def check_price_format(store, issues):
+    """Prices the UI shows straight from these files must already be rounded
+    (the '518.0999755859375' case)."""
+    bad = []
+    check = load_json(BASE_DIR / "stock_check_result.json", {})
+    for k in ("price", "support", "resistance"):
+        if _too_many_decimals(check.get(k)):
+            bad.append(f"stock_check_result.{k}={check.get(k)}")
+    for qkey in ("sell_queue", "hold_queue"):
+        for item in ((store.get(qkey) or {}).get("items") or []):
+            for k in ("price", "support", "resistance", "pick_price"):
+                if _too_many_decimals(item.get(k)):
+                    bad.append(f"{qkey}:{item.get('ticker')}.{k}")
+    if bad:
+        issues.append(f"מחירים לא מעוגלים בקבצים שמוצגים למשתמש: {', '.join(bad[:6])}")
+
+
+def check_calibration_text(store, issues):
+    """Auto-generated notes must agree with the numbers they describe."""
+    blend = store.get("formula_blend") or {}
+    hist = blend.get("history") or []
+    if hist:
+        last = hist[-1]
+        old_a, new_a, note = last.get("old_alpha"), last.get("new_alpha"), last.get("note") or ""
+        if old_a is not None and new_a is not None and new_a != old_a:
+            expected = "לטובת יחס סיכוי/סיכון" if new_a > old_a else "לטובת עוצמת חיזוי טהורה"
+            if expected not in note:
+                issues.append(f"הערת הכיול סותרת את השינוי ב-alpha ({old_a}→{new_a}): '{note[:80]}'")
+    alpha = blend.get("alpha")
+    comp = store.get("formula_comparison") or {}
+    for f in comp.get("formulas") or []:
+        if f.get("key") == "current" and alpha is not None and f"alpha={alpha:.2f}" not in (f.get("label") or ""):
+            issues.append(f"תווית 'הנוסחה האמיתית' לא תואמת את alpha הנוכחי ({alpha:.2f}): {f.get('label')}")
+
+
+def check_stale_sims(store, today_str, issues):
+    today = date.fromisoformat(today_str)
+    stale = []
+    for key, val in store.items():
+        if not key.startswith("portfolio_sim") or not isinstance(val, dict):
+            continue
+        last = val.get("last_processed_date")
+        if not last:
+            continue
+        try:
+            age = (today - date.fromisoformat(last)).days
+        except ValueError:
+            continue
+        if age > STALE_SIM_DAYS:
+            stale.append(f"{key} ({last})")
+    if stale:
+        issues.append(f"סימולציות תיק שלא התקדמו מעל {STALE_SIM_DAYS} ימים: {', '.join(stale)}")
+
+
 def record_daily_log(store, today_str, prices_payload):
     """Appends one enriched record for today to qa_daily_log.json - the
     accumulating evidence base generate_conclusions() reads from. Skips if
@@ -267,6 +429,11 @@ def record_daily_log(store, today_str, prices_payload):
         "ta125_pct_change": (indices.get("ta125") or {}).get("pct_change"),
         "strong_daily_accuracy": acc.get("top10_accuracy_daily"),
         "data_suspect_count": sum(1 for e in todays if e.get("data_suspect")),
+        # v5.8.0 - dead-feature counters (see check_dead_features)
+        "sell_queue_count": len(((store.get("sell_queue") or {}).get("items")) or []),
+        "hold_queue_count": len(((store.get("hold_queue") or {}).get("items")) or []) if store.get("hold_queue") else None,
+        "verdict_buy_count": sum(1 for e in todays if e.get("verdict") == "buy") if any("verdict" in e for e in todays) else None,
+        "verdict_avoid_count": sum(1 for e in todays if e.get("verdict") == "avoid") if any("verdict" in e for e in todays) else None,
     }
     log.append(record)
     save_json(QA_DAILY_LOG, log)
@@ -346,12 +513,23 @@ def main():
     check_accuracy_streak(store, issues)
     check_data_suspect_flags(store, today_str, outliers)
 
+    check_direction_consistency(store, today_str, issues)
+    check_analyst_gap(store, today_str, info)
+    check_component_redundancy(store, today_str, issues)
+    check_price_format(store, issues)
+    check_calibration_text(store, issues)
+    check_stale_sims(store, today_str, issues)
+
     daily_log = record_daily_log(store, today_str, prices_payload)
+    check_dead_features(daily_log, issues)
     generate_conclusions(daily_log)
 
     if issues:
         header = f"⚠️ בדיקת QA יומית ({today_str}) - נמצאו בעיות:"
         body = "\n".join(f"• {i}" for i in issues)
+        review = [i for i in info if i.startswith("פער חריג")]
+        if review:
+            body += "\n\n🔍 לבדיקה ידנית:\n" + "\n".join(f"• {i}" for i in review)
     else:
         header = f"✅ בדיקת QA יומית ({today_str}) - הכל תקין."
         body = "\n".join(f"• {i}" for i in info)

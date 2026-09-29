@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.7.0"
+BACKEND_VERSION = "5.8.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -1024,6 +1024,59 @@ def compute_technical_factors(closes, volumes, highs=None, lows=None):
     return factors
 
 
+QUALITY_MIN_METRICS = 3  # fewer than this many fundamentals available -> no quality score (not a fake neutral 50)
+
+
+def _lin_score(value, zero_at, full_at):
+    """Linear 0-100 mapping, clamped. zero_at > full_at is allowed (inverted
+    metrics such as debt-to-equity, where lower is better)."""
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not np.isfinite(v):
+        return None
+    frac = (v - zero_at) / (full_at - zero_at)
+    return round(max(0.0, min(frac, 1.0)) * 100, 1)
+
+
+def compute_quality_score(info):
+    """v5.8.0 - long-horizon 'is this a good business' lens, deliberately
+    independent of the short-term timing score: a strong, steady company
+    with no momentum right now (the LMT case, 29.9.2026) should read as
+    'quality, wait for timing', not as 'bad stock'.
+
+    Uses only fields yfinance .info already returns (no new network call):
+    returnOnEquity, profitMargins, revenueGrowth, debtToEquity (yfinance
+    reports it in percent, e.g. 150 = 1.5x), freeCashflow. Each is mapped to
+    0-100 with fixed, explainable ceilings - not a percentile against the
+    universe, so the score for a given ticker never shifts just because
+    other tickers moved. Negative equity makes debtToEquity meaningless, so
+    a negative value is skipped rather than scored.
+
+    Returns (score or None, parts dict)."""
+    info = info or {}
+    parts = {
+        "roe": _lin_score(info.get("returnOnEquity"), 0.0, 0.25),
+        "profit_margin": _lin_score(info.get("profitMargins"), 0.0, 0.25),
+        "revenue_growth": _lin_score(info.get("revenueGrowth"), -0.10, 0.20),
+        "debt_to_equity": None,
+        "free_cash_flow": None,
+    }
+    de = info.get("debtToEquity")
+    if isinstance(de, (int, float)) and np.isfinite(de) and de >= 0:
+        parts["debt_to_equity"] = _lin_score(de, 300.0, 50.0)
+    fcf = info.get("freeCashflow")
+    if isinstance(fcf, (int, float)) and np.isfinite(fcf):
+        parts["free_cash_flow"] = 100.0 if fcf > 0 else 0.0
+    available = [v for v in parts.values() if v is not None]
+    if len(available) < QUALITY_MIN_METRICS:
+        return None, parts
+    return round(sum(available) / len(available), 1), parts
+
+
 def get_fundamental_factors(ticker):
     """Analyst target + short interest - only fetched for tickers that
     already look interesting technically, since .info calls are slow."""
@@ -1055,10 +1108,19 @@ def get_fundamental_factors(ticker):
     if summary and len(summary) > 700:
         summary = summary[:697].rsplit(" ", 1)[0] + "…"
 
+    # v5.8.0: long-term quality lens (profitability / growth / leverage /
+    # cash flow) - comes free from the same .info call. Reduced to ONE
+    # number here (quality_score) so the per-ticker history entry grows by
+    # a single field, not six; the per-metric parts are underscore-prefixed
+    # (skipped by the bulk entry copy) and only surface on 'בדוק מניה'.
+    quality_score, quality_parts = compute_quality_score(info)
+
     return {
         "upside_pct": upside_pct,
         "short_pct": short_pct,
         "recommendation_mean": recommendation_mean,
+        "quality_score": quality_score,
+        "_quality_parts": quality_parts,
         "analyst_count": analyst_count,
         "sector": info.get("sector"),
         "market_cap": info.get("marketCap"),
@@ -2598,39 +2660,113 @@ def analyst_score_0_100(recommendation_mean, upside_pct):
     return None
 
 
+TIMING_CONVICTION_CEILING = 10.0   # |score| at/above this = full-strength timing signal
+TIMING_RR_MAX_POINTS = 10.0        # risk/reward can move the timing score by at most this much
+VERDICT_BUY_TIMING = 70            # timing at/above this (and long-term not weak) -> buy. ~top 10% of the scanned universe; every Top10 pick on 29.9.2026 was >= 70
+VERDICT_AVOID_TIMING = 40          # timing below this (and quality not strong) -> avoid
+VERDICT_QUALITY_STRONG = 65        # quality at/above this -> 'quality, wait for timing' instead of avoid
+VERDICT_QUALITY_WEAK = 40          # quality below this blocks a buy verdict
+OVERALL_TIMING_WEIGHT = 0.6        # overall = 60% timing + 40% long-term (quality/analyst) when available
+
+
+def compute_timing_score(entry):
+    """v5.8.0 - DIRECTIONAL short-term timing score, 0-100 with 50 = no
+    signal. Replaces the pre-5.8.0 trio (original / risk_reward /
+    leading_adjusted), which had two real problems found 29.9.2026:
+      1. all three used abs(score) - conviction MAGNITUDE, not direction -
+         so a stock the engine strongly expects to FALL scored high, and a
+         neutral one (LMT, raw -0.39) scored ~4 instead of ~50;
+      2. all three derive from the same base score, so short-term momentum
+         was effectively counted three times.
+    Now: one conviction term (the leading-indicator-adjusted score, which
+    already discounts contradicting divergences), signed by the predicted
+    direction, plus a bounded risk/reward nudge that is itself scaled by
+    conviction (so a no-signal stock can't be pushed far from 50 by its
+    support/resistance geometry alone)."""
+    raw = entry.get("score") or 0
+    direction = 1 if raw >= 0 else -1
+    conviction = min(compute_leading_adjusted_score(entry), TIMING_CONVICTION_CEILING)
+    base = conviction / TIMING_CONVICTION_CEILING * 50  # 0..50
+
+    rr_points = 0.0
+    abs_score = abs(raw)
+    if abs_score > 0:
+        rr_ratio = compute_risk_reward_score(entry) / abs_score  # 0.2..5 by construction
+        if rr_ratio > 0:
+            rr_points = max(-TIMING_RR_MAX_POINTS, min(float(np.log2(rr_ratio)) * 5, TIMING_RR_MAX_POINTS))
+            rr_points *= min(conviction / 3.0, 1.0)
+
+    timing = 50 + direction * (base + rr_points)
+    return round(max(0.0, min(timing, 100.0)), 1)
+
+
+def compute_verdict(timing, long_term, has_fundamentals=True):
+    """One explicit recommendation label, so the ❌/✅ tags stop depending
+    on a single blended number. long_term may be None (no data at all).
+    'quality_wait' requires real fundamentals (has_fundamentals): analyst
+    ratings alone skew bullish across almost the whole market, so on their
+    own they are not enough to call a company high-quality."""
+    if timing is None:
+        return None
+    if timing >= VERDICT_BUY_TIMING and (long_term is None or long_term >= VERDICT_QUALITY_WEAK):
+        return "buy"
+    if (timing < VERDICT_BUY_TIMING and has_fundamentals and long_term is not None
+            and long_term >= VERDICT_QUALITY_STRONG):
+        return "quality_wait"
+    if timing < VERDICT_AVOID_TIMING:
+        return "avoid"
+    return "neutral"
+
+
 def build_score_breakdown(entry, recommendation_mean, upside_pct):
     """Shared by compute_single_ticker_score ('בדוק מניה') and the daily
     Top10/watchlist breakdown attached in run_predictions below - one
     formula, one place, so the badge shown on a Top10/watchlist card and
     the result of running the same ticker through 'בדוק מניה' can never
-    silently drift apart. `entry` needs at least ticker/score/predicted
-    plus the technical factors (support/resistance/rsi/etc) that
-    compute_risk_reward_score and compute_leading_adjusted_score read.
+    silently drift apart.
 
-    See compute_single_ticker_score's docstring for why each sub-score is
-    normalized independently with a fixed ceiling rather than blended at
-    the rank level, and why the weights are fixed/equal for now."""
-    rr_raw = compute_risk_reward_score(entry)
-    leading_raw = compute_leading_adjusted_score(entry)
+    v5.8.0: two separate lenses instead of one blend of four same-signal
+    parts - see compute_timing_score (short term, directional) and
+    compute_quality_score (long term, business quality). The analyst rating
+    is the other long-term input. overall_score is kept (sorting, history,
+    old UI paths) as 60% timing + 40% long-term, falling back to timing
+    alone when no long-term data exists. The Top10 SELECTION itself does
+    not use this at all (it uses compute_blended_top10_score), so the
+    running experiments are unaffected."""
+    timing = compute_timing_score(entry)
     analyst_raw = analyst_score_0_100(recommendation_mean, upside_pct)
+    quality_raw = entry.get("quality_score")
 
-    original_norm = round(max(0, min(abs(entry["score"]) / 10 * 100, 100)), 1)
-    rr_norm = round(max(0, min(rr_raw / 25 * 100, 100)), 1)
-    leading_norm = round(max(0, min(leading_raw / 10 * 100, 100)), 1)
+    long_parts = [v for v in (quality_raw, analyst_raw) if v is not None]
+    long_term = round(sum(long_parts) / len(long_parts), 1) if long_parts else None
+    overall = timing if long_term is None else round(
+        OVERALL_TIMING_WEIGHT * timing + (1 - OVERALL_TIMING_WEIGHT) * long_term, 1
+    )
 
     components = {
-        "original": original_norm,
-        "risk_reward": rr_norm,
-        "leading_adjusted": leading_norm,
-        "analyst": analyst_raw,  # may be None - excluded from blend below if so
+        "timing": timing,
+        "quality": quality_raw,   # may be None
+        "analyst": analyst_raw,   # may be None - kept under this key: analyst_score/analyst_momentum read it
     }
-    available = {k: v for k, v in components.items() if v is not None}
-    overall = round(sum(available.values()) / len(available), 1) if available else None
     return {
         "overall_score": overall,
+        "timing_score": timing,
+        "quality_score": quality_raw,
+        "long_term_score": long_term,
+        "verdict": compute_verdict(timing, long_term, has_fundamentals=quality_raw is not None),
         "components": components,
         "excluded_from_blend": [k for k, v in components.items() if v is None],
     }
+
+
+def _round_price(v, digits=2):
+    """v5.8.0: prices shown to the user are rounded at the source (the
+    'בדוק מניה' card showed 518.0999755859375 - a float32 artifact from
+    yfinance). Non-numeric/None passes through unchanged."""
+    try:
+        return round(float(v), digits) if v is not None else None
+    except (TypeError, ValueError):
+        return v
 
 
 def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, market_regime, rs_reference=None):
@@ -2666,11 +2802,16 @@ def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, 
         "predicted_direction": predicted,
         "raw_score": round(score, 2),
         "overall_score": breakdown["overall_score"],
+        "timing_score": breakdown["timing_score"],
+        "quality_score": breakdown["quality_score"],
+        "long_term_score": breakdown["long_term_score"],
+        "verdict": breakdown["verdict"],
+        "quality_parts": fundamental_factors.get("_quality_parts"),
         "components": breakdown["components"],
         "excluded_from_blend": breakdown["excluded_from_blend"],
-        "price": factors.get("price"),
-        "support": factors.get("support"),
-        "resistance": factors.get("resistance"),
+        "price": _round_price(factors.get("price")),
+        "support": _round_price(factors.get("support")),
+        "resistance": _round_price(factors.get("resistance")),
         "analyst_count": fundamental_factors.get("analyst_count"),
         "sector": fundamental_factors.get("sector"),
         "short_pct": factors.get("short_pct"),
@@ -2770,7 +2911,51 @@ def analyze_single_ticker(ticker):
     except Exception:
         result["price_as_of_date"] = None
     result["market_status"] = get_market_status_for_ticker(ticker)
+    # v5.8.0: price chart for 'בדוק מניה' (1D/1M/1Y/2Y/5Y + tap-for-price).
+    # Separate download from the 1-year technical-analysis fetch above, so
+    # the scoring inputs are byte-for-byte unchanged; any failure here only
+    # drops the chart, never the whole check.
+    result["chart"] = get_price_chart_data(ticker)
     return result
+
+
+CHART_DAILY_PERIOD = "5y"
+CHART_INTRADAY_INTERVAL = "5m"
+
+
+def get_price_chart_data(ticker):
+    """{"daily": [[YYYY-MM-DD, close], ...] (up to 5 years),
+        "intraday": {"date": YYYY-MM-DD, "points": [[HH:MM, close], ...]}
+                    - the LAST trading session only, in the exchange's own
+                    local time}. Either part may be missing/None.
+    Prices rounded to 2 decimals (see _round_price). Returns None if
+    nothing at all could be fetched."""
+    out = {"daily": None, "intraday": None,
+           "generated_at": datetime.now(timezone.utc).isoformat()}
+    try:
+        data = yf.download(tickers=ticker, period=CHART_DAILY_PERIOD, interval="1d",
+                           group_by="ticker", threads=False, progress=False, auto_adjust=True)
+        closes = _flatten_close_series(data["Close"] if "Close" in data else data[ticker]["Close"]).dropna()
+        if not closes.empty:
+            out["daily"] = [[idx.strftime("%Y-%m-%d"), _round_price(v)] for idx, v in closes.items()]
+    except Exception as e:
+        print(f"Chart daily fetch failed for {ticker}: {e}")
+    try:
+        data = yf.download(tickers=ticker, period="5d", interval=CHART_INTRADAY_INTERVAL,
+                           group_by="ticker", threads=False, progress=False, auto_adjust=True)
+        closes = _flatten_close_series(data["Close"] if "Close" in data else data[ticker]["Close"]).dropna()
+        if not closes.empty:
+            last_day = closes.index[-1].date()
+            session = closes[[ts.date() == last_day for ts in closes.index]]
+            out["intraday"] = {
+                "date": last_day.isoformat(),
+                "points": [[ts.strftime("%H:%M"), _round_price(v)] for ts, v in session.items()],
+            }
+    except Exception as e:
+        print(f"Chart intraday fetch failed for {ticker}: {e}")
+    if not out["daily"] and not out["intraday"]:
+        return None
+    return out
 
 
 
@@ -2907,6 +3092,9 @@ def run_tomorrow_forecast(store):
             full_pick[k] = v
         full_pick.update({
             "overall_score": breakdown["overall_score"],
+            "timing_score": breakdown["timing_score"],
+            "long_term_score": breakdown["long_term_score"],
+            "verdict": breakdown["verdict"],
             "score_components": breakdown["components"],
             "earnings": earnings,
         })
@@ -2917,6 +3105,123 @@ def run_tomorrow_forecast(store):
         "picks": full_picks,
     }
     return store["tomorrow_forecast"]
+
+
+SELL_QUEUE_LOOKBACK_DAYS = 30
+SELL_TARGET_PROXIMITY = 0.985      # within 1.5% of the resistance level recorded at pick time = "target reached"
+SELL_STOP_BUFFER = 0.98           # close must be 2%+ below the pick-day support (pivot supports can sit right under the price - a 0.3% dip is noise, not a broken stop)
+SELL_FLIP_MIN_SCORE = 1.5          # a flip to "down" must be at least this strong to count (not a coin-flip day)
+SELL_TREND_DROP = 2                # Minervini criteria lost since the pick
+
+
+def compute_position_queue(history, today_entries, real_top10_tickers, today_str,
+                           lookback_days=SELL_QUEUE_LOOKBACK_DAYS):
+    """v5.8.0 - every ticker picked for the Top10 within the last
+    lookback_days that is NOT in today's Top10 lands in exactly one of two
+    lists: sell (a concrete exit reason fired) or hold (no exit reason yet).
+    Nothing silently disappears, which was the confusing part before.
+
+    Why the rewrite (found 29.9.2026): the old rule required
+    price >= resistance, but compute_support_resistance defines resistance
+    as the nearest pivot ABOVE the current price (or price * 1.08 when there
+    is none), so that condition could never be true and the sell list was
+    permanently empty. Same trap for support. The fix is to compare today's
+    price against the levels RECORDED ON THE PICK DAY - those are fixed
+    numbers that the price can actually cross. It also only ever looked for
+    "take profit at the top"; the most important exit - the pick is failing
+    - wasn't covered at all.
+
+    Sell triggers (any one is enough; each is a real, observable event):
+      stop_broken    - price closed 2%+ below the support recorded when picked
+      target_reached - price within 1.5% of (or above) the resistance
+                       recorded when picked, AND a confirming reversal
+                       sign (RSI > 70 or MACD turned bearish)
+      direction_flip - the engine now predicts DOWN with |score| >= 1.5
+      trend_broken   - lost >= 2 Minervini criteria since the pick AND is
+                       below the pick price
+
+    Returns (hold_items, sell_items), both with everything the UI needs to
+    explain the row on its own (pick date/price, change since pick,
+    current levels, and a plain-Hebrew reason line)."""
+    cutoff = (date.fromisoformat(today_str) - timedelta(days=lookback_days)).isoformat()
+    first_pick, last_pick = {}, {}
+    for e in history:
+        if not e.get("top10") or e.get("date", "") < cutoff or e.get("date", "") >= today_str:
+            continue
+        t = e["ticker"]
+        if t not in first_pick or e["date"] < first_pick[t]["date"]:
+            first_pick[t] = e
+        if t not in last_pick or e["date"] > last_pick[t]["date"]:
+            last_pick[t] = e
+
+    today_by_ticker = {e["ticker"]: e for e in today_entries}
+    hold_items, sell_items = [], []
+    for ticker, lp in last_pick.items():
+        if ticker in real_top10_tickers:
+            continue  # still an active buy today
+        fp = first_pick[ticker]
+        current = today_by_ticker.get(ticker)
+        if not current or current.get("price") is None:
+            continue  # left the scanned universe - no fresh data to judge; ages out of the window
+
+        price = float(current["price"])
+        pick_price = fp.get("price")
+        change_pct = round((price - pick_price) / pick_price * 100, 2) if pick_price else None
+        pick_support, pick_resistance = lp.get("support"), lp.get("resistance")
+
+        reasons = []
+        if pick_support and price < pick_support * SELL_STOP_BUFFER:
+            reasons.append(("stop_broken", f"שברה את התמיכה {pick_support:.2f} שנקבעה ביום ההמלצה"))
+        if pick_resistance and price >= pick_resistance * SELL_TARGET_PROXIMITY:
+            rsi_hot = (current.get("rsi") or 0) > 70
+            macd_bear = current.get("macd_bullish") is False
+            if rsi_hot or macd_bear:
+                sign = "RSI מעל 70" if rsi_hot else "MACD התהפך לשלילי"
+                reasons.append(("target_reached", f"הגיעה ליעד {pick_resistance:.2f} + {sign}"))
+        if current.get("predicted") == "down" and abs(current.get("score") or 0) >= SELL_FLIP_MIN_SCORE:
+            reasons.append(("direction_flip", "התחזית התהפכה לירידה"))
+        picked_tt = (lp.get("trend_template") or {}).get("criteria_met")
+        current_tt = (current.get("trend_template") or {}).get("criteria_met")
+        if (picked_tt is not None and current_tt is not None and current_tt <= picked_tt - SELL_TREND_DROP
+                and pick_price and price < pick_price):
+            reasons.append(("trend_broken", f"המגמה נחלשה ({picked_tt}→{current_tt} קריטריונים) ומתחת למחיר ההמלצה"))
+
+        breakdown = build_score_breakdown(current, current.get("recommendation_mean"), current.get("upside_pct"))
+        item = {
+            "ticker": ticker,
+            "predicted": current.get("predicted"),
+            "score": current.get("score"),
+            "price": _round_price(price),
+            "support": _round_price(current.get("support")),
+            "resistance": _round_price(current.get("resistance")),
+            "picked_on": fp.get("date"),
+            "last_picked_on": lp.get("date"),
+            "pick_price": _round_price(pick_price),
+            "pick_support": _round_price(pick_support),
+            "pick_resistance": _round_price(pick_resistance),
+            "change_since_pick_pct": change_pct,
+            "short_pct": current.get("short_pct"), "rs_rating": current.get("rs_rating"),
+            "trend_template": current.get("trend_template"), "vcp": current.get("vcp"),
+            "reasons": {code: True for code, _ in reasons},
+            "reason_texts": [text for _, text in reasons],
+            "overall_score": breakdown["overall_score"],
+            "timing_score": breakdown["timing_score"],
+            "long_term_score": breakdown["long_term_score"],
+            "verdict": breakdown["verdict"],
+            "score_components": breakdown["components"],
+        }
+        if reasons:
+            sell_items.append(item)
+        else:
+            dist_stop = round((price - pick_support) / price * 100, 1) if pick_support else None
+            item["reason_texts"] = [
+                "אין איתות יציאה" + (f" · {dist_stop}% מעל התמיכה של יום ההמלצה" if dist_stop is not None else "")
+            ]
+            hold_items.append(item)
+
+    sell_items.sort(key=lambda x: (x["change_since_pick_pct"] if x["change_since_pick_pct"] is not None else 0))
+    hold_items.sort(key=lambda x: (x["change_since_pick_pct"] if x["change_since_pick_pct"] is not None else 0), reverse=True)
+    return hold_items, sell_items
 
 
 def run_predictions(store):
@@ -3119,6 +3424,9 @@ def run_predictions(store):
             entry, entry.get("recommendation_mean"), entry.get("upside_pct")
         )
         entry["overall_score"] = breakdown["overall_score"]
+        entry["timing_score"] = breakdown["timing_score"]
+        entry["long_term_score"] = breakdown["long_term_score"]
+        entry["verdict"] = breakdown["verdict"]
         entry["score_components"] = breakdown["components"]
         entry["analyst_score"] = breakdown["components"]["analyst"]
         try:
@@ -3145,56 +3453,13 @@ def run_predictions(store):
     print(f"Analyst-score momentum: {len(baseline_by_ticker)} tickers had a usable "
           f"{ANALYST_MOMENTUM_LOOKBACK_DAYS}-day-old baseline today")
 
-    # --- sell queue (item 22): tickers picked for Top10 within the last
-    # 30 days that are STILL in today's scanned universe (so we have
-    # fresh technical data for them) and now show a strong SELL signal -
-    # never any single condition alone, always price at/past resistance
-    # PLUS at least one confirming reversal signal, so a single noisy day
-    # doesn't flag a sell. Deliberately does not try to evaluate tickers
-    # that have dropped out of the scanned universe entirely (no fresh
-    # data to check) - it will simply age out of the 30-day window instead. ---
-    SELL_QUEUE_LOOKBACK_DAYS = 30
-    recent_cutoff = (date.today() - timedelta(days=SELL_QUEUE_LOOKBACK_DAYS)).isoformat()
-    previously_recommended = {}
-    for e in store["history"]:
-        if e.get("top10") and e.get("date", "") >= recent_cutoff:
-            t = e["ticker"]
-            if t not in previously_recommended or e["date"] > previously_recommended[t]["date"]:
-                previously_recommended[t] = e  # keep the pick closest to today, to judge trend degradation fairly
-
-    today_by_ticker = {e["ticker"]: e for e in today_entries}
-    sell_queue = []
-    for ticker, picked_entry in previously_recommended.items():
-        if ticker in real_top10_tickers:
-            continue  # still an active buy pick today, not a sell candidate
-        current = today_by_ticker.get(ticker)
-        if not current or current.get("price") is None or current.get("resistance") is None:
-            continue
-        at_resistance = current["price"] >= current["resistance"]
-        macd_bearish = current.get("macd_bullish") is False
-        rsi_overbought = (current.get("rsi") or 0) > 70
-        picked_tt = (picked_entry.get("trend_template") or {}).get("criteria_met")
-        current_tt = (current.get("trend_template") or {}).get("criteria_met")
-        trend_degraded = picked_tt is not None and current_tt is not None and current_tt <= picked_tt - 2
-        if not (at_resistance and (macd_bearish or rsi_overbought or trend_degraded)):
-            continue
-        breakdown = build_score_breakdown(current, current.get("recommendation_mean"), current.get("upside_pct"))
-        sell_queue.append({
-            "ticker": ticker,
-            "predicted": current.get("predicted"),
-            "price": current.get("price"), "support": current.get("support"), "resistance": current.get("resistance"),
-            "short_pct": current.get("short_pct"), "rs_rating": current.get("rs_rating"),
-            "trend_template": current.get("trend_template"), "vcp": current.get("vcp"),
-            "picked_on": picked_entry.get("date"),
-            "reasons": {
-                "at_resistance": at_resistance, "macd_bearish": macd_bearish,
-                "rsi_overbought": rsi_overbought, "trend_degraded": trend_degraded,
-            },
-            "overall_score": breakdown["overall_score"],
-            "score_components": breakdown["components"],
-        })
-    sell_queue.sort(key=lambda x: (x["overall_score"] if x["overall_score"] is not None else -1), reverse=True)
+    # --- buy / hold / sell queue (v5.8.0 rewrite of item 22, see
+    # compute_position_queue for the full reasoning) ---
+    hold_queue, sell_queue = compute_position_queue(
+        store["history"], today_entries, real_top10_tickers, today
+    )
     store["sell_queue"] = {"date": today, "lookback_days": SELL_QUEUE_LOOKBACK_DAYS, "items": sell_queue}
+    store["hold_queue"] = {"date": today, "lookback_days": SELL_QUEUE_LOOKBACK_DAYS, "items": hold_queue}
 
     # A blended-formula Top10 pick can in principle fall outside the top-25
     # raw-conviction cut above (that's the whole point of blending toward
