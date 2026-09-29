@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.8.0"
+BACKEND_VERSION = "5.9.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -3654,6 +3654,315 @@ def get_market_status_for_ticker(ticker):
     return {"market": market, "is_trading_day": is_trading_day}
 
 
+# ===========================================================================
+# v5.9.0 - three-layer portfolio: exposure rule (core), long-term quality
+# list, and benchmarks. Background: the 26-year VectorBT v3 study
+# (29.9.2026) found the Top10 formula adds no statistically significant
+# edge over simply holding the same universe (+0.9%/yr, t=0.59), while a
+# plain "index below its 200-day average -> cut exposure" rule halved the
+# worst drawdown (-55% -> -26%/-31%). So the app now leads with exposure,
+# measures every list against honest benchmarks, and treats the daily
+# Top10 as an experiment.
+# ===========================================================================
+EXPOSURE_INDEX_SYMBOL = "^GSPC"
+EXPOSURE_SMA_DAYS = 200
+EXPOSURE_REDUCED_PCT = 50          # recommended equity exposure while the index is below its 200-day average
+CASH_ANNUAL_PCT = 4.0              # simplified cash yield for the cash part of the exposure sims (same constant as the research)
+CASH_DAILY = (1 + CASH_ANNUAL_PCT / 100) ** (1 / 252) - 1
+EW_BENCHMARK_MAX_ABS_PCT = 50.0    # a >50% one-day move in the equal-weight benchmark is a data error (split etc.), skip it
+
+LONG_TERM_PICKS = 10
+LONG_TERM_MAX_PER_SECTOR = 3      # a long-term core list should not be half one sector
+LONG_TERM_REFRESH_DAYS = 30
+LONG_TERM_ENTRY_TIMING = 55        # timing at/above this -> "אפשר להיכנס עכשיו", else "להמתין לתזמון"
+FUND_CACHE_MAX_AGE_DAYS = 30
+FUND_CACHE_FETCH_PER_RUN = 60      # fundamentals are slow (.info) - spread the S&P 500 fetch over several 15-min runs
+FUND_CACHE_MIN_COVERAGE = 0.9      # refresh the long-term list only once this share of S&P 500 names has fresh fundamentals
+
+
+def compute_exposure_signal(store):
+    """Daily exposure recommendation from the S&P 500 vs its 200-day
+    average, plus the full per-date series (used by the exposure sims below
+    - each day's return uses the state known at the PREVIOUS close, so there
+    is no look-ahead). Rebuilt from ~2 years of index history every run."""
+    try:
+        closes = yf.Ticker(EXPOSURE_INDEX_SYMBOL).history(period="2y")["Close"].dropna()
+    except Exception as e:
+        print(f"Exposure signal fetch failed: {e}")
+        return
+    if len(closes) < EXPOSURE_SMA_DAYS + 1:
+        return
+    sma = closes.rolling(EXPOSURE_SMA_DAYS).mean()
+    series = []
+    for ts, c in closes.items():
+        m = sma.loc[ts]
+        if pd.isna(m):
+            continue
+        series.append([ts.strftime("%Y-%m-%d"), bool(c >= m)])
+    last_close, last_sma = float(closes.iloc[-1]), float(sma.iloc[-1])
+    above = last_close >= last_sma
+    last_flip = None
+    for i in range(len(series) - 1, 0, -1):
+        if series[i][1] != series[i - 1][1]:
+            last_flip = series[i][0]
+            break
+    store["exposure"] = {
+        "as_of": series[-1][0],
+        "symbol": EXPOSURE_INDEX_SYMBOL,
+        "index_close": round(last_close, 2),
+        "sma200": round(last_sma, 2),
+        "pct_vs_sma": round((last_close / last_sma - 1) * 100, 2),
+        "above_sma": bool(above),
+        "recommended_exposure_pct": 100 if above else EXPOSURE_REDUCED_PCT,
+        "last_flip_date": last_flip,
+        "series": series[-400:],
+    }
+
+
+def _exposure_state_before(series_map, sorted_dates, d):
+    """Exposure state (True = above SMA) as of the last index close
+    strictly BEFORE date d; None if unknown."""
+    import bisect
+    i = bisect.bisect_left(sorted_dates, d) - 1
+    return series_map[sorted_dates[i]] if i >= 0 else None
+
+
+def build_exposure_sim(store, base_returns, sim_key, label, start_date=None):
+    """Wraps a list of (date, daily_return_pct) with the exposure rule:
+    full exposure while the index was above its 200-day average at the
+    previous close, otherwise EXPOSURE_REDUCED_PCT in the strategy and the
+    rest in cash. Rebuilt from scratch every run (idempotent)."""
+    series = (store.get("exposure") or {}).get("series") or []
+    if not base_returns or not series:
+        return
+    series_map = {d: a for d, a in series}
+    sorted_dates = sorted(series_map)
+    value, log = 100000.0, []
+    for d, r in base_returns:
+        above = _exposure_state_before(series_map, sorted_dates, d)
+        if above is None or above:
+            eff = r / 100
+            exp_pct = 100
+        else:
+            w = EXPOSURE_REDUCED_PCT / 100
+            eff = w * r / 100 + (1 - w) * CASH_DAILY
+            exp_pct = EXPOSURE_REDUCED_PCT
+        value *= 1 + eff
+        log.append({"date": d, "value_end": round(value, 2), "exposure_pct": exp_pct})
+    store[sim_key] = {
+        "label": label, "start_value": 100000, "start_date": start_date or log[0]["date"],
+        "value": log[-1]["value_end"], "total_return_pct": round((log[-1]["value_end"] / 100000 - 1) * 100, 2),
+        "daily_log": log[-400:],
+    }
+
+
+def _returns_from_value_log(log, value_key="value_end"):
+    """[(date, pct)] from a log of cumulative values (first entry = start)."""
+    out = []
+    for prev, cur in zip(log, log[1:]):
+        a, b = prev.get(value_key), cur.get(value_key)
+        if a and b:
+            out.append((cur["date"], (b / a - 1) * 100))
+    return out
+
+
+def build_equal_weight_benchmark(store):
+    """Equal-weight benchmark over the WHOLE scanned universe, on exactly
+    the same grading schedule as the Top10 sim: for every date the Top10
+    sim traded, the average graded next-day move of every scanned ticker
+    (both predicted directions, data_suspect rows and >50% moves excluded).
+    Answers the question the research raised: does picking 10 beat just
+    holding everything we scan? Rebuilt every run."""
+    top_log = (store.get("portfolio_sim") or {}).get("daily_log") or []
+    if not top_log:
+        return
+    dates = {r["date"] for r in top_log}
+    sums, counts = {}, {}
+    for e in store.get("history", []):
+        d = e.get("date")
+        if d not in dates or not e.get("graded") or e.get("data_suspect"):
+            continue
+        r = e.get("actual_pct_change")
+        if r is None or abs(r) > EW_BENCHMARK_MAX_ABS_PCT:
+            continue
+        sums[d] = sums.get(d, 0.0) + r
+        counts[d] = counts.get(d, 0) + 1
+    value, log = 100000.0, []
+    for d in sorted(dates):
+        if not counts.get(d):
+            continue
+        r = sums[d] / counts[d]
+        value *= 1 + r / 100
+        log.append({"date": d, "value_end": round(value, 2), "return_pct": round(r, 3), "n": counts[d]})
+    if not log:
+        return
+    store["benchmark_equal_weight_sim"] = {
+        "label": "החזקה שווה של כל היקום שנסרק", "start_value": 100000, "start_date": log[0]["date"],
+        "value": log[-1]["value_end"], "total_return_pct": round((log[-1]["value_end"] / 100000 - 1) * 100, 2),
+        "daily_log": log[-400:],
+    }
+
+
+def refresh_fundamentals_cache(store, today_entries, sp500_tickers, today_str):
+    """Keeps store['fundamentals_cache'] fresh for S&P 500 members, a few
+    dozen .info calls per run (see FUND_CACHE_FETCH_PER_RUN) so no single
+    15-minute run gets slow. Returns the share of scanned S&P 500 names
+    with a fresh entry."""
+    cache = store.setdefault("fundamentals_cache", {})
+    cutoff = (date.fromisoformat(today_str) - timedelta(days=FUND_CACHE_MAX_AGE_DAYS)).isoformat()
+    members = sorted({e["ticker"] for e in today_entries if e["ticker"] in sp500_tickers})
+    if not members:
+        return 0.0
+    stale = [t for t in members if (cache.get(t) or {}).get("fetched", "") < cutoff]
+    for t in stale[:FUND_CACHE_FETCH_PER_RUN]:
+        try:
+            f = get_fundamental_factors(t)
+        except Exception as ex:
+            print(f"Fundamentals cache fetch failed for {t}: {ex}")
+            continue
+        cache[t] = {
+            "fetched": today_str,
+            "quality_score": f.get("quality_score"),
+            "recommendation_mean": f.get("recommendation_mean"),
+            "upside_pct": _round_price(f.get("upside_pct"), 1),
+            "market_cap": f.get("market_cap"),
+            "sector": f.get("sector"),
+            "name": f.get("_company_name"),
+        }
+    fresh = sum(1 for t in members if (cache.get(t) or {}).get("fetched", "") >= cutoff)
+    return fresh / len(members)
+
+
+def manage_long_term_picks(store, today_entries):
+    """v5.9.0 - the 🏛 long-term list: 10 large-cap S&P 500 companies ranked
+    by business quality + analyst rating (build_score_breakdown's long-term
+    lens), max LONG_TERM_MAX_PER_SECTOR per sector, refreshed every
+    LONG_TERM_REFRESH_DAYS. Each pick also carries today's timing score and
+    an entry tag, so a strong company that isn't moving yet reads as
+    'wait for timing' rather than as a bad stock.
+
+    Its own ₪100,000 sim (long_term_sim): equal weight at each refresh,
+    marked to market every run from today's scanned prices; value is
+    realized and re-split equally at the next refresh. Not backtested -
+    there are no free historical fundamentals - so it is measured live
+    from its first refresh."""
+    today = date.today().isoformat()
+    lt = store.setdefault("long_term_picks", {"refreshed_on": None, "next_refresh_date": None, "picks": [], "history": []})
+    sim = store.setdefault("long_term_sim", {"start_value": 100000, "start_date": None, "value": 100000.0,
+                                              "holdings": [], "daily_log": []})
+    by_ticker = {e["ticker"]: e for e in today_entries}
+    sp500 = set(get_sp500_tickers())
+    coverage = refresh_fundamentals_cache(store, today_entries, sp500, today)
+    cache = store.get("fundamentals_cache") or {}
+
+    # mark the running sim to market first (before any rebalance)
+    if sim["holdings"]:
+        total = 0.0
+        for h in sim["holdings"]:
+            p = (by_ticker.get(h["ticker"]) or {}).get("price")
+            if p:
+                h["last_price"] = float(p)
+            total += h["alloc"] * h["last_price"] / h["entry_price"]
+        sim["value"] = round(total, 2)
+        if sim["daily_log"] and sim["daily_log"][-1]["date"] == today:
+            sim["daily_log"][-1]["value_end"] = sim["value"]
+        else:
+            sim["daily_log"].append({"date": today, "value_end": sim["value"]})
+        sim["daily_log"] = sim["daily_log"][-400:]
+
+    due = not lt["picks"] or (lt.get("next_refresh_date") or "") <= today
+    if due and coverage >= FUND_CACHE_MIN_COVERAGE:
+        pool = []
+        for t, f in cache.items():
+            e = by_ticker.get(t)
+            if (t not in sp500 or e is None or not e.get("price") or f.get("quality_score") is None
+                    or (f.get("market_cap") or 0) < LARGE_CAP_MIN_MARKET_CAP):
+                continue
+            analyst = analyst_score_0_100(f.get("recommendation_mean"), f.get("upside_pct"))
+            parts = [v for v in (f["quality_score"], analyst) if v is not None]
+            pool.append({**e, "sector": f.get("sector") or e.get("sector"), "company_name": f.get("name"),
+                         "quality_score": f["quality_score"], "analyst_score": analyst,
+                         "long_term_score": round(sum(parts) / len(parts), 1)})
+        chosen = select_diversified_top10(pool, lambda x: x["long_term_score"], max_per_sector=LONG_TERM_MAX_PER_SECTOR)[:LONG_TERM_PICKS]
+        if chosen:
+            # realize the old basket, re-split equally into the new one
+            value = sim["value"] if sim["holdings"] else 100000.0
+            if not sim["start_date"]:
+                sim["start_date"] = today
+                sim["daily_log"] = [{"date": today, "value_end": round(value, 2)}]
+            alloc = value / len(chosen)
+            sim["holdings"] = [{"ticker": c["ticker"], "entry_price": float(c["price"]), "last_price": float(c["price"]),
+                                "alloc": alloc} for c in chosen]
+            lt["history"].append({"date": today, "tickers": [c["ticker"] for c in chosen], "value_at_refresh": round(value, 2)})
+            lt["history"] = lt["history"][-24:]
+            lt["refreshed_on"] = today
+            lt["next_refresh_date"] = (date.fromisoformat(today) + timedelta(days=LONG_TERM_REFRESH_DAYS)).isoformat()
+            lt["picks"] = [{
+                "ticker": c["ticker"], "company_name": c.get("company_name"), "sector": c.get("sector"),
+                "quality_score": c["quality_score"], "analyst_score": c["analyst_score"],
+                "long_term_score": c["long_term_score"], "entry_price": _round_price(c["price"]),
+                "picked_on": today,
+            } for c in chosen]
+    lt["fundamentals_coverage_pct"] = round(coverage * 100, 1)
+
+    # today's timing + entry tag for every current pick (cheap, every run)
+    for p in lt["picks"]:
+        e = by_ticker.get(p["ticker"])
+        if not e:
+            continue
+        p["price"] = _round_price(e.get("price"))
+        p["predicted"] = e.get("predicted")
+        p["score"] = e.get("score")
+        p["support"], p["resistance"] = _round_price(e.get("support")), _round_price(e.get("resistance"))
+        p["trend_template"] = e.get("trend_template")
+        p["timing_score"] = compute_timing_score(e)
+        p["entry_tag"] = "enter" if p["timing_score"] >= LONG_TERM_ENTRY_TIMING else "wait"
+        p["change_since_pick_pct"] = round((e["price"] / p["entry_price"] - 1) * 100, 2) if p.get("entry_price") else None
+        p["overall_score"] = p["long_term_score"]
+        p["score_components"] = {"timing": p["timing_score"], "quality": p["quality_score"], "analyst": p["analyst_score"]}
+        p["verdict"] = compute_verdict(p["timing_score"], p["long_term_score"], has_fundamentals=True)
+
+
+def build_strategy_comparison(store):
+    """One table of every tracked strategy vs its honest benchmarks, each
+    with its own start date (they did not all start on the same day - the
+    frontend shows that, so no row is compared against an unfair window)."""
+    rows = []
+
+    def add(key, label, layer, sim_key, value_key="value"):
+        sim = store.get(sim_key) or {}
+        v = sim.get(value_key)
+        if v is None:
+            return
+        start = sim.get("start_date") or ((sim.get("daily_log") or [{}])[0].get("date"))
+        rows.append({"key": key, "label": label, "layer": layer, "start_date": start,
+                     "value": round(float(v), 2), "return_pct": round((float(v) / 100000 - 1) * 100, 2)})
+
+    add("core_exposure", "S&P 500 + כלל חשיפה", "core", "core_sim_sp500_exposure")
+    add("sp500", "S&P 500 - החזקה רגילה", "benchmark", "index_sim_sp500")
+    add("long_term", "🏛 טווח ארוך - 10 מניות איכות", "long", "long_term_sim")
+    add("long_term_exposure", "🏛 טווח ארוך + כלל חשיפה", "long", "long_term_sim_exposure")
+    add("top10", "⚡ טווח קצר - Top10 (ניסוי)", "short", "portfolio_sim")
+    add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
+    add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
+    store["strategy_comparison"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows}
+
+
+def update_three_layer_views(store):
+    """Runs every cycle after the existing sims/benchmarks are updated."""
+    compute_exposure_signal(store)
+    build_equal_weight_benchmark(store)
+    sp_log = (store.get("index_sim_sp500") or {}).get("daily_log") or []
+    build_exposure_sim(store, _returns_from_value_log(sp_log), "core_sim_sp500_exposure", "S&P 500 + כלל חשיפה",
+                       start_date=sp_log[0]["date"] if sp_log else None)
+    top_log = (store.get("portfolio_sim") or {}).get("daily_log") or []
+    build_exposure_sim(store, [(r["date"], r["return_pct"]) for r in top_log], "portfolio_sim_exposure", "Top10 + כלל חשיפה")
+    lt_log = (store.get("long_term_sim") or {}).get("daily_log") or []
+    build_exposure_sim(store, _returns_from_value_log(lt_log), "long_term_sim_exposure", "טווח ארוך + כלל חשיפה",
+                       start_date=lt_log[0]["date"] if lt_log else None)
+    build_strategy_comparison(store)
+
+
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
@@ -3708,6 +4017,11 @@ def main():
         except Exception as e:
             print(f"Benchmark comparison update failed, continuing without it: {type(e).__name__}: {e}")
 
+        try:
+            update_three_layer_views(prediction_store)
+        except Exception as e:
+            print(f"Three-layer views update failed, continuing without it: {type(e).__name__}: {e}")
+
         last_factor_run = (prediction_store.get("factor_analysis") or {}).get("updated_at", "")[:10]
         if last_factor_run != today_str:
             analysis = analyze_factor_performance(prediction_store)
@@ -3737,6 +4051,12 @@ def main():
         manage_monthly_portfolio(prediction_store, today_entries_for_mp)
     except Exception as e:
         print(f"Monthly portfolio management failed: {type(e).__name__}: {e}")
+
+    try:
+        manage_long_term_picks(prediction_store, today_entries_for_mp)
+        build_strategy_comparison(prediction_store)
+    except Exception as e:
+        print(f"Long-term picks failed: {type(e).__name__}: {e}")
 
     prediction_store["last_run_status"] = {
         "checked_at": datetime.now(timezone.utc).isoformat(),

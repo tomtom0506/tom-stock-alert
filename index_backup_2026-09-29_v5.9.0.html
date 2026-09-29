@@ -13,16 +13,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* v6.0.0: lifted ~1 step - the old values were too close to black */
-    --bg: #141a25;
-    --bg-glow: #19212e;
-    --panel: #1e2635;
-    --panel-hi: #273142;
-    --border: #344055;
-    --border-hi: #46536b;
-    --text: #f1f3f7;
-    --text-dim: #b3bccb;
-    --text-faint: #8b95a8;
+    --bg: #0b0e14;
+    --bg-glow: #0f1420;
+    --panel: #151b25;
+    --panel-hi: #1c2431;
+    --border: #262e3c;
+    --border-hi: #364052;
+    --text: #eef0f4;
+    --text-dim: #9aa4b6;
+    --text-faint: #6b7488;
     --gold: #d9b158;
     --gold-dim: #b3903f;
     --gold-glow: rgba(217,177,88,0.16);
@@ -35,16 +34,15 @@
   }
   /* ---------- light theme (opt-in via toggle) ---------- */
   body.light-theme {
-    /* v6.0.0: toned down ~1 step - the old values were close to pure white */
-    --bg: #e4e8ee;
-    --bg-glow: #edf0f4;
-    --panel: #f5f7fa;
-    --panel-hi: #e2e7ee;
-    --border: #c9d0db;
-    --border-hi: #b3bcca;
-    --text: #151a23;
-    --text-dim: #3a4353;
-    --text-faint: #5a6477;
+    --bg: #f4f5f8;
+    --bg-glow: #ffffff;
+    --panel: #ffffff;
+    --panel-hi: #eef0f4;
+    --border: #dde1e8;
+    --border-hi: #c7cdd8;
+    --text: #171b24;
+    --text-dim: #454e60;
+    --text-faint: #6b7486;
     --gold: #93641d;
     --gold-dim: #78511a;
     --gold-glow: rgba(147,100,29,0.12);
@@ -55,7 +53,7 @@
     --down: #a53a2f;
     --down-bg: rgba(165,58,47,0.10);
   }
-  body.light-theme .tape-wrap { background: var(--bg-glow); }
+  body.light-theme .tape-wrap { background: #ffffff; }
   body { transition: background-color 0.2s ease, color 0.2s ease; }
   * { box-sizing: border-box; }
   body {
@@ -76,7 +74,7 @@
 
   /* ---------- ticker tape ---------- */
   .tape-wrap {
-    background: var(--bg-glow); border-bottom: 1px solid var(--border);
+    background: #10141b; border-bottom: 1px solid var(--border);
     overflow: hidden; white-space: nowrap; padding: 10px 0;
   }
   .tape-track {
@@ -540,8 +538,6 @@
     </div>
   </div>
 
-  <div id="homeExposureCard" data-tab="home"></div>
-  <div id="homeLayersCard" data-tab="home"></div>
   <div class="stats-row hidden" id="statsRow" data-tab="home">
     <div class="stat-tile" id="statAccuracyTile" style="cursor:pointer;"><div class="stat-num mono" id="statAccuracy">—</div><div class="stat-label">אחוז הצלחת חיזוי ℹ️</div></div>
     <div class="stat-tile"><div class="stat-num mono" id="statPredictions">—</div><div class="stat-label">תחזיות חזקות היום</div></div>
@@ -551,12 +547,6 @@
   <div id="homeDashboardDonut" data-tab="home"></div>
   <div id="homeDashboardTiles" data-tab="home"></div>
   <div id="homeDashboardVerdict" data-tab="home"></div>
-
-  <div id="strategiesSection" data-tab="simulation" data-subtab="performance">
-    <div class="section-title">⚖️ השוואת אסטרטגיות מול benchmark</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">כל אסטרטגיה מתחילה ב-₪100,000 בתאריך שמוצג לידה - לא כולן התחילו באותו יום, אז משווים כל שורה לתאריך שלה. ללא עמלות וללא המרות מטבע.</div>
-    <div id="strategiesTable"></div>
-  </div>
 
   <div id="trackRecordSection" class="hidden" data-tab="simulation" data-subtab="performance">
     <div class="section-title" id="trackRecordToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
@@ -641,15 +631,6 @@
     <div class="predictions-panel hidden" id="formulaComparisonPanel"><div id="formulaComparisonList"></div></div>
   </div>
 
-  <div id="longTermSection" data-tab="stocks" data-subtab="longterm">
-    <div class="section-title">🏛 טווח ארוך - 10 מניות איכות</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
-      חברות ענק מ-S&amp;P 500 שמדורגות לפי איכות עסקית (רווחיות, צמיחה, מינוף, תזרים) ודירוג אנליסטים, עד 3 מאותו סקטור. מתעדכן פעם בחודש. לכל מניה תג תזמון: <b>אפשר להיכנס עכשיו</b> או <b>להמתין לתזמון</b>. ציון האיכות לא נבדק היסטורית (אין נתוני דוחות היסטוריים חינמיים) - הוא נמדד מהיום, בסימולציה משלו מול S&amp;P 500.
-    </div>
-    <div id="longTermMeta" style="font-size:12px; color:var(--text-dim); margin-bottom:8px;"></div>
-    <div id="longTermList" style="display:flex; flex-direction:column; gap:8px;"></div>
-  </div>
-
   <div id="monthlyPortfolioSection" class="hidden" data-tab="stocks" data-subtab="monthly">
     <div class="section-title" id="monthlyPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       📅 תיק חודשי <span id="monthlyPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
@@ -663,9 +644,6 @@
   </div>
 
   <div id="predictionsSection" class="hidden" data-tab="stocks" data-subtab="top10">
-    <div style="background:rgba(255,215,106,0.08); border:1px solid rgba(255,215,106,0.35); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; line-height:1.6; color:var(--text-dim);">
-      🧪 <b>ניסוי - טווח קצר (ימים עד שבועות).</b> מחקר של 26 שנה לא מצא לנוסחה יתרון מובהק על פני החזקה של כל המניות, ולכן זו לא בסיס להשקעה משמעותית. לכל מניה מוצגים מראש יעד וסטופ.
-    </div>
     <div id="starredSection" class="hidden">
       <div class="section-title">⭐ מניות במעקב</div>
       <div id="starredList"></div>
@@ -948,21 +926,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.0.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "5.9.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.0.0", date: "2026-09-29", items: [
-    "שינוי בתפקיד האפליקציה, בעקבות מחקר של 26 שנה (VectorBT v3): לנוסחת ה-Top10 אין יתרון מובהק על פני החזקה של כל המניות, אבל כלל חשיפה פשוט חתך את הנפילה המקסימלית בחצי. האפליקציה בנויה עכשיו משלוש שכבות: ליבה (מדד + כלל חשיפה), טווח ארוך (מניות איכות) וטווח קצר (Top10, מסומן כניסוי). backend 5.9.0.",
-    "🧭 כרטיס חשיפה בראש 'היום': S&P 500 מעל ממוצע 200 יום = חשיפה מלאה, מתחת = 50% מזומן. כולל מרחק מהממוצע ותאריך ההחלפה האחרונה.",
-    "🧱 כרטיס שלוש השכבות בדשבורד, עם תשואת כל שכבה מול S&P 500.",
-    "🏛 טאב חדש 'טווח ארוך': 10 חברות ענק מ-S&P 500 לפי איכות עסקית ודירוג אנליסטים, עד 3 לסקטור, מתעדכן פעם בחודש, עם תג 'אפשר להיכנס עכשיו' / 'להמתין לתזמון' וסימולציה משלו. הדוחות נאספים בהדרגה (כמה עשרות בכל ריצה), כך שהרשימה הראשונה תופיע אחרי כמה ריצות.",
-    "⚡ 'Top10' נקרא עכשיו 'טווח קצר', מסומן כניסוי, ולכל מניה מוצגים מראש יעד וסטופ.",
-    "⚖️ השוואת אסטרטגיות בסימולציה ← ביצועים: S&P 500 עם ובלי כלל חשיפה, טווח ארוך, Top10 עם ובלי כלל חשיפה, והחזקה שווה של כל היקום שנסרק - כל אחת מתאריך ההתחלה שלה. סימולציות החשיפה מחושבות לפי מצב המדד בסגירה הקודמת, בלי הצצה קדימה.",
-    "צבעים מאוזנים: התצוגה הכהה הובהרה בדרגה, והבהירה הוכהתה בדרגה. תגיות שהיו כהות גם בתצוגה הבהירה מקבלות עכשיו את צבע הרקע של התצוגה.",
-  ]},
   { version: "5.9.0", date: "2026-09-29", items: [
     "תיקון באג בציון: עד עכשיו שלושה מתוך ארבעת רכיבי הציון מדדו עוצמה בלי כיוון (ערך מוחלט), כך שמניה ניטרלית קיבלה כמעט 0 ומניה עם תחזית ירידה חזקה קיבלה ציון גבוה. הציון החדש כיווני: 50 = אין איתות, מעל 50 = איתות עלייה, מתחת ל-50 = איתות ירידה (backend 5.8.0).",
     "שני ציונים נפרדים במקום ציון אחד: ⏱ תזמון (טווח קצר - מומנטום טכני, נספר פעם אחת בלבד במקום שלוש) ו-🏛 איכות (טווח ארוך - רווחיות, צמיחה, מינוף ותזרים מהדוחות, יחד עם דירוג האנליסטים). ציון משוקלל (60/40) נשמר למיון ולתאימות לאחור.",
@@ -1588,7 +1557,6 @@ function predictionCardHtml(p, isFirst, extraBadgeHtml = "") {
           </div>
           ${convictionBarHtml(p.score)}
           ${factorBadgesHtml(p)}
-          ${p.top10 ? exitRulesHtml(p) : ""}
           ${overallScoreBadgeHtml(p)}
           ${(p.top10 && p.overall_score == null) ? topPickBreakdownHtml(p) : ""}
         </div>
@@ -1609,16 +1577,16 @@ function topPickBreakdownHtml(p) {
   const tt = p.trend_template;
   if (tt && tt.criteria_total) {
     const ttColor = tt.passes ? "#5ee6a0" : "#ffb27a";
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:3px 8px; font-size:10.5px;">Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:3px 8px; font-size:10.5px;">Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
   }
   if (p.rs_rating != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:3px 8px; font-size:10.5px;">RS: ${p.rs_rating.toFixed(0)}</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:3px 8px; font-size:10.5px;">RS: ${p.rs_rating.toFixed(0)}</span>`);
   }
   if (p.analyst_score != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #ffd76a44; color:#ffd76a; border-radius:8px; padding:3px 8px; font-size:10.5px;">אנליסטים: ${p.analyst_score.toFixed(0)}</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid #ffd76a44; color:#ffd76a; border-radius:8px; padding:3px 8px; font-size:10.5px;">אנליסטים: ${p.analyst_score.toFixed(0)}</span>`);
   }
   if (p.vcp && p.vcp.vcp_detected) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:3px 8px; font-size:10.5px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:3px 8px; font-size:10.5px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP</span>`);
   }
   const earn = p.earnings;
   let earningsLine = "";
@@ -1690,7 +1658,7 @@ function renderCryptoExposedSection() {
     section.classList.add("hidden");
     return;
   }
-  const badge = `<span style="background:var(--panel-hi); border:1px solid #f7931a66; color:#f7931a; border-radius:8px; padding:2px 7px; font-size:10px; margin-right:5px;">₿ חשוף-קריפטו</span>`;
+  const badge = `<span style="background:#1c2230; border:1px solid #f7931a66; color:#f7931a; border-radius:8px; padding:2px 7px; font-size:10px; margin-right:5px;">₿ חשוף-קריפטו</span>`;
   list.innerHTML = items.map(p => predictionCardHtml(p, false, badge)).join("");
   attachStarEvents(list);
   section.classList.remove("hidden");
@@ -2064,16 +2032,16 @@ function scoreBreakdownCardHtml(data) {
   const tags = [];
   if (tt && tt.criteria_total) {
     const ttColor = tt.passes ? "#5ee6a0" : "#ffb27a";
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:4px 9px; font-size:11px;">מגמת Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:4px 9px; font-size:11px;">מגמת Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
   }
   if (data.rs_rating != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:4px 9px; font-size:11px;">RS Rating: ${Number(data.rs_rating).toFixed(0)}/100</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:4px 9px; font-size:11px;">RS Rating: ${Number(data.rs_rating).toFixed(0)}/100</span>`);
   }
   if (vcp && vcp.vcp_detected) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:4px 9px; font-size:11px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP אפשרי</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:4px 9px; font-size:11px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP אפשרי</span>`);
   }
   if (data.short_pct != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #ffffff33; color:var(--text-faint); border-radius:8px; padding:4px 9px; font-size:11px;">מכירה בחסר: ${Number(data.short_pct).toFixed(1)}%</span>`);
+    tags.push(`<span style="background:#1c2230; border:1px solid #ffffff33; color:var(--text-faint); border-radius:8px; padding:4px 9px; font-size:11px;">מכירה בחסר: ${Number(data.short_pct).toFixed(1)}%</span>`);
   }
   const tagsRow = tags.length ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;">${tags.join("")}</div>` : "";
 
@@ -2370,7 +2338,7 @@ function overallScoreBadgeHtml(p) {
     ? `⏱ ${Number(p.timing_score).toFixed(0)}${p.long_term_score != null ? ` · 🏛 ${Number(p.long_term_score).toFixed(0)}` : ""}`
     : `🎯 ${Number(p.overall_score).toFixed(1)}`;
   return `
-    <button class="score-badge-btn" data-idx="${idx}" style="background:var(--panel-hi); border:1px solid ${color}66; color:${color}; border-radius:10px; padding:6px 14px; font-size:15px; font-weight:800; margin-top:8px; cursor:pointer;">
+    <button class="score-badge-btn" data-idx="${idx}" style="background:#1c2230; border:1px solid ${color}66; color:${color}; border-radius:10px; padding:6px 14px; font-size:15px; font-weight:800; margin-top:8px; cursor:pointer;">
       ${label}
     </button>
     <div style="margin-top:5px;">${verdictTagHtml(effectiveVerdict(p), 12)}</div>`;
@@ -2574,147 +2542,6 @@ function renderBuySellQueue(data) {
   document.getElementById("queueCountSell").textContent = sellItems.length;
 }
 
-// ---------- v6.0.0: three-layer view (exposure · long term · short term) ----------
-function fmtDateIL(d) {
-  if (!d) return "—";
-  const [y, m, dd] = d.split("-");
-  return `${dd}.${m}.${y.slice(2)}`;
-}
-
-function signedPct(v, digits = 1) {
-  if (v == null) return "—";
-  const n = Number(v);
-  return `${n >= 0 ? "+" : ""}${n.toFixed(digits)}%`;
-}
-
-function exitRulesHtml(p) {
-  // short-term exit rules, fixed on the pick day - same thresholds the sell
-  // queue uses (SELL_STOP_BUFFER / SELL_TARGET_PROXIMITY in stock_alerts.py)
-  if (p.support == null && p.resistance == null) return "";
-  const stop = p.support != null ? Number(p.support) * 0.98 : null;
-  const toT = pctFrom(p.price, p.resistance), toS = pctFrom(p.price, stop);
-  return `
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:11.5px;">
-      <span style="border:1px solid #5ee6a055; color:#5ee6a0; border-radius:8px; padding:3px 8px;">🎯 יעד <span class="mono">${fmtPrice(p.resistance)}</span>${toT != null ? ` (${signedPct(toT)})` : ""}</span>
-      <span style="border:1px solid #ff9a8a55; color:#ff9a8a; border-radius:8px; padding:3px 8px;">🛑 סטופ <span class="mono">${fmtPrice(stop)}</span>${toS != null ? ` (${signedPct(toS)})` : ""}</span>
-    </div>`;
-}
-
-function renderExposureCard(data) {
-  const el = document.getElementById("homeExposureCard");
-  if (!el) return;
-  const ex = data.exposure;
-  if (!ex) { el.innerHTML = ""; return; }
-  const full = ex.recommended_exposure_pct >= 100;
-  const col = full ? "var(--up)" : "#ffd76a";
-  const bg = full ? "var(--up-bg)" : "rgba(255,215,106,0.10)";
-  el.innerHTML = `
-    <div class="panel" style="padding:14px 16px; border-radius:14px; margin-bottom:12px; border:1px solid ${full ? "var(--up)" : "#ffd76a"}; background:${bg};">
-      <div style="font-size:12px; color:var(--text-dim);">🧭 חשיפה מומלצת למניות היום</div>
-      <div style="display:flex; align-items:baseline; gap:10px; margin:4px 0;">
-        <span class="mono" style="font-size:38px; font-weight:800; color:${col};">${ex.recommended_exposure_pct}%</span>
-        <span style="font-size:14px; font-weight:700;">${full ? "חשיפה מלאה" : "להקטין סיכון - חצי מזומן"}</span>
-      </div>
-      <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">
-        S&amp;P 500 ${full ? "מעל" : "מתחת ל"}ממוצע 200 יום (<span class="mono">${signedPct(ex.pct_vs_sma, 1)}</span>)${ex.last_flip_date ? ` · מאז ${fmtDateIL(ex.last_flip_date)}` : ""}
-      </div>
-      <div style="font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
-        הכלל נבדק על 26 שנה: חתך את הנפילה המקסימלית מ-55% לכ-31%, במחיר של כ-1% תשואה בשנה. הוא לא מנבא את מחר - הוא מגן מנפילות ארוכות.
-      </div>
-    </div>`;
-}
-
-function renderLayersCard(data) {
-  const el = document.getElementById("homeLayersCard");
-  if (!el) return;
-  const rows = ((data.strategy_comparison || {}).rows) || [];
-  const by = Object.fromEntries(rows.map(r => [r.key, r]));
-  const sp = by.sp500;
-  const lt = data.long_term_picks || {};
-  const enterCount = (lt.picks || []).filter(p => p.entry_tag === "enter").length;
-  const topBuy = allTodayPreds.filter(p => p.top10).length;
-
-  function line(icon, title, share, row, note) {
-    const vsSp = row && sp ? row.return_pct - sp.return_pct : null;
-    return `
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border);">
-        <div style="min-width:0;">
-          <div style="font-size:13px; font-weight:700;">${icon} ${title} <span style="font-weight:400; color:var(--text-faint); font-size:11px;">${share}</span></div>
-          <div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${note}</div>
-        </div>
-        <div style="text-align:left; flex-shrink:0;">
-          <div class="mono" style="font-weight:800; color:${row ? (row.return_pct >= 0 ? "var(--up)" : "var(--down)") : "var(--text-faint)"};">${row ? signedPct(row.return_pct, 2) : "—"}</div>
-          ${vsSp != null ? `<div class="mono" style="font-size:10.5px; color:var(--text-faint);">מול S&amp;P: ${signedPct(vsSp, 2)}</div>` : ""}
-        </div>
-      </div>`;
-  }
-  el.innerHTML = `
-    <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px;">
-      <div style="font-size:13px; font-weight:800; margin-bottom:2px;">🧱 שלוש שכבות התיק</div>
-      <div style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">החלוקה היא הצעה בלבד, לא ייעוץ השקעות.</div>
-      ${line("🧭", "ליבה: מדד + כלל חשיפה", "כ-70%", by.core_exposure, `חשיפה היום: ${data.exposure ? data.exposure.recommended_exposure_pct + "%" : "—"}`)}
-      ${line("🏛", "טווח ארוך: מניות איכות", "כ-20%", by.long_term,
-        lt.picks && lt.picks.length ? `${lt.picks.length} מניות · ${enterCount} בתזמון כניסה` : `בונה את הרשימה (${lt.fundamentals_coverage_pct ?? 0}% מהדוחות נאספו)`)}
-      ${line("⚡", "טווח קצר: Top10", "עד 10% · ניסוי", by.top10, `${topBuy} מניות היום · יעד וסטופ לכל אחת`)}
-      <div style="font-size:11px; color:var(--text-faint); margin-top:8px;">התשואות הן מתחילת המעקב של כל שורה - פירוט מלא בסימולציה ← ביצועים.</div>
-    </div>`;
-}
-
-function renderLongTerm(data) {
-  const list = document.getElementById("longTermList");
-  const meta = document.getElementById("longTermMeta");
-  if (!list) return;
-  const lt = data.long_term_picks || {};
-  const picks = lt.picks || [];
-  const sim = data.long_term_sim || {};
-  if (!picks.length) {
-    meta.textContent = "";
-    list.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">הרשימה נבנית: אוספים דוחות של מניות S&amp;P 500 בהדרגה (כמה עשרות בכל ריצה). נאספו עד עכשיו ${lt.fundamentals_coverage_pct ?? 0}% - הרשימה תופיע כשיגיע ל-90%.</div>`;
-    return;
-  }
-  meta.innerHTML = `עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">₪${Math.round(sim.value || 100000).toLocaleString("he-IL")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
-  list.innerHTML = picks.map(p => {
-    const idx = scoreBadgeRegistry.push(p) - 1;
-    const enter = p.entry_tag === "enter";
-    const tag = p.entry_tag
-      ? `<span style="font-size:11px; font-weight:700; color:${enter ? "#5ee6a0" : "#ffd76a"};">${enter ? "✅ אפשר להיכנס עכשיו" : "⏳ להמתין לתזמון"}</span>`
-      : "";
-    return `
-      <button class="score-badge-btn" data-idx="${idx}" style="display:block; width:100%; text-align:right; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:10px 12px; cursor:pointer; color:var(--text);">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="font-weight:800; font-size:14px;">${p.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${p.company_name || ""}</span></span>
-          <span class="mono" style="font-weight:800; color:${scoreToneColor(p.long_term_score)};" title="ציון טווח ארוך">🏛 ${p.long_term_score != null ? Number(p.long_term_score).toFixed(0) : "—"}</span>
-        </div>
-        <div style="font-size:11px; color:var(--text-faint); margin-top:3px;">
-          ${p.sector || ""} · מחיר <span class="mono">${fmtPrice(p.price)}</span>${p.change_since_pick_pct != null ? ` · מאז ${fmtDateIL(p.picked_on)}: <span class="mono" style="color:${p.change_since_pick_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(p.change_since_pick_pct)}</span>` : ""}
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-          ${tag}
-          <span style="font-size:11px; color:var(--text-dim);">איכות <span class="mono">${p.quality_score != null ? Number(p.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${p.analyst_score != null ? Number(p.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${p.timing_score != null ? Number(p.timing_score).toFixed(0) : "—"}</span></span>
-        </div>
-      </button>`;
-  }).join("");
-}
-
-function renderStrategies(data) {
-  const el = document.getElementById("strategiesTable");
-  if (!el) return;
-  const rows = ((data.strategy_comparison || {}).rows) || [];
-  if (!rows.length) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">יחושב בריצה הבאה</div>`; return; }
-  const layerName = { core: "ליבה", long: "טווח ארוך", short: "טווח קצר", benchmark: "benchmark" };
-  el.innerHTML = rows.map(r => `
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
-      <div style="min-width:0;">
-        <div style="font-size:13px; ${r.layer === "benchmark" ? "color:var(--text-dim);" : "font-weight:700;"}">${r.label}</div>
-        <div style="font-size:10.5px; color:var(--text-faint);">${layerName[r.layer] || ""} · מאז ${fmtDateIL(r.start_date)}</div>
-      </div>
-      <div style="text-align:left;">
-        <div class="mono" style="font-weight:800; color:${r.return_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(r.return_pct, 2)}</div>
-        <div class="mono" style="font-size:10.5px; color:var(--text-faint);">₪${Math.round(r.value).toLocaleString("he-IL")}</div>
-      </div>
-    </div>`).join("");
-}
-
 function renderDataFreshnessNote(data) {
   const el = document.getElementById("dataFreshnessNote");
   const parts = [];
@@ -2773,12 +2600,6 @@ async function loadPredictions() {
     renderCryptoExposedSection();
     renderPredictionsList();
     renderBuySellQueue(data);
-    try {
-      renderExposureCard(data);
-      renderLayersCard(data);
-      renderLongTerm(data);
-      renderStrategies(data);
-    } catch (e) { console.error("three-layer render failed", e); }
     section.classList.remove("hidden");
     renderTrackRecord(history, acc);
     renderPortfolioSim(data.portfolio_sim, acc);
@@ -4179,8 +4000,7 @@ if (!legalAlreadyAccepted) showLegalGate(true);
 const TAB_IDS = ["home", "stocks", "simulation"]; // "check" is a special screen, reached via the action circle only - not a top tab
 const SUBTABS = {
   stocks: [
-    { id: "top10", label: "טווח קצר", icon: "⚡" },
-    { id: "longterm", label: "טווח ארוך", icon: "🏛" },
+    { id: "top10", label: "Top10", icon: "🔮" },
     { id: "recommended", label: "מומלצות עכשיו", icon: "🔁" },
     { id: "monthly", label: "תיק חודשי", icon: "📅" },
     { id: "holdings", label: "התיק שלי", icon: "💼" },
