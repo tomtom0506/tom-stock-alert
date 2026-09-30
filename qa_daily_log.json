@@ -70,5 +70,17 @@
     "ta125_pct_change": -0.57,
     "strong_daily_accuracy": 30.0,
     "data_suspect_count": 2
+  },
+  {
+    "date": "2026-09-30",
+    "market_regime_bullish": true,
+    "sp500_pct_change": -0.17,
+    "ta125_pct_change": 0.4,
+    "strong_daily_accuracy": 50.0,
+    "data_suspect_count": 1,
+    "sell_queue_count": 33,
+    "hold_queue_count": 35,
+    "verdict_buy_count": 13,
+    "verdict_avoid_count": 0
   }
 ]
