@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.10.1"
+BACKEND_VERSION = "5.11.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -3685,6 +3685,9 @@ LONG_TERM_PICKS = 10
 LONG_TERM_MAX_PER_SECTOR = 3      # a long-term core list should not be half one sector
 LONG_TERM_REFRESH_DAYS = 30
 LONG_TERM_ENTRY_TIMING = 55        # timing at/above this -> "אפשר להיכנס עכשיו", else "להמתין לתזמון"
+LONG_TERM_ENTRY_MIN_TREND = 4      # v5.11.0: Minervini criteria needed for a plain "enter"; below it a timing signal means "quality in a correction" (dip)
+SHARE_CLASS_DUPLICATES = {"GOOG": "GOOGL", "FOX": "FOXA", "NWS": "NWSA", "BRK-A": "BRK-B"}  # second share class of the same company - never list both
+LONG_TERM_DIP_FIRST_TRANCHE = 1 / 3  # dip entries are staged: this share of the position now
 FUND_CACHE_MAX_AGE_DAYS = 30
 FUND_CACHE_FETCH_PER_RUN = 60      # fundamentals are slow (.info) - spread the S&P 500 fetch over several 15-min runs
 FUND_CACHE_MIN_COVERAGE = 0.9      # refresh the long-term list only once this share of S&P 500 names has fresh fundamentals
@@ -3880,12 +3883,15 @@ def manage_long_term_picks(store, today_entries):
             sim["daily_log"].append({"date": today, "value_end": sim["value"]})
         sim["daily_log"] = sim["daily_log"][-400:]
 
-    due = not lt["picks"] or (lt.get("next_refresh_date") or "") <= today
+    due = (not lt["picks"] or (lt.get("next_refresh_date") or "") <= today
+           # v5.11.0 self-heal: a list built before the share-class filter existed is rebuilt once
+           or any(p["ticker"] in SHARE_CLASS_DUPLICATES for p in lt["picks"]))
     if due and coverage >= FUND_CACHE_MIN_COVERAGE:
         pool = []
         for t, f in cache.items():
             e = by_ticker.get(t)
             if (t not in sp500 or e is None or not e.get("price") or f.get("quality_score") is None
+                    or t in SHARE_CLASS_DUPLICATES
                     or (f.get("market_cap") or 0) < LARGE_CAP_MIN_MARKET_CAP):
                 continue
             analyst = analyst_score_0_100(f.get("recommendation_mean"), f.get("upside_pct"))
@@ -3926,7 +3932,17 @@ def manage_long_term_picks(store, today_entries):
         p["support"], p["resistance"] = _round_price(e.get("support")), _round_price(e.get("resistance"))
         p["trend_template"] = e.get("trend_template")
         p["timing_score"] = compute_timing_score(e)
-        p["entry_tag"] = "enter" if p["timing_score"] >= LONG_TERM_ENTRY_TIMING else "wait"
+        # v5.11.0 (the AVGO case, 30.9.2026): timing alone said "buy" while the
+        # long trend was 1/7. Now: timing + a healthy trend = enter; timing
+        # without the trend = dip (quality company in a correction, staged
+        # entry); no timing = wait. Unknown trend counts as not confirmed.
+        tt_met = (p["trend_template"] or {}).get("criteria_met")
+        if p["timing_score"] < LONG_TERM_ENTRY_TIMING:
+            p["entry_tag"] = "wait"
+        elif tt_met is not None and tt_met >= LONG_TERM_ENTRY_MIN_TREND:
+            p["entry_tag"] = "enter"
+        else:
+            p["entry_tag"] = "dip"
         p["change_since_pick_pct"] = round((e["price"] / p["entry_price"] - 1) * 100, 2) if p.get("entry_price") else None
         p["overall_score"] = p["long_term_score"]
         p["score_components"] = {"timing": p["timing_score"], "quality": p["quality_score"], "analyst": p["analyst_score"]}
@@ -3957,6 +3973,8 @@ def build_strategy_comparison(store):
     add("top10", "⚡ טווח קצר - Top10 (ניסוי)", "short", "portfolio_sim")
     add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
     add("recommendations", "🎯 ההמלצות לטווח קצר (טאב המלצות)", "short", "portfolio_sim_recommendations")
+    add("long_enter", "🏛 ✅ טווח ארוך - כניסה במגמה תקינה", "long", "portfolio_sim_long_enter")
+    add("long_dip", "🏛 🟡 טווח ארוך - קנייה בתיקון", "long", "portfolio_sim_long_dip")
     add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
     # v5.10.1: each row's gap vs S&P 500 is measured over THAT row's own
     # window (the long-term list started 30.9 and was being compared with
@@ -4111,18 +4129,35 @@ def build_recommendations(store):
         scores = [p["long_term_score"] for p in ps if p.get("long_term_score") is not None]
         sector_rows.append({"sector": name, "count": len(ps),
                             "avg_long_term_score": round(sum(scores) / len(scores), 1) if scores else None,
-                            "enter_count": sum(1 for p in ps if p.get("entry_tag") == "enter")})
-    sector_rows.sort(key=lambda r: ((r["enter_count"] > 0), r["avg_long_term_score"] or 0, r["count"]), reverse=True)
+                            "enter_count": sum(1 for p in ps if p.get("entry_tag") == "enter"),
+                            "dip_count": sum(1 for p in ps if p.get("entry_tag") == "dip")})
+    sector_rows.sort(key=lambda r: ((r["enter_count"] + r["dip_count"] > 0), r["avg_long_term_score"] or 0, r["count"]), reverse=True)
     lead = sector_rows[0]["sector"] if sector_rows else None
     enter = sorted([p for p in picks if p.get("entry_tag") == "enter"],
                    key=lambda p: ((p.get("sector") or "לא ידוע") == lead, p.get("long_term_score") or 0), reverse=True)
-    long_recs = [{"ticker": p["ticker"], "company_name": p.get("company_name"), "sector": p.get("sector"),
-                  "price": p.get("price"), "long_term_score": p.get("long_term_score"),
-                  "quality_score": p.get("quality_score"), "analyst_score": p.get("analyst_score"),
-                  "timing_score": p.get("timing_score")} for p in enter[:REC_LONG_MAX]]
+    def _long_row(p):
+        tt = p.get("trend_template") or {}
+        return {"ticker": p["ticker"], "company_name": p.get("company_name"), "sector": p.get("sector"),
+                "price": p.get("price"), "long_term_score": p.get("long_term_score"),
+                "quality_score": p.get("quality_score"), "analyst_score": p.get("analyst_score"),
+                "timing_score": p.get("timing_score"), "trend_met": tt.get("criteria_met"),
+                "trend_total": tt.get("criteria_total"), "entry_tag": p.get("entry_tag")}
+    long_recs = [_long_row(p) for p in enter[:REC_LONG_MAX]]
+    dips = sorted([p for p in picks if p.get("entry_tag") == "dip"],
+                  key=lambda p: ((p.get("sector") or "לא ידוע") == lead, p.get("long_term_score") or 0), reverse=True)
+    dip_recs = [_long_row(p) for p in dips[:REC_LONG_MAX]]
     layer_long = REC_LAYER_SHARE["long"] * exp_pct / 100
+    n_long = max(len(long_recs) + len(dip_recs), 1)
     for r in long_recs:
-        r["weight_pct"] = round(layer_long / max(len(long_recs), 1), 1)
+        r["weight_pct"] = round(layer_long / n_long, 1)
+    for r in dip_recs:
+        r["weight_pct"] = round(layer_long / n_long, 1)
+        r["first_tranche_pct"] = round(r["weight_pct"] * LONG_TERM_DIP_FIRST_TRANCHE, 1)
+    # measured like everything else: flag today's entries so each entry type gets its own graded sim
+    enter_set, dip_set = {r["ticker"] for r in long_recs}, {r["ticker"] for r in dip_recs}
+    for e in todays:
+        e["rec_long_enter"] = e["ticker"] in enter_set
+        e["rec_long_dip"] = e["ticker"] in dip_set
     watch = [{"ticker": p["ticker"], "sector": p.get("sector"), "long_term_score": p.get("long_term_score"),
               "timing_score": p.get("timing_score")} for p in picks if p.get("entry_tag") == "wait"]
 
@@ -4132,6 +4167,9 @@ def build_recommendations(store):
     holdings = [("התיק שלי", h.get("ticker")) for h in my if h.get("ticker")]
     holdings += [("תיק חודשי", h.get("ticker")) for h in (store.get("monthly_portfolio") or {}).get("holdings", [])]
     not_scanned = []
+    rec_note = {r["ticker"]: "מופיעה גם בהמלצות: ✅ לקנות לטווח ארוך" for r in long_recs}
+    rec_note.update({r["ticker"]: "מופיעה גם בהמלצות: 🟡 איכותית בתיקון - המגמה הארוכה שבורה, התזמון הקצר חיובי" for r in dip_recs})
+    rec_note.update({r["ticker"]: "מופיעה גם בהמלצות: ⚡ קנייה לטווח קצר" for r in short})
     for src, t in holdings:
         e = by_ticker.get(t)
         if not e:
@@ -4141,13 +4179,17 @@ def build_recommendations(store):
         if e.get("predicted") == "down" and abs(e.get("score") or 0) >= REC_WARN_FLIP_SCORE:
             why.append("תחזית ירידה משמעותית")
         tt = e.get("trend_template") or {}
-        if tt.get("criteria_total") and tt.get("criteria_met", 7) <= 2:
+        # v5.11.0: not for the monthly portfolio - it buys large caps that fell
+        # from their highs BY DESIGN, so a weak trend there is the strategy,
+        # not a warning (it fired on 6 of 10 holdings on 30.9.2026)
+        if src != "תיק חודשי" and tt.get("criteria_total") and tt.get("criteria_met", 7) <= 2:
             why.append(f"מגמה חלשה ({tt.get('criteria_met')}/{tt.get('criteria_total')})")
         earn = e.get("earnings") or {}
         if earn.get("days_away") is not None and earn["days_away"] <= REC_SHORT_EARNINGS_BLACKOUT_DAYS:
             why.append(f"דוח כספי בעוד {earn['days_away']} ימים")
         if why:
-            warnings.append({"source": src, "ticker": t, "price": _round_price(e.get("price")), "reasons": why})
+            warnings.append({"source": src, "ticker": t, "price": _round_price(e.get("price")), "reasons": why,
+                             "note": rec_note.get(t)})
 
     # --- what's working ---
     rows = (store.get("strategy_comparison") or {}).get("rows") or []
@@ -4175,6 +4217,8 @@ def build_recommendations(store):
         "long_lead_sector": lead,
         "long_sectors": sector_rows,
         "long": long_recs,
+        "long_dip": dip_recs,
+        "long_rules": f"✅ לקנות = תזמון {LONG_TERM_ENTRY_TIMING}+ ומגמת Minervini {LONG_TERM_ENTRY_MIN_TREND}/7 ומעלה · 🟡 בתיקון = תזמון {LONG_TERM_ENTRY_TIMING}+ אבל מגמה חלשה, כניסה בשלבים ({round(LONG_TERM_DIP_FIRST_TRANCHE * 100)}% מהפוזיציה עכשיו) · ⏳ להמתין = תזמון נמוך",
         "long_watch": watch,
         "long_coverage_pct": lt.get("fundamentals_coverage_pct"),
         "warnings": warnings,
@@ -4230,6 +4274,8 @@ def main():
         update_portfolio_simulation(prediction_store, "top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol")
         update_portfolio_simulation(prediction_store, "top10_analyst_momentum", "portfolio_sim_analyst_momentum")
         update_portfolio_simulation(prediction_store, "rec_short", "portfolio_sim_recommendations")
+        update_portfolio_simulation(prediction_store, "rec_long_enter", "portfolio_sim_long_enter")
+        update_portfolio_simulation(prediction_store, "rec_long_dip", "portfolio_sim_long_dip")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 
