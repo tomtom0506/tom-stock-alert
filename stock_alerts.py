@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.10.0"
+BACKEND_VERSION = "5.10.1"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -3958,6 +3958,21 @@ def build_strategy_comparison(store):
     add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
     add("recommendations", "🎯 ההמלצות לטווח קצר (טאב המלצות)", "short", "portfolio_sim_recommendations")
     add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
+    # v5.10.1: each row's gap vs S&P 500 is measured over THAT row's own
+    # window (the long-term list started 30.9 and was being compared with
+    # S&P's return since 21.8)
+    sp = store.get("index_sim_sp500") or {}
+    sp_log = sp.get("daily_log") or []
+    if sp_log and sp.get("value") is not None:
+        for r in rows:
+            base = None
+            for e in sp_log:
+                if r["start_date"] and e["date"] <= r["start_date"]:
+                    base = e["value_end"]
+            if base is None:
+                base = sp.get("start_value", 100000)
+            r["sp500_same_window_pct"] = round((float(sp["value"]) / base - 1) * 100, 2)
+            r["vs_sp500_pct"] = round(r["return_pct"] - r["sp500_same_window_pct"], 2)
     store["strategy_comparison"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows}
 
 
@@ -4142,7 +4157,7 @@ def build_recommendations(store):
         if r["key"] == "sp500" or sp is None:
             continue
         working.append({"label": r["label"], "start_date": r["start_date"], "return_pct": r["return_pct"],
-                        "vs_sp500_pct": round(r["return_pct"] - sp["return_pct"], 2)})
+                        "vs_sp500_pct": r.get("vs_sp500_pct", round(r["return_pct"] - sp["return_pct"], 2))})
     working.sort(key=lambda r: r["vs_sp500_pct"], reverse=True)
 
     rec_sim = store.get("portfolio_sim_recommendations") or {}

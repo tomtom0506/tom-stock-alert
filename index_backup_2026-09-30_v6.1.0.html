@@ -955,16 +955,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.1.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.1.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.1.1", date: "2026-09-30", items: [
-    "כרטיס שלוש השכבות: 'מול S&P' שונה ל'פער מול S&P', כי המספר הוא ההפרש בין השכבה ל-S&P 500 ולא התשואה של S&P. הפער מחושב עכשיו על אותה תקופה בדיוק של כל שורה - קודם שורת הטווח הארוך (שהתחילה ב-30.9) הושוותה לתשואת S&P מאז 21.8 (backend 5.10.1). הפער מוצג גם בהשוואת האסטרטגיות ובטאב ההמלצות.",
-    "תוקן רווח חסר בכרטיס החשיפה ('מעלממוצע').",
-  ]},
   { version: "6.1.0", date: "2026-09-29", items: [
     "טאב חדש '🎯 המלצות': סיכום מעודכן בכל ריצה (כל 15 דקות) וכפתור 'נתח עכשיו'. כולל: חשיפה מומלצת וחלוקה לשכבות, המלצת קנייה לטווח קצר (1-3 מניות מה-Top10 שעוברות את כל התנאים, עם כניסה, יעד, סטופ ומשקל - או 'אין קנייה היום'), המלצה לטווח ארוך (הסקטור המוביל ברשימת האיכות ו-1-3 מניות בתזמון כניסה), אזהרות על מניות בתיקים שלך, ומה עובד עכשיו מול S&P 500. מבוסס כללים קבועים, ללא עלות (backend 5.10.0).",
     "📏 כל המלצה לטווח קצר נמדדת: סימולציה של 'קניתי כל מה שהומלץ', עם רקורד שחושב לאחור מ-4.9 לפי אותם כללים ועל נתוני כל יום בלבד. מוצג בראש ההמלצות וגם בהשוואת האסטרטגיות.",
@@ -2633,7 +2629,7 @@ function renderExposureCard(data) {
         <span style="font-size:14px; font-weight:700;">${full ? "חשיפה מלאה" : "להקטין סיכון - חצי מזומן"}</span>
       </div>
       <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">
-        S&amp;P 500 ${full ? "מעל ממוצע" : "מתחת לממוצע"} 200 יום (<span class="mono">${signedPct(ex.pct_vs_sma, 1)}</span>)${ex.last_flip_date ? ` · מאז ${fmtDateIL(ex.last_flip_date)}` : ""}
+        S&amp;P 500 ${full ? "מעל" : "מתחת ל"}ממוצע 200 יום (<span class="mono">${signedPct(ex.pct_vs_sma, 1)}</span>)${ex.last_flip_date ? ` · מאז ${fmtDateIL(ex.last_flip_date)}` : ""}
       </div>
       <div style="font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
         הכלל נבדק על 26 שנה: חתך את הנפילה המקסימלית מ-55% לכ-31%, במחיר של כ-1% תשואה בשנה. הוא לא מנבא את מחר - הוא מגן מנפילות ארוכות.
@@ -2652,8 +2648,7 @@ function renderLayersCard(data) {
   const topBuy = allTodayPreds.filter(p => p.top10).length;
 
   function line(icon, title, share, row, note) {
-    // gap vs S&P over the row's OWN window (backend 5.10.1+); older data falls back to the plain difference
-    const vsSp = row && row.vs_sp500_pct != null ? row.vs_sp500_pct : (row && sp ? row.return_pct - sp.return_pct : null);
+    const vsSp = row && sp ? row.return_pct - sp.return_pct : null;
     return `
       <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border);">
         <div style="min-width:0;">
@@ -2662,7 +2657,7 @@ function renderLayersCard(data) {
         </div>
         <div style="text-align:left; flex-shrink:0;">
           <div class="mono" style="font-weight:800; color:${row ? (row.return_pct >= 0 ? "var(--up)" : "var(--down)") : "var(--text-faint)"};">${row ? signedPct(row.return_pct, 2) : "—"}</div>
-          ${vsSp != null ? `<div class="mono" style="font-size:10.5px; color:var(--text-faint);">פער מול S&amp;P: ${signedPct(vsSp, 2)}</div>` : ""}
+          ${vsSp != null ? `<div class="mono" style="font-size:10.5px; color:var(--text-faint);">מול S&amp;P: ${signedPct(vsSp, 2)}</div>` : ""}
         </div>
       </div>`;
   }
@@ -2674,7 +2669,7 @@ function renderLayersCard(data) {
       ${line("🏛", "טווח ארוך: מניות איכות", "כ-20%", by.long_term,
         lt.picks && lt.picks.length ? `${lt.picks.length} מניות · ${enterCount} בתזמון כניסה` : `בונה את הרשימה (${lt.fundamentals_coverage_pct ?? 0}% מהדוחות נאספו)`)}
       ${line("⚡", "טווח קצר: Top10", "עד 10% · ניסוי", by.top10, `${topBuy} מניות היום · יעד וסטופ לכל אחת`)}
-      <div style="font-size:11px; color:var(--text-faint); margin-top:8px;">התשואה היא מתחילת המעקב של כל שורה, והפער הוא מול S&amp;P 500 באותה תקופה בדיוק - פירוט מלא בסימולציה ← ביצועים.</div>
+      <div style="font-size:11px; color:var(--text-faint); margin-top:8px;">התשואות הן מתחילת המעקב של כל שורה - פירוט מלא בסימולציה ← ביצועים.</div>
     </div>`;
 }
 
@@ -2728,7 +2723,7 @@ function renderStrategies(data) {
       </div>
       <div style="text-align:left;">
         <div class="mono" style="font-weight:800; color:${r.return_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(r.return_pct, 2)}</div>
-        <div class="mono" style="font-size:10.5px; color:var(--text-faint);">₪${Math.round(r.value).toLocaleString("he-IL")}${r.key !== "sp500" && r.vs_sp500_pct != null ? ` · פער ${signedPct(r.vs_sp500_pct, 2)}` : ""}</div>
+        <div class="mono" style="font-size:10.5px; color:var(--text-faint);">₪${Math.round(r.value).toLocaleString("he-IL")}</div>
       </div>
     </div>`).join("");
 }
