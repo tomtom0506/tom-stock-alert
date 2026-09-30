@@ -299,6 +299,9 @@ REDUNDANT_CORR = 0.85           # two score components this correlated are effec
 MIN_CORR_SAMPLES = 10
 PRICE_MAX_DECIMALS = 2
 STALE_SIM_DAYS = 5              # a parallel portfolio sim not advanced for this many days is stuck
+# v5.12.0: sims driven by recommendation flags only advance on days that
+# actually had a recommendation of that kind - quiet stretches are normal
+SPARSE_SIMS = {"portfolio_sim_recommendations", "portfolio_sim_long_enter", "portfolio_sim_long_dip"}
 
 # metrics recorded daily (see record_daily_log) whose outputs should NOT be
 # empty for DEAD_FEATURE_DAYS straight trading days in normal operation
@@ -424,7 +427,7 @@ def check_stale_sims(store, today_str, issues):
     today = date.fromisoformat(today_str)
     stale = []
     for key, val in store.items():
-        if not key.startswith("portfolio_sim") or not isinstance(val, dict):
+        if not key.startswith("portfolio_sim") or not isinstance(val, dict) or key in SPARSE_SIMS:
             continue
         last = val.get("last_processed_date")
         if not last:

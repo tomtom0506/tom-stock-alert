@@ -390,54 +390,6 @@
     padding: 7px 14px; border-radius: 999px; cursor: pointer; white-space: nowrap;
   }
   .sub-tab-btn.active { color: var(--bg); background: var(--gold); border-color: var(--gold); }
-  /* ---------- v6.3.0: 📒 portfolios tab ---------- */
-  :root { --gold: #d9b867; --gold-dim: rgba(217,184,103,0.14); }
-  body.light-theme { --gold: #9c7a28; --gold-dim: rgba(156,122,40,0.12); }
-  .pf-hero {
-    position: relative; overflow: hidden; border-radius: 18px; padding: 18px 18px 14px; margin-bottom: 14px;
-    background: linear-gradient(155deg, var(--panel-hi) 0%, var(--panel) 55%);
-    border: 1px solid var(--border); box-shadow: 0 10px 28px rgba(0,0,0,0.18);
-  }
-  .pf-hero::before {
-    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
-    background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  }
-  .pf-hero.live::before { background: linear-gradient(90deg, transparent, var(--up), transparent); }
-  .pf-eyebrow { font-size: 10.5px; letter-spacing: 0.08em; color: var(--gold); font-weight: 700; text-transform: uppercase; }
-  .pf-name { font-size: 17px; font-weight: 800; margin-top: 2px; }
-  .pf-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.5; }
-  .pf-value { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin-top: 12px; line-height: 1.1; }
-  .pf-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  .pf-chip { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); }
-  .pf-chip.up { color: var(--up); background: var(--up-bg); border-color: transparent; }
-  .pf-chip.down { color: var(--down); background: var(--down-bg); border-color: transparent; }
-  .pf-chip.muted { color: var(--text-dim); }
-  .pf-spark { display: block; width: 100%; height: 64px; margin: 12px 0 4px; }
-  .pf-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
-  .pf-kpi { background: var(--bg-glow); border: 1px solid var(--border); border-radius: 10px; padding: 7px 4px; text-align: center; }
-  .pf-kpi-l { font-size: 9.5px; color: var(--text-faint); }
-  .pf-kpi-v { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; margin-top: 2px; }
-  .pf-alloc { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin: 12px 0 4px; background: var(--bg-glow); }
-  .pf-alloc span { display: block; height: 100%; }
-  .pf-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-dim); }
-  .pf-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-left: 4px; vertical-align: middle; }
-  .pf-section-h { font-size: 11px; font-weight: 700; color: var(--text-dim); letter-spacing: 0.04em; margin: 14px 0 6px; display: flex; justify-content: space-between; }
-  .pf-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--border); }
-  .pf-row:first-of-type { border-top: none; }
-  .pf-tk { font-weight: 800; font-size: 14px; }
-  .pf-tag { font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-right: 6px; vertical-align: middle; }
-  .pf-tag.short { color: #ffd76a; background: rgba(255,215,106,0.12); }
-  .pf-tag.long { color: var(--gold); background: var(--gold-dim); }
-  .pf-meta { font-size: 11px; color: var(--text-faint); grid-column: 1 / -1; }
-  .pf-pnl { text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 700; font-size: 13px; }
-  .pf-pnl small { display: block; font-size: 10.5px; font-weight: 500; color: var(--text-faint); }
-  .pf-trades summary { cursor: pointer; font-size: 12px; color: var(--text-dim); padding: 8px 0 2px; }
-  .pf-trade { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: center; font-size: 11.5px; padding: 7px 0; border-top: 1px solid var(--border); }
-  .pf-side { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; }
-  .pf-side.buy { color: var(--up); background: var(--up-bg); }
-  .pf-side.sell { color: var(--down); background: var(--down-bg); }
-  .pf-empty { font-size: 12px; color: var(--text-faint); padding: 8px 0; }
-  .pf-foot { font-size: 10.5px; color: var(--text-faint); line-height: 1.6; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -469,7 +421,6 @@
     <button class="top-tab-btn" data-tab-target="stocks" id="tabBtn-stocks"><span class="top-tab-icon">📈</span><span id="tabLabel-stocks">מניות</span><span class="top-tab-badge hidden" id="tabBadge-stocks"></span></button>
     <button class="top-tab-btn" data-tab-target="simulation" id="tabBtn-simulation"><span class="top-tab-icon">🧮</span><span id="tabLabel-simulation">סימולציה</span></button>
     <button class="top-tab-btn" data-tab-target="recs" id="tabBtn-recs"><span class="top-tab-icon">🎯</span><span id="tabLabel-recs">המלצות</span></button>
-    <button class="top-tab-btn" data-tab-target="portfolios" id="tabBtn-portfolios"><span class="top-tab-icon">📒</span><span id="tabLabel-portfolios">תיקים</span></button>
   </nav>
   <nav class="sub-tab-bar hidden" id="subTabBar"></nav>
 
@@ -509,13 +460,13 @@
         <p>תגית בראש העמוד שמראה אם השוק הרחב (S&amp;P 500) נמצא במגמת עלייה (שורי) או ירידה (דובי). <b>לחיצה עליה</b> פותחת הסבר מפורט - כולל הנתונים המדויקים שעליהם מבוססת הקביעה. מתחתיה 4 ריבועים עם שערים עדכניים (S&amp;P 500, מדד ת"א 125, דולר/שקל, ביטקוין), מתעדכנים כל 15 דקות, בירוק לעלייה ואדום לירידה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">4 האריחים הכחולים</p>
-        <p><b>אחוז הצלחת חיזוי</b> (לחיצה עליו פותחת הסבר מדויק) - מציג את הדיוק של יום המסחר האחרון שכבר ניתן היה לבדוק (יומי, לא ממוצע מצטבר!) בקרב תחזיות Top 10; אם עדיין אין Top 10 שנבדק, מוצג הדיוק על כל השוק. הממוצע המצטבר לאורך זמן מוצג בנפרד בריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-$100,000 למטה.<br>
+        <p><b>אחוז הצלחת חיזוי</b> (לחיצה עליו פותחת הסבר מדויק) - מציג את הדיוק של יום המסחר האחרון שכבר ניתן היה לבדוק (יומי, לא ממוצע מצטבר!) בקרב תחזיות Top 10; אם עדיין אין Top 10 שנבדק, מוצג הדיוק על כל השוק. הממוצע המצטבר לאורך זמן מוצג בנפרד בריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-₪100,000 למטה.<br>
         <b>תחזיות חזקות היום</b> - כמה מניות נכנסו לרשימה המצומצמת של היום (עד 25).<br>
         <b>מניות במעקב</b> - כמה מניות יש לך ברשימה הידנית "המניות שלי".<br>
         <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 Top10 ומומלצות עכשיו</p>
-        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. מתחת לכותרת מוצגת גם שורת "נתונים עודכנו לאחרונה" - שני זמנים נפרדים: מתי Top10 הרשמי חושב בפועל (לא רק מתי הריצה האחרונה של המערכת הסתיימה - יש הבדל, כי המנוע היומי לא רץ שוב אם כבר יש תחזית ליום הנוכחי), ומתי "10 המומלצות עכשיו" חושבו לאחרונה. ככה תמיד אפשר לדעת אם מה שרואים טרי או קודם לעדכון קוד אחרון. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. שני כפתורים נפרדים קובעים מה מוצג: <b>"הצג Top 10 (למעקב והוכחה)"</b> - 10 המניות הרשמיות שנבחרו היום, קפואות מרגע הבחירה - אלה שנגדן נמדדת ההצלחה בפועל (אחוז הצלחה, סימולציית $100,000, השוואה למדדים) - ו<b>"🔮 10 המומלצות עכשיו (מתעדכן חופשי)"</b> - אותה נוסחה בדיוק, מחושבת מחדש על נתונים עדכניים לרגע הבקשה (לא בהכרח אותן מניות כמו ה-Top10 הרשמי, כי המחירים שנכנסים לחישוב שונים) - לא נשמר להיסטוריה ולא נבדק, אפשר לרענן מתי שרוצים בלי לפגוע במדידה הרשמית. הכפתור הפעיל מסומן בירוק. "10 המומלצות עכשיו" מתעדכנות גם אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן לרענן ידנית עם <b>"🔁 רענן המלצות עכשיו"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי, ואם היום סוף שבוע או חג בארה"ב (בלי מסחר), הריצה יוצאת מיד בלי לעדכן כלום - במקרה כזה תופיע הודעה "אין מסחר היום", לא הודעת שגיאה.</p>
+        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. מתחת לכותרת מוצגת גם שורת "נתונים עודכנו לאחרונה" - שני זמנים נפרדים: מתי Top10 הרשמי חושב בפועל (לא רק מתי הריצה האחרונה של המערכת הסתיימה - יש הבדל, כי המנוע היומי לא רץ שוב אם כבר יש תחזית ליום הנוכחי), ומתי "10 המומלצות עכשיו" חושבו לאחרונה. ככה תמיד אפשר לדעת אם מה שרואים טרי או קודם לעדכון קוד אחרון. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. שני כפתורים נפרדים קובעים מה מוצג: <b>"הצג Top 10 (למעקב והוכחה)"</b> - 10 המניות הרשמיות שנבחרו היום, קפואות מרגע הבחירה - אלה שנגדן נמדדת ההצלחה בפועל (אחוז הצלחה, סימולציית ₪100,000, השוואה למדדים) - ו<b>"🔮 10 המומלצות עכשיו (מתעדכן חופשי)"</b> - אותה נוסחה בדיוק, מחושבת מחדש על נתונים עדכניים לרגע הבקשה (לא בהכרח אותן מניות כמו ה-Top10 הרשמי, כי המחירים שנכנסים לחישוב שונים) - לא נשמר להיסטוריה ולא נבדק, אפשר לרענן מתי שרוצים בלי לפגוע במדידה הרשמית. הכפתור הפעיל מסומן בירוק. "10 המומלצות עכשיו" מתעדכנות גם אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן לרענן ידנית עם <b>"🔁 רענן המלצות עכשיו"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי, ואם היום סוף שבוע או חג בארה"ב (בלי מסחר), הריצה יוצאת מיד בלי לעדכן כלום - במקרה כזה תופיע הודעה "אין מסחר היום", לא הודעת שגיאה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">✏ נהל אחזקות</p>
         <p>המקום היחיד להוספת מניה חדשה לאפליקציה - גם ל"התיק שלי" וגם ל"המניות שלי". הזנת טיקר, שם, וכמות יחידות (חובה) יוצרת גם אחזקה בתיק וגם רשומת מעקב עם ניתוח טכני מלא. אפשר לערוך את מחירי היעד (תמיכה/התנגדות להתראה) בנפרד לכל מניה בסקשן "המניות שלי" עצמו, עם כפתור ✏ ערוך.</p>
@@ -535,13 +486,13 @@
         <p>בכרטיסים של המניות המצומצמות (עד 25) והמניות המסומנות בכוכב, אפשר <b>ללחוץ על התגית</b> בפס התמיכה/התנגדות (מסומנת ב-📈) כדי לפתוח גרף שמראה את ~140 ימי המסחר האחרונים, עם נקודות אדומות (שיאים מקומיים) וירוקות (שפלים מקומיים) שעליהן מבוסס חישוב התמיכה/ההתנגדות, וקו זהוב מקווקו שמחבר ביניהן לפי סדר כרונולוגי - בדיוק כמו שמסמנים ידנית על גרף. מניות אחרות (שאינן בין ה-25 או מסומנות) אין להן עדיין נתוני גרף, כדי לא להכביד על גודל הקובץ.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📅 תיק חודשי</p>
-        <p>אלטרנטיבה לסימולציית ה-$100,000 היומית, עם <b>קריטריון בחירה שונה לגמרי</b> מ-Top 10 (לא אותו מנוע מומנטום קצר-טווח - זה בכוונה, כי מניה "חמה עכשיו" היא לרוב פחות יציבה, לא יותר, בשביל החזקה של 30 יום): רק מניות מ-S&P 500 <b>וגם</b> עם שווי שוק של לפחות 50 מיליארד $ (שני התנאים ביחד - לא מספיק אחד מהם), שנמצאות <b>גם</b> לפחות 15% מתחת לשיא ה-52 שבועות שלהן <b>וגם</b> עד 25% מעל השפל של 52 השבועות - כלומר מניות גדולות ויציבות שנסחרות כרגע בזול יחסית לטווח שלהן, ועדיין עם תחזית חיובית. הרף הזה מחמיר מאוד, ולא כל חודש יימצאו 10 מניות שעומדות בו במלואו - אם פחות מ-10 עומדות, המערכת משלימה עם המניות הגדולות (שווי השוק לא מתפשר לעולם) הכי קרובות לעמידה בשני תנאי המחיר. מניה שנכנסה כך מסומנת ב-<span style="color:var(--text-faint);">(גיבוי)</span> עדין ליד השם - כדי שתדע להבחין, בלי שזה יבלוט. עד 10 הנבחרות נכנסות למחזור ומוחזקות כדי לא "לאבד" רווח על עמלות קנייה/מכירה תכופות. אם מניה שנמצאת בתיק נשברת טכנית באמצע החודש (ירידה חדה, שבירת תמיכה, או שהאיתות מתהפך לשלילי) - תישלח לך התראה דחופה ונפרדת בטלגרם עם המלצה לשקול מכירה, במקום לחכות בשקט לרענון הבא. למעלה מוצגת גם תשואה מצטברת אחת למחזור כולו - ממוצע פשוט (לא משוקלל) בין כל ההחזקות, כי אין כאן כמויות/משקלים כמו ב"התיק שלי" - רק תמונת מצב אחת שנבחרה בתחילת המחזור והוחזקה מאז.</p>
+        <p>אלטרנטיבה לסימולציית ה-100,000 ₪ היומית, עם <b>קריטריון בחירה שונה לגמרי</b> מ-Top 10 (לא אותו מנוע מומנטום קצר-טווח - זה בכוונה, כי מניה "חמה עכשיו" היא לרוב פחות יציבה, לא יותר, בשביל החזקה של 30 יום): רק מניות מ-S&P 500 <b>וגם</b> עם שווי שוק של לפחות 50 מיליארד $ (שני התנאים ביחד - לא מספיק אחד מהם), שנמצאות <b>גם</b> לפחות 15% מתחת לשיא ה-52 שבועות שלהן <b>וגם</b> עד 25% מעל השפל של 52 השבועות - כלומר מניות גדולות ויציבות שנסחרות כרגע בזול יחסית לטווח שלהן, ועדיין עם תחזית חיובית. הרף הזה מחמיר מאוד, ולא כל חודש יימצאו 10 מניות שעומדות בו במלואו - אם פחות מ-10 עומדות, המערכת משלימה עם המניות הגדולות (שווי השוק לא מתפשר לעולם) הכי קרובות לעמידה בשני תנאי המחיר. מניה שנכנסה כך מסומנת ב-<span style="color:var(--text-faint);">(גיבוי)</span> עדין ליד השם - כדי שתדע להבחין, בלי שזה יבלוט. עד 10 הנבחרות נכנסות למחזור ומוחזקות כדי לא "לאבד" רווח על עמלות קנייה/מכירה תכופות. אם מניה שנמצאת בתיק נשברת טכנית באמצע החודש (ירידה חדה, שבירת תמיכה, או שהאיתות מתהפך לשלילי) - תישלח לך התראה דחופה ונפרדת בטלגרם עם המלצה לשקול מכירה, במקום לחכות בשקט לרענון הבא. למעלה מוצגת גם תשואה מצטברת אחת למחזור כולו - ממוצע פשוט (לא משוקלל) בין כל ההחזקות, כי אין כאן כמויות/משקלים כמו ב"התיק שלי" - רק תמונת מצב אחת שנבחרה בתחילת המחזור והוחזקה מאז.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧮 השוואת נוסחאות</p>
         <p>ה-Top 10 האמיתי נבחר היום לפי <b>עירוב מכויל</b> בין שתי שיטות בסיסיות: עוצמת חיזוי טהורה, ויחס סיכוי/סיכון (מניות שבהן הפוטנציאל לרווח עד ההתנגדות גדול משמעותית מהסיכון עד התמיכה) - עם הגבלה של עד 50% מהתיק מאותו סקטור. משקל העירוב (alpha) מתעדכן לבד פעם בחודש בערך, בצעדים קטנים ומוגבלים, ורק כשיש פער מובהק וגדול מספיק בין השיטות - לא בתגובה לתנודה של יום-יומיים. הסקשן מציג את הביצועים של ארבע השיטות זו לצד זו: הנוסחה האמיתית (העירוב), שתי הבסיסיות הטהורות, והניסיונית עם אינדיקטורים מקדימים. תיבת <b>"✨ מאז שינוי הנוסחה"</b> מציגה את הביצועים רק מהיום שהעירוב עלה לראשונה - כדי שהיסטוריה ישנה מהנוסחה הפחות טובה לא תדלל את התמונה הנוכחית.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
-        <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-$100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
+        <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-₪100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">₿ מניות חשופות-קריפטו</p>
         <p>יקום מחקר קבוע - COIN, MSTR, MARA, RIOT, CLSK - מניות רגילות עם חשיפה/קורלציה גבוהה לביטקוין/קריפטו, נבדקות באותה נוסחה בדיוק כמו כל מניה אחרת (לא קריפטו ישיר). הסקשן מוצג רק אם יש להן ניתוח מהיום, עם תג כתום ₿ כדי להבדיל אותן בבירור מ-Top10 הרשמי - הן <b>לא</b> חלק ממנו ולא נכנסות למדידת ההצלחה.</p>
@@ -577,8 +528,8 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔥 ביצועי תחזיות חזקות</p>
         <p>מעקב אחרי דיוק התחזיות החזקות לאורך זמן - כמה הצליחו, כמה פספסו, ואחוז ההצלחה הכולל.</p>
 
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💰 סימולציית תיק $100,000</p>
-        <p>תיק מדומה שמניח השקעה של $100,000 בחלוקה שווה בין כל מניות ה-Top 10 שהומלצו לעלייה, ומתעדכן כל יום לפי הביצוע בפועל. <b>הריבוע "📡 הערכה חיה"</b> מראה את התשואה המשוערת של ה-Top 10 ממש עכשיו, לפי המחיר החי (מתעדכן כל 15 דק', לא רשמי - יכול להתהפך במהלך היום) - זה שונה מהריבועים שמתחתיו ("רשמי, נעול"), שמתעדכנים רק פעם ביום, אחרי שהמערכת בפועל בודקת מול המחיר של יום המסחר הבא. <b>לחיצה על ריבוע הרווח/הפסד היומי (הרשמי)</b> מציגה פירוט של כל מניה וכמה היא עלתה/ירדה. הריבועים הנוספים מציגים את אחוז ההצלחה של אותן 10 מניות, שווי התיק הנוכחי, ואת הרווח המצטבר החודשי והשנתי. זו הערכה בלבד - ללא עמלות, מרווחי קנייה/מכירה או המרות מטבע.<br><br>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💰 סימולציית תיק ₪100,000</p>
+        <p>תיק מדומה שמניח השקעה של ₪100,000 בחלוקה שווה בין כל מניות ה-Top 10 שהומלצו לעלייה, ומתעדכן כל יום לפי הביצוע בפועל. <b>הריבוע "📡 הערכה חיה"</b> מראה את התשואה המשוערת של ה-Top 10 ממש עכשיו, לפי המחיר החי (מתעדכן כל 15 דק', לא רשמי - יכול להתהפך במהלך היום) - זה שונה מהריבועים שמתחתיו ("רשמי, נעול"), שמתעדכנים רק פעם ביום, אחרי שהמערכת בפועל בודקת מול המחיר של יום המסחר הבא. <b>לחיצה על ריבוע הרווח/הפסד היומי (הרשמי)</b> מציגה פירוט של כל מניה וכמה היא עלתה/ירדה. הריבועים הנוספים מציגים את אחוז ההצלחה של אותן 10 מניות, שווי התיק הנוכחי, ואת הרווח המצטבר החודשי והשנתי. זו הערכה בלבד - ללא עמלות, מרווחי קנייה/מכירה או המרות מטבע.<br><br>
         <b>חשוב:</b> ה-"Top 10" כאן הוא תמיד לפי עוצמת האות (קבוע) - לא מושפע מהמיון שבחרת בתפריט "מיון" מעל רשימת התחזיות. אם שינית שם את המיון, הרשימה שרואים שם עשויה להיראות שונה מ-10 המניות שמשמשות לסימולציה ולמדידת הדיוק.</p>
 
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">המניות שלי</p>
@@ -603,12 +554,6 @@
   <div id="homeDashboardTiles" data-tab="home"></div>
   <div id="homeDashboardVerdict" data-tab="home"></div>
 
-  <div id="portfoliosSection" data-tab="portfolios">
-    <div class="section-title">📒 תיקים</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">שני תיקי נייר בדולרים, כאילו עובדים על אמת. הם לא מחוברים לשום חשבון - רק מודדים אם ההמלצות היו עובדות בפועל, כולל עמלות.</div>
-    <div id="portfoliosBody"></div>
-  </div>
-
   <div id="recsSection" data-tab="recs">
     <div class="section-title">🎯 סיכום והמלצות</div>
     <div id="recsBody"></div>
@@ -616,7 +561,7 @@
 
   <div id="strategiesSection" data-tab="simulation" data-subtab="performance">
     <div class="section-title">⚖️ השוואת אסטרטגיות מול benchmark</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">כל אסטרטגיה מתחילה ב-$100,000 בתאריך שמוצג לידה - לא כולן התחילו באותו יום, אז משווים כל שורה לתאריך שלה. ללא עמלות וללא המרות מטבע.</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">כל אסטרטגיה מתחילה ב-₪100,000 בתאריך שמוצג לידה - לא כולן התחילו באותו יום, אז משווים כל שורה לתאריך שלה. ללא עמלות וללא המרות מטבע.</div>
     <div id="strategiesTable"></div>
   </div>
 
@@ -634,9 +579,9 @@
   </div>
 
   <div id="portfolioSimSection" class="hidden" data-tab="simulation" data-subtab="performance">
-    <div class="section-title">💰 סימולציית תיק $100,000</div>
+    <div class="section-title">💰 סימולציית תיק ₪100,000</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      תיק מדומה: משקיע $100,000 בחלוקה שווה בין מניות ה-Top 10 שהומלצו לעלייה בכל יום (לפי עוצמת האות, קבוע - לא מושפע מהמיון שבחרת ברשימה למטה), ומתעדכן יום אחרי יום לפי הביצוע בפועל. הערכה בלבד - ללא עמלות/מרווחים, וללא המרות מטבע.
+      תיק מדומה: משקיע ₪100,000 בחלוקה שווה בין מניות ה-Top 10 שהומלצו לעלייה בכל יום (לפי עוצמת האות, קבוע - לא מושפע מהמיון שבחרת ברשימה למטה), ומתעדכן יום אחרי יום לפי הביצוע בפועל. הערכה בלבד - ללא עמלות/מרווחים, וללא המרות מטבע.
     </div>
     <div class="indices-row" style="grid-template-columns: 1fr; margin-bottom:8px;">
       <div class="index-tile" id="liveEstimateTile" style="cursor:pointer;">
@@ -681,7 +626,7 @@
       📊 Top 10 מול התיק שלי ומול המדדים <span id="benchmarkComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      זו המטרה המרכזית שהמערכת נמדדת מולה כרגע: האם Top 10 באמת מנצח את התיק שלי ואת המדדים הגדולים. לכל אחד - תשואה (מתחילת המעקב, ומאז שינוי הנוסחה), שווי $100,000 מדומה (Buy&Hold למדדים), ומדדי סיכון.
+      זו המטרה המרכזית שהמערכת נמדדת מולה כרגע: האם Top 10 באמת מנצח את התיק שלי ואת המדדים הגדולים. לכל אחד - תשואה (מתחילת המעקב, ומאז שינוי הנוסחה), שווי ₪100,000 מדומה (Buy&Hold למדדים), ומדדי סיכון.
     </div>
     <div class="predictions-panel hidden" id="benchmarkComparisonPanel"><div id="benchmarkComparisonList"></div></div>
   </div>
@@ -1010,18 +955,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.3.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.2.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.3.0", date: "2026-09-30", items: [
-    "📒 טאב חדש 'תיקים' עם שני תיקי נייר בדולרים. התיק החי ($100,000): 3 המניות הכי מומלצות מתוך כל ה-✅ בטאב ההמלצות, מניות שלמות, עמלה 0.1% (מינימום $5) + החלקה 0.05%, יציאה בסטופ או ביעד, והחלפה חכמה - רק אחרי 3 ימים מחוץ להמלצות, 5 ימי החזקה, ומועמדת טובה ב-10 נקודות. מכבד את כלל החשיפה. יומן עסקאות מלא, אחוז עסקאות רווחיות, רווח/הפסד ממוצע וסה\"כ עמלות. לצידו התיק החודשי, עם שווי כולל רווח פתוח לפי המחירים החיים (backend 5.12.0).",
-    "📏 הרקורד בטאב ההמלצות נמדד עכשיו לפי עסקאות: כל המלצה לטווח קצר נסגרת ביעד, בסטופ או אחרי 20 ימי מסחר - בדיוק מה שהכרטיס ממליץ. מוצגים מספר עסקאות, אחוז הצלחה, רווח והפסד ממוצעים ואיך נסגרו.",
-    "כל הסימולציות מוצגות בדולרים ($100,000). בפועל הן תמיד חושבו כך (מניות ארה\"ב, בלי המרת מטבע) - הסימן ₪ היה שגוי. 'התיק שלי' נשאר בשקלים, כי הוא מחושב לפי השער האמיתי.",
-    "תוקן: מחירי מניות ת\"א (Yahoo מחזיר אותם באגורות) הוצגו כ-70010 במקום ₪700.10 בכרטיסי ההמלצות, ברשימות, ביעד ובסטופ ובגרף. עכשיו מניות ת\"א מוצגות ב-₪ ומניות ארה\"ב ב-$.",
-  ]},
   { version: "6.2.0", date: "2026-09-30", items: [
     "תוקנה סתירה בטאב ההמלצות (מקרה AVGO): מניה הופיעה גם כ'✅ לקנות' לטווח ארוך וגם באזהרת 'מגמה חלשה'. תג הכניסה לטווח ארוך בדק רק את התזמון הקצר. עכשיו יש שלושה תגים: ✅ לקנות (תזמון חיובי ומגמת Minervini 4/7 ומעלה), 🟡 בתיקון (תזמון חיובי אבל מגמה ארוכה שבורה - כניסה בשלבים, שליש עכשיו) ו-⏳ להמתין (backend 5.11.0).",
     "אזהרת 'מגמה חלשה' לא מוצגת יותר על מניות התיק החודשי: התיק קונה מניות שירדו מהשיא בכוונה, אז האזהרה הופיעה כמעט על כולן ולא אמרה כלום. ב'התיק שלי' היא נשארת. מניה שמופיעה גם בהמלצות וגם באזהרות מקבלת הסבר משותף.",
@@ -1933,7 +1872,6 @@ document.getElementById("contextActionBtn").addEventListener("click", () => {
   else if (activeTab === "stocks") switchTab("check");
   else if (activeTab === "simulation") document.getElementById("refreshBtn").click();
   else if (activeTab === "recs") triggerFullRecompute("floatingRecomputeStatus");
-  else if (activeTab === "portfolios") triggerFullRecompute("floatingRecomputeStatus");
 });
 document.getElementById("forecastRecomputeBtn").addEventListener("click", async () => {
   const statusEl = document.getElementById("tomorrowForecastStatus");
@@ -2025,16 +1963,6 @@ function renderCheckStockHistory() {
 }
 
 // ---------- v5.9.0: shared score helpers ----------
-// v6.3.0: Yahoo quotes TASE (.TA) stocks in agorot - show them as shekels
-// with ₪, everything else as dollars with $
-function isTase(t) { return /\.TA$/i.test(t || ""); }
-function fmtTickerPrice(t, v) {
-  if (v == null || v === "") return "—";
-  const n = Number(v);
-  if (!Number.isFinite(n)) return String(v);
-  return isTase(t) ? `₪${(n / 100).toFixed(2)}` : `$${n.toFixed(2)}`;
-}
-
 function fmtPrice(v) {
   if (v == null || v === "") return "—";
   const n = Number(v);
@@ -2208,9 +2136,9 @@ function scoreBreakdownCardHtml(data) {
       ${scoresHtml}
       <div style="text-align:center; margin-bottom:10px;">${verdictTagHtml(verdict)}</div>
       <div style="font-size:12px; color:var(--text-faint); display:flex; justify-content:space-between; margin-bottom:6px;">
-        <span>מחיר: <span class="mono">${fmtTickerPrice(data.ticker, data.price)}</span></span>
-        <span>תמיכה: <span class="mono">${fmtTickerPrice(data.ticker, data.support)}</span></span>
-        <span>התנגדות: <span class="mono">${fmtTickerPrice(data.ticker, data.resistance)}</span></span>
+        <span>מחיר: <span class="mono">${fmtPrice(data.price)}</span></span>
+        <span>תמיכה: <span class="mono">${fmtPrice(data.support)}</span></span>
+        <span>התנגדות: <span class="mono">${fmtPrice(data.resistance)}</span></span>
       </div>
       ${data.chart ? stockChartShellHtml() : ""}
       ${tagsRow}
@@ -2287,7 +2215,6 @@ function initStockChart(root, chart, data) {
   const readDate = root.querySelector(".sc-read-date");
   const readPrice = root.querySelector(".sc-read-price");
   const readChange = root.querySelector(".sc-read-change");
-  const chartTicker = (data && data.ticker) || "";
   const daily = (chart && chart.daily) || [];
   const state = { range: daily.length ? "1Y" : "1D", series: [], sel: null };
 
@@ -2323,7 +2250,7 @@ function initStockChart(root, chart, data) {
     const p = s[i], first = s[0].value;
     const chg = first ? (p.value - first) / first * 100 : 0;
     readDate.textContent = p.label;
-    readPrice.textContent = fmtTickerPrice(chartTicker, p.value);
+    readPrice.textContent = fmtPrice(p.value);
     readChange.textContent = `${chg >= 0 ? "+" : ""}${chg.toFixed(2)}%`;
     readChange.style.color = chg >= 0 ? cssVar("--up", "#58bd93") : cssVar("--down", "#e07668");
   }
@@ -2358,7 +2285,7 @@ function initStockChart(root, chart, data) {
       const v = g.min + (g.max - g.min) * (k / 3);
       const yy = g.y(v);
       ctx.beginPath(); ctx.moveTo(g.pad.l, yy); ctx.lineTo(g.w - g.pad.r, yy); ctx.stroke();
-      ctx.fillText(fmtTickerPrice(chartTicker, v).replace(/^[$₪]/, ""), g.w - g.pad.r + 4, yy + 3);
+      ctx.fillText(fmtPrice(v), g.w - g.pad.r + 4, yy + 3);
     }
 
     // support / resistance, only when they fall inside the visible range
@@ -2597,8 +2524,8 @@ function buyReasonText(p) {
   if (tt && tt.criteria_total) parts.push(`Minervini ${tt.criteria_met}/${tt.criteria_total}`);
   if (p.rs_rating != null) parts.push(`RS ${Number(p.rs_rating).toFixed(0)}`);
   const toTarget = pctFrom(p.price, p.resistance), toStop = pctFrom(p.price, p.support);
-  if (toTarget != null) parts.push(`יעד ${fmtTickerPrice(p.ticker, p.resistance)} (+${toTarget.toFixed(1)}%)`);
-  if (toStop != null) parts.push(`תמיכה ${fmtTickerPrice(p.ticker, p.support)} (${toStop.toFixed(1)}%)`);
+  if (toTarget != null) parts.push(`יעד ${fmtPrice(p.resistance)} (+${toTarget.toFixed(1)}%)`);
+  if (toStop != null) parts.push(`תמיכה ${fmtPrice(p.support)} (${toStop.toFixed(1)}%)`);
   return parts.join(" · ");
 }
 
@@ -2638,7 +2565,7 @@ function queueRowHtml(p, scheme) {
         <span class="mono" style="font-weight:800; color:${scoreToneColor(shown)};" title="ציון תזמון">⏱ ${scoreText}</span>
       </div>
       <div style="font-size:11px; color:var(--text-faint); margin-top:2px;">
-        מחיר <span class="mono">${fmtTickerPrice(p.ticker, p.price)}</span>${dir ? ` · ${dir}` : ""}${sinceHtml}
+        מחיר <span class="mono">${fmtPrice(p.price)}</span>${dir ? ` · ${dir}` : ""}${sinceHtml}
       </div>
       ${reasonHtml}
     </button>`;
@@ -2691,8 +2618,8 @@ function exitRulesHtml(p) {
   const toT = pctFrom(p.price, p.resistance), toS = pctFrom(p.price, stop);
   return `
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:11.5px;">
-      <span style="border:1px solid #5ee6a055; color:#5ee6a0; border-radius:8px; padding:3px 8px;">🎯 יעד <span class="mono">${fmtTickerPrice(p.ticker, p.resistance)}</span>${toT != null ? ` (${signedPct(toT)})` : ""}</span>
-      <span style="border:1px solid #ff9a8a55; color:#ff9a8a; border-radius:8px; padding:3px 8px;">🛑 סטופ <span class="mono">${fmtTickerPrice(p.ticker, stop)}</span>${toS != null ? ` (${signedPct(toS)})` : ""}</span>
+      <span style="border:1px solid #5ee6a055; color:#5ee6a0; border-radius:8px; padding:3px 8px;">🎯 יעד <span class="mono">${fmtPrice(p.resistance)}</span>${toT != null ? ` (${signedPct(toT)})` : ""}</span>
+      <span style="border:1px solid #ff9a8a55; color:#ff9a8a; border-radius:8px; padding:3px 8px;">🛑 סטופ <span class="mono">${fmtPrice(stop)}</span>${toS != null ? ` (${signedPct(toS)})` : ""}</span>
     </div>`;
 }
 
@@ -2769,7 +2696,7 @@ function renderLongTerm(data) {
     list.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">הרשימה נבנית: אוספים דוחות של מניות S&amp;P 500 בהדרגה (כמה עשרות בכל ריצה). נאספו עד עכשיו ${lt.fundamentals_coverage_pct ?? 0}% - הרשימה תופיע כשיגיע ל-90%.</div>`;
     return;
   }
-  meta.innerHTML = `עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">$${Math.round(sim.value || 100000).toLocaleString("en-US")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
+  meta.innerHTML = `עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">₪${Math.round(sim.value || 100000).toLocaleString("he-IL")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
   list.innerHTML = picks.map(p => {
     const idx = scoreBadgeRegistry.push(p) - 1;
     const TAGS = {
@@ -2786,7 +2713,7 @@ function renderLongTerm(data) {
           <span class="mono" style="font-weight:800; color:${scoreToneColor(p.long_term_score)};" title="ציון טווח ארוך">🏛 ${p.long_term_score != null ? Number(p.long_term_score).toFixed(0) : "—"}</span>
         </div>
         <div style="font-size:11px; color:var(--text-faint); margin-top:3px;">
-          ${p.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(p.ticker, p.price)}</span>${p.change_since_pick_pct != null ? ` · מאז ${fmtDateIL(p.picked_on)}: <span class="mono" style="color:${p.change_since_pick_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(p.change_since_pick_pct)}</span>` : ""}
+          ${p.sector || ""} · מחיר <span class="mono">${fmtPrice(p.price)}</span>${p.change_since_pick_pct != null ? ` · מאז ${fmtDateIL(p.picked_on)}: <span class="mono" style="color:${p.change_since_pick_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(p.change_since_pick_pct)}</span>` : ""}
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
           ${tag}
@@ -2810,7 +2737,7 @@ function renderStrategies(data) {
       </div>
       <div style="text-align:left;">
         <div class="mono" style="font-weight:800; color:${r.return_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(r.return_pct, 2)}</div>
-        <div class="mono" style="font-size:10.5px; color:var(--text-faint);">$${Math.round(r.value).toLocaleString("en-US")}${r.key !== "sp500" && r.vs_sp500_pct != null ? ` · פער ${signedPct(r.vs_sp500_pct, 2)}` : ""}</div>
+        <div class="mono" style="font-size:10.5px; color:var(--text-faint);">₪${Math.round(r.value).toLocaleString("he-IL")}${r.key !== "sp500" && r.vs_sp500_pct != null ? ` · פער ${signedPct(r.vs_sp500_pct, 2)}` : ""}</div>
       </div>
     </div>`).join("");
 }
@@ -2888,19 +2815,7 @@ function renderRecommendations(data) {
   // 2. short term
   const recSim = data.portfolio_sim_recommendations || {};
   const recRet = recSim.value != null ? (recSim.value / 100000 - 1) * 100 : null;
-  const tr = data.rec_trade_record;
-  const recTrack = tr && tr.n
-    ? `<div style="background:${(tr.avg_trade_pct ?? 0) >= 0 ? "var(--up-bg)" : "var(--down-bg)"}; border-radius:10px; padding:9px 11px; margin-bottom:10px; font-size:12px; line-height:1.6;">
-        📏 <b>הרקורד של הכללים, לפי עסקאות:</b> כל המלצה = עסקה שנסגרת ביעד, בסטופ או אחרי ${tr.max_days} ימי מסחר.
-        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:7px; text-align:center;">
-          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">עסקאות</div><div class="mono" style="font-weight:800;">${tr.closed}<span style="font-weight:400; color:var(--text-faint);">+${tr.open}</span></div></div>
-          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">הצלחה</div><div class="mono" style="font-weight:800;">${tr.win_rate_pct != null ? tr.win_rate_pct + "%" : "—"}</div></div>
-          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">רווח ממוצע</div><div class="mono" style="font-weight:800; color:var(--up);">${tr.avg_win_pct != null ? signedPct(tr.avg_win_pct, 1) : "—"}</div></div>
-          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">הפסד ממוצע</div><div class="mono" style="font-weight:800; color:var(--down);">${tr.avg_loss_pct != null ? signedPct(tr.avg_loss_pct, 1) : "—"}</div></div>
-        </div>
-        <div style="font-size:10.5px; color:var(--text-faint); margin-top:6px;">ממוצע לעסקה סגורה: <span class="mono">${tr.avg_trade_pct != null ? signedPct(tr.avg_trade_pct, 2) : "—"}</span> · ${tr.by_reason ? `יעד ${tr.by_reason.target} · סטופ ${tr.by_reason.stop} · זמן ${tr.by_reason.time}${tr.by_reason.no_data ? ` · ללא נתון ${tr.by_reason.no_data}` : ""}` : ""} · "+" = עסקאות שעדיין פתוחות${r.rec_backfilled_from ? ` · מ-${fmtDateIL(r.rec_backfilled_from)} חושב לאחור לפי אותם כללים, על נתוני כל יום בלבד` : ""}</div>
-       </div>`
-    : recRet != null
+  const recTrack = recRet != null
     ? `<div style="background:${recRet >= 0 ? "var(--up-bg)" : "var(--down-bg)"}; border-radius:10px; padding:8px 10px; margin-bottom:10px; font-size:12px; line-height:1.6;">
         📏 <b>הרקורד של הכללים האלה:</b> מי שקנה כל המלצה לטווח קצר מאז ${fmtDateIL(r.rec_backfilled_from)} - <span class="mono" style="font-weight:800; color:${recRet >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(recRet, 2)}</span>. ${recRet < 0 ? "עד שהרקורד יתהפך - רק על נייר." : ""}
         ${r.rec_backfilled_from ? `<div style="font-size:10.5px; color:var(--text-faint);">הימים שלפני ${fmtDateIL(r.date)} חושבו לאחור לפי אותם כללים, על נתוני כל יום בלבד.</div>` : ""}
@@ -2915,9 +2830,9 @@ function renderRecommendations(data) {
           <span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}% מהתיק</span>
         </div>
         <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; font-size:12px; text-align:center;">
-          <div>כניסה<br><span class="mono" style="font-weight:700;">${fmtTickerPrice(x.ticker, x.price)}</span></div>
-          <div style="color:#5ee6a0;">🎯 יעד<br><span class="mono" style="font-weight:700;">${fmtTickerPrice(x.ticker, x.target)}</span> <span class="mono">(${signedPct(x.upside_pct)})</span></div>
-          <div style="color:#ff9a8a;">🛑 סטופ<br><span class="mono" style="font-weight:700;">${fmtTickerPrice(x.ticker, x.stop)}</span> <span class="mono">(${signedPct(x.downside_pct)})</span></div>
+          <div>כניסה<br><span class="mono" style="font-weight:700;">${fmtPrice(x.price)}</span></div>
+          <div style="color:#5ee6a0;">🎯 יעד<br><span class="mono" style="font-weight:700;">${fmtPrice(x.target)}</span> <span class="mono">(${signedPct(x.upside_pct)})</span></div>
+          <div style="color:#ff9a8a;">🛑 סטופ<br><span class="mono" style="font-weight:700;">${fmtPrice(x.stop)}</span> <span class="mono">(${signedPct(x.downside_pct)})</span></div>
         </div>
         <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">
           תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span> · רווח/סיכון <span class="mono">${x.reward_risk}</span>${x.sector ? ` · ${x.sector}` : ""}${x.trend_template ? ` · Minervini ${x.trend_template.criteria_met}/${x.trend_template.criteria_total}` : ""}
@@ -2942,7 +2857,7 @@ function renderRecommendations(data) {
     longBody = `
       <div style="font-size:13px; line-height:1.7; margin-bottom:8px;">📌 <b>הסקטור המוביל: ${r.long_lead_sector}</b> - ${lead.count} מניות ברשימת האיכות, ציון ממוצע <span class="mono">${lead.avg_long_term_score}</span>, ${lead.enter_count} בתזמון כניסה.</div>
       ${(() => {
-        const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}`;
+        const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtPrice(x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}`;
         const enterHtml = (r.long || []).map(x => `
           <div style="border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px;">
             <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">✅ לקנות ${x.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
@@ -2965,7 +2880,7 @@ function renderRecommendations(data) {
   // 4. holdings warnings
   const w = r.warnings || [];
   parts.push(recCard("⚠️ מה לבדוק בתיקים שלך", w.length
-    ? w.map(x => `<div style="font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--border);"><b>${x.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">(${x.source} · <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span>)</span><br><span style="color:#ff9a8a;">${x.reasons.join(" · ")}</span>${x.note ? `<br><span style="font-size:11px; color:var(--text-dim);">↔️ ${x.note}</span>` : ""}</div>`).join("")
+    ? w.map(x => `<div style="font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--border);"><b>${x.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">(${x.source} · <span class="mono">${fmtPrice(x.price)}</span>)</span><br><span style="color:#ff9a8a;">${x.reasons.join(" · ")}</span>${x.note ? `<br><span style="font-size:11px; color:var(--text-dim);">↔️ ${x.note}</span>` : ""}</div>`).join("")
       + small("זו לא המלצת מכירה אוטומטית - סימן לבדוק את המניה ב'בדוק מניה' ולהחליט.")
     : `<div style="font-size:12px; color:var(--text-dim);">✅ אין כרגע איתותי אזהרה על המניות בתיקים שלך.</div>`
     + ((r.not_scanned || []).length ? small(`לא נבדקו (מחוץ לטווח הסריקה): ${r.not_scanned.join(", ")}`) : "")));
@@ -2980,139 +2895,6 @@ function renderRecommendations(data) {
       </div>`).join("") + small("תקופות קצרות הן בעיקר רעש. משמעות אמיתית מתחילה אחרי כמה חודשים.")));
   }
   el.innerHTML = parts.join("");
-}
-
-// ---------- v6.3.0: 📒 portfolios tab ----------
-const fmtUsd = (v, digits = 0) => v == null ? "—" : `$${Number(v).toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })}`;
-const fmtUsdSigned = v => v == null ? "—" : `${v >= 0 ? "+" : "−"}$${Math.abs(Number(v)).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
-const pnlCls = v => v == null ? "muted" : (v >= 0 ? "up" : "down");
-
-function sparkSvg(values, color) {
-  if (!values || values.length < 2) {
-    return `<div class="pf-empty" style="text-align:center; padding:18px 0;">הגרף יתמלא ככל שיצטברו ימי מסחר</div>`;
-  }
-  const w = 320, h = 64, min = Math.min(...values), max = Math.max(...values), span = (max - min) || 1;
-  const pts = values.map((v, i) => [i / (values.length - 1) * w, h - 4 - (v - min) / span * (h - 8)]);
-  const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
-  const id = "sg" + Math.random().toString(36).slice(2, 8);
-  return `<svg class="pf-spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
-    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
-    <path d="${line} L${w},${h} L0,${h} Z" fill="url(#${id})"/>
-    <path d="${line}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/>
-  </svg>`;
-}
-
-function spGapFor(data, key) {
-  const row = (((data.strategy_comparison || {}).rows) || []).find(r => r.key === key);
-  return row && row.vs_sp500_pct != null ? row.vs_sp500_pct : null;
-}
-
-function renderLivePortfolioCard(data) {
-  const lp = data.live_portfolio;
-  if (!lp) {
-    return `<div class="pf-hero live"><div class="pf-eyebrow">תיק חי · נייר</div><div class="pf-name">📒 התיק החי</div>
-      <div class="pf-empty">התיק ייפתח אחרי הריצה היומית הבאה, כשיהיו המלצות להיום.</div></div>`;
-  }
-  const st = lp.stats || {};
-  const ret = lp.total_return_pct;
-  const up = ret == null || ret >= 0;
-  const gap = spGapFor(data, "live");
-  const cssUp = getComputedStyle(document.body).getPropertyValue("--up").trim() || "#58bd93";
-  const cssDown = getComputedStyle(document.body).getPropertyValue("--down").trim() || "#e07668";
-  const holdings = lp.holdings || [];
-  const invested = holdings.reduce((a, h) => a + h.shares * h.last_price_usd, 0);
-  const palette = ["var(--gold)", "#7aa2ff", "#5ee6a0", "#d79bff", "#ffb27a"];
-  const allocBar = lp.value ? holdings.map((h, i) => `<span style="width:${(h.shares * h.last_price_usd / lp.value * 100).toFixed(2)}%; background:${palette[i % palette.length]};"></span>`).join("")
-    + `<span style="width:${(lp.cash / lp.value * 100).toFixed(2)}%; background:var(--border);"></span>` : "";
-  const legend = holdings.map((h, i) => `<span><i style="background:${palette[i % palette.length]};"></i>${h.ticker} ${lp.value ? (h.shares * h.last_price_usd / lp.value * 100).toFixed(0) : 0}%</span>`).join("")
-    + `<span><i style="background:var(--border);"></i>מזומן ${lp.value ? (lp.cash / lp.value * 100).toFixed(0) : 0}%</span>`;
-
-  const rows = holdings.length ? holdings.map(h => {
-    const cost = h.shares * h.entry_price_usd + (h.entry_fee_usd || 0);
-    const val = h.shares * h.last_price_usd;
-    const pnl = val - cost, pct = cost ? pnl / cost * 100 : 0;
-    const stopTxt = h.stop ? ` · סטופ ${fmtTickerPrice(h.ticker, h.stop)}` : "";
-    const tgtTxt = h.target ? ` · יעד ${fmtTickerPrice(h.ticker, h.target)}` : "";
-    return `<div class="pf-row">
-      <div><span class="pf-tk">${h.ticker}</span><span class="pf-tag ${h.source}">${h.source === "short" ? "⚡ קצר" : "🏛 ארוך"}</span></div>
-      <div class="pf-pnl" style="color:${pnl >= 0 ? "var(--up)" : "var(--down)"};">${fmtUsdSigned(pnl)}<small>${signedPct(pct, 2)}</small></div>
-      <div class="pf-meta">${h.shares} × ${fmtUsd(h.last_price_usd, 2)} = <b style="color:var(--text-dim);">${fmtUsd(val)}</b> · נקנתה ${fmtDateIL(h.entry_date)} ב-${fmtUsd(h.entry_price_usd, 2)}${stopTxt}${tgtTxt}${h.out_days ? ` · <span style="color:#ffd76a;">מחוץ להמלצות ${h.out_days} ימים</span>` : ""}</div>
-    </div>`;
-  }).join("") : `<div class="pf-empty">אין כרגע החזקות - התיק במזומן עד שיהיו המלצות מתאימות.</div>`;
-
-  const trades = (lp.trades || []).slice().reverse();
-  const tradeRows = trades.length ? trades.slice(0, 40).map(t => `
-    <div class="pf-trade">
-      <span class="pf-side ${t.side}">${t.side === "buy" ? "קנייה" : "מכירה"}</span>
-      <div><b>${t.ticker}</b> · ${t.shares} × ${fmtUsd(t.price_usd, 2)} <span style="color:var(--text-faint);">· ${fmtDateIL(t.date)} · עמלה ${fmtUsd(t.fee_usd, 2)}</span><br><span style="color:var(--text-dim);">${t.reason || ""}</span></div>
-      <div class="pf-pnl" style="font-size:12px; color:${t.pnl_usd == null ? "var(--text-faint)" : (t.pnl_usd >= 0 ? "var(--up)" : "var(--down)")};">${t.pnl_usd != null ? fmtUsdSigned(t.pnl_usd) + `<small>${signedPct(t.pnl_pct, 1)}</small>` : ""}</div>
-    </div>`).join("") : `<div class="pf-empty">עוד אין עסקאות.</div>`;
-
-  const set = lp.settings || {};
-  return `<div class="pf-hero live">
-    <div class="pf-eyebrow">תיק חי · נייר · כולל עמלות</div>
-    <div class="pf-name">📒 התיק החי</div>
-    <div class="pf-sub">3 המניות הכי מומלצות, מאז ${fmtDateIL(lp.start_date)} · החלפה חכמה · מכבד את כלל החשיפה</div>
-    <div class="pf-value">${fmtUsd(lp.value)}</div>
-    <div class="pf-chips">
-      <span class="pf-chip ${pnlCls(ret)}">${signedPct(ret, 2)} מההתחלה</span>
-      ${gap != null ? `<span class="pf-chip ${pnlCls(gap)}">פער מול S&amp;P ${signedPct(gap, 2)}</span>` : ""}
-      <span class="pf-chip muted">${fmtUsdSigned(lp.value - lp.start_value)}</span>
-    </div>
-    ${sparkSvg((lp.daily_log || []).map(r => r.value), up ? cssUp : cssDown)}
-    <div class="pf-kpis">
-      <div class="pf-kpi"><div class="pf-kpi-l">מושקע</div><div class="pf-kpi-v">${st.invested_pct ?? 0}%</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">מזומן</div><div class="pf-kpi-v">${fmtUsd(lp.cash)}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">עסקאות</div><div class="pf-kpi-v">${st.trades ?? 0}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">עמלות</div><div class="pf-kpi-v">${fmtUsd(st.fees_usd, 0)}</div></div>
-    </div>
-    <div class="pf-kpis" style="grid-template-columns:repeat(3,1fr);">
-      <div class="pf-kpi"><div class="pf-kpi-l">עסקאות רווחיות</div><div class="pf-kpi-v">${st.win_rate_pct != null ? st.win_rate_pct + "%" : "—"}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">רווח ממוצע</div><div class="pf-kpi-v" style="color:var(--up);">${st.avg_win_pct != null ? signedPct(st.avg_win_pct, 1) : "—"}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">הפסד ממוצע</div><div class="pf-kpi-v" style="color:var(--down);">${st.avg_loss_pct != null ? signedPct(st.avg_loss_pct, 1) : "—"}</div></div>
-    </div>
-    <div class="pf-alloc">${allocBar}</div>
-    <div class="pf-legend">${legend}</div>
-    <div class="pf-section-h"><span>החזקות</span><span class="mono">${fmtUsd(invested)}</span></div>
-    ${rows}
-    <details class="pf-trades"><summary>📜 יומן עסקאות (${trades.length})</summary>${tradeRows}</details>
-    <div class="pf-foot">כללים: 3 פוזיציות שוות מתוך כל ה-✅ בטאב ההמלצות (ציון משוקלל). יציאה מיידית בסטופ או ביעד. מניה שיצאה מההמלצות מוחלפת רק אחרי 3 ימים בחוץ, 5 ימי החזקה לפחות, ומועמדת טובה ממנה ב-10 נקודות. עמלה ${set.commission_pct ?? 0.1}% (מינימום $${set.min_fee_usd ?? 5}) + החלקה ${set.slippage_pct ?? 0.05}%. מניות שלמות בלבד. מניות ת"א מומרות לפי שער הדולר החי.</div>
-  </div>`;
-}
-
-function renderMonthlyPortfolioCard(data) {
-  const m = (data.portfolios_view || {}).monthly;
-  if (!m) return "";
-  const gap = spGapFor(data, "monthly");
-  const rows = (m.holdings || []).length ? m.holdings.map(h => `
-    <div class="pf-row">
-      <div><span class="pf-tk">${h.ticker}</span>${h.warned ? `<span class="pf-tag short">⚠️ אזהרה</span>` : ""}</div>
-      <div class="pf-pnl" style="color:${h.return_pct == null ? "var(--text-faint)" : (h.return_pct >= 0 ? "var(--up)" : "var(--down)")};">${h.return_pct != null ? signedPct(h.return_pct, 2) : "—"}<small>היום ${h.day_pct != null ? signedPct(h.day_pct, 2) : "—"}</small></div>
-      <div class="pf-meta">נקנתה ${fmtDateIL(h.entry_date)} ב-${fmtTickerPrice(h.ticker, h.entry_native)} · עכשיו ${fmtTickerPrice(h.ticker, h.price_native)}</div>
-    </div>`).join("") : `<div class="pf-empty">אין החזקות במחזור הנוכחי.</div>`;
-  const closed = (m.closed_trades || []).slice().reverse();
-  return `<div class="pf-hero">
-    <div class="pf-eyebrow">תיק חודשי · אסטרטגיה קיימת</div>
-    <div class="pf-name">📅 התיק החודשי</div>
-    <div class="pf-sub">10 מניות ענק שירדו מהשיא, החלפה כל 30 יום · מחזור נוכחי מ-${fmtDateIL(m.cycle_start)}, הבא ${fmtDateIL(m.next_refresh_date)}</div>
-    <div class="pf-value">${fmtUsd(m.marked_value)}</div>
-    <div class="pf-chips">
-      <span class="pf-chip ${pnlCls(m.return_pct)}">${signedPct(m.return_pct, 2)} מההתחלה</span>
-      <span class="pf-chip muted">ממומש ${fmtUsd(m.realized_value)}</span>
-    </div>
-    <div class="pf-section-h"><span>החזקות (${(m.holdings || []).length})</span><span>מאז הכניסה</span></div>
-    ${rows}
-    <details class="pf-trades"><summary>📜 מניות שנמכרו (${closed.length})</summary>
-      ${closed.length ? closed.map(t => `<div class="pf-trade"><span class="pf-side sell">מכירה</span><div><b>${t.ticker}</b> <span style="color:var(--text-faint);">· ${fmtDateIL(t.exit_date)} · ${t.exit_reason === "warned" ? "איתות אזהרה" : (t.exit_reason || "")}</span></div><div class="pf-pnl" style="font-size:12px; color:${t.return_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(t.return_pct, 2)}</div></div>`).join("") : `<div class="pf-empty">עוד אין.</div>`}
-    </details>
-    <div class="pf-foot">השווי כולל רווח/הפסד פתוח של ההחזקות לפי המחירים החיים. ללא עמלות (כמו בסימולציות הקיימות).</div>
-  </div>`;
-}
-
-function renderPortfolios(data) {
-  const el = document.getElementById("portfoliosBody");
-  if (!el) return;
-  el.innerHTML = renderLivePortfolioCard(data) + renderMonthlyPortfolioCard(data);
 }
 
 function renderDataFreshnessNote(data) {
@@ -3179,7 +2961,6 @@ async function loadPredictions() {
       renderLongTerm(data);
       renderStrategies(data);
       renderRecommendations(data);
-      renderPortfolios(data);
       renderPortfolioDailyTiles(data);
     } catch (e) { console.error("three-layer render failed", e); }
     section.classList.remove("hidden");
@@ -3359,7 +3140,7 @@ function renderPortfolioSim(sim, acc) {
   document.getElementById("dailyPnlDate").textContent = `${last.date} · ${last.tickers.length} מניות`;
 
   document.getElementById("portfolioValue").textContent =
-    `$${Math.round(sim.value).toLocaleString("en-US")}`;
+    `₪${Math.round(sim.value).toLocaleString("en-US")}`;
   const totalClass = sim.total_return_pct >= 0 ? "up" : "down";
   document.getElementById("portfolioTotalReturn").className = `index-pct mono ${totalClass}`;
   document.getElementById("portfolioTotalReturn").textContent =
@@ -3388,7 +3169,7 @@ function showAccuracyExplanation() {
       <p>הריבוע הזה מציג את הדיוק <b>היומי</b> (לא ממוצע מצטבר!) של <b>Top 10</b> - עשר המניות עם עוצמת החיזוי הגבוהה ביותר, ביום המסחר האחרון שכבר ניתן היה לבדוק (לפי ציון, קבוע - לא תלוי במיון שבחרת ברשימה).</p>
       <p>ביום <b class="mono">${acc.top10_daily_date}</b>: <b class="mono" style="color:var(--up);">${acc.top10_daily_hits}</b> מתוך <b class="mono">${acc.top10_daily_total}</b> תחזיות Top 10 התממשו בכיוון הנכון = <b class="mono" style="color:var(--up);">${acc.top10_accuracy_daily}%</b>.</p>
       <p style="font-size:11.5px; color:var(--text-faint); margin-top:10px;">
-        זה שונה מהריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-$100,000 למטה, שמציג ממוצע מצטבר על כל הימים שנבדקו עד כה (<b class="mono">${acc.top10_accuracy != null ? acc.top10_accuracy + "%" : "—"}</b> על <b class="mono">${acc.top10_total || 0}</b> תחזיות בסה"כ) - שני המספרים תקינים, הם פשוט עונים על שאלות שונות.
+        זה שונה מהריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-₪100,000 למטה, שמציג ממוצע מצטבר על כל הימים שנבדקו עד כה (<b class="mono">${acc.top10_accuracy != null ? acc.top10_accuracy + "%" : "—"}</b> על <b class="mono">${acc.top10_total || 0}</b> תחזיות בסה"כ) - שני המספרים תקינים, הם פשוט עונים על שאלות שונות.
       </p>`;
   } else {
     html += `
@@ -3517,7 +3298,7 @@ function renderBenchmarkComparison(bc) {
 
   const fmtPct = (v) => v == null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
   const pctCls = (v) => v == null ? "" : (v >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-  const fmtIls = (v) => v == null ? "—" : `$${Math.round(v).toLocaleString("en-US")}`;
+  const fmtIls = (v) => v == null ? "—" : `₪${Math.round(v).toLocaleString("he-IL")}`;
 
   const list = document.getElementById("benchmarkComparisonList");
   list.innerHTML = order.filter(k => bc.entries[k]).map(k => {
@@ -3533,7 +3314,7 @@ function renderBenchmarkComparison(bc) {
           <span class="mono ${pctCls(e.return_since_formula_change_pct)}">${fmtPct(e.return_since_formula_change_pct)}</span>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>שווי $100,000 מדומה${k === "top10" ? "" : (k === "my_portfolio" ? "" : " (Buy&Hold)")}</span>
+          <span>שווי ₪100,000 מדומה${k === "top10" ? "" : (k === "my_portfolio" ? "" : " (Buy&Hold)")}</span>
           <span class="mono">${fmtIls(e.value)}</span>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
@@ -3581,7 +3362,7 @@ function renderMonthlyPortfolio(mp, prices) {
     מחזור נוכחי: <b class="mono">${mp.start_date}</b> → רענון הבא: <b class="mono">${mp.next_refresh_date}</b> · ${mp.holdings.length} מניות
     <div style="margin-top:8px; font-size:14px;">
       תשואה מצטברת של המחזור (ממוצע פשוט בין ההחזקות): <b class="mono ${avgCls}">${avgText}</b>
-      ${impliedIls != null ? `<span style="color:var(--text-faint);"> (≈ $${impliedIls.toLocaleString("en-US")} אם הושקעו $100,000 בחלוקה שווה בתחילת המחזור)</span>` : ""}
+      ${impliedIls != null ? `<span style="color:var(--text-faint);"> (≈ ₪${impliedIls.toLocaleString("he-IL")} אם הושקעו ₪100,000 בחלוקה שווה בתחילת המחזור)</span>` : ""}
     </div>`;
 
   const list = document.getElementById("monthlyPortfolioList");
@@ -4217,7 +3998,7 @@ function renderMyPortfolio(snapshot, sim) {
           <span class="mono ${cumReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${cumReturn >= 0 ? "+" : ""}${cumReturn}%</span>
         </div>
         <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>Top 10 (תיק $100,000) ${!iWinCum ? "🏆" : ""}</span>
+          <span>Top 10 (תיק ₪100,000) ${!iWinCum ? "🏆" : ""}</span>
           <span class="mono ${realReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${realReturn >= 0 ? "+" : ""}${realReturn}%</span>
         </div>
         <div style="font-size:10.5px; color:var(--text-faint); margin-top:2px;">מספר ה-Top 10 כאן כולל גם היסטוריה מלפני שינוי הנוסחה (1.9.2026) - המספר הנקי "מאז השינוי" נמצא בסקשן "השוואת נוסחאות".</div>
@@ -4579,7 +4360,7 @@ if (!legalAlreadyAccepted) showLegalGate(true);
    v_test (2026-09-23, rev2) - 3 top tabs + sub-tabs + one contextual
    action circle, per Tomer's feedback on the first pass.
    -------------------------------------------------------------------- */
-const TAB_IDS = ["home", "stocks", "simulation", "recs", "portfolios"]; // "check" is a special screen, reached via the action circle only - not a top tab
+const TAB_IDS = ["home", "stocks", "simulation", "recs"]; // "check" is a special screen, reached via the action circle only - not a top tab
 const SUBTABS = {
   stocks: [
     { id: "top10", label: "טווח קצר", icon: "⚡" },
@@ -4599,7 +4380,6 @@ const CONTEXT_ACTION = {
   stocks: { icon: "🔍", label: "בדוק מניה" },
   simulation: { icon: "⟳", label: "רענון" },
   recs: { icon: "🔄", label: "נתח עכשיו" },
-  portfolios: { icon: "🔄", label: "עדכן תיקים" },
 };
 
 let activeTab = "home";
@@ -4725,7 +4505,7 @@ function renderHomeDashboardTiles() {
     </div>`;
 
   const top10ValueHtml = d.top10Sim && d.top10Sim.value != null
-    ? `$${Math.round(d.top10Sim.value).toLocaleString("en-US")}`
+    ? `₪${Math.round(d.top10Sim.value).toLocaleString("en-US")}`
     : "—";
   const sinceChangeHtml = d.sinceChange && d.sinceChange.portfolio_return_pct != null
     ? `<span class="${d.sinceChange.portfolio_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${d.sinceChange.portfolio_return_pct >= 0 ? "+" : ""}${d.sinceChange.portfolio_return_pct}%</span>`
@@ -4737,7 +4517,7 @@ function renderHomeDashboardTiles() {
 
   container.innerHTML = `
     <div class="indices-row" style="grid-template-columns: repeat(3, 1fr); margin-bottom:14px;">
-      ${tile("שווי תיק Top10 ($100,000)", top10ValueHtml)}
+      ${tile("שווי תיק Top10 (₪100,000)", top10ValueHtml)}
       ${tile("תשואה מאז שינוי הנוסחה", sinceChangeHtml, sinceChangeDateHtml)}
       ${tile("תשואת תיק חודשי (מצטבר)", monthlyHtml)}
     </div>`;

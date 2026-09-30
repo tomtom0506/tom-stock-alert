@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.11.0"
+BACKEND_VERSION = "5.12.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -232,7 +232,7 @@ def run_watchlist_alerts(state, prediction_store=None):
             e["ticker"] for e in prediction_store.get("history", []) if e.get("date") == today_iso and e.get("top10")
         ] + [p["ticker"] for p in ((prediction_store.get("tomorrow_forecast") or {}).get("picks") or [])] + [
             p["ticker"] for p in ((prediction_store.get("long_term_picks") or {}).get("picks") or [])
-        ]
+        ] + [h["ticker"] for h in ((prediction_store.get("live_portfolio") or {}).get("holdings") or [])]
     crypto_exposed_tickers = load_json(CRYPTO_EXPOSED_FILE, [])
     # keeps the dynamic predictions list's price/% line fresh every 15 min,
     # same as the manual watchlist - without re-running the full daily engine
@@ -1760,7 +1760,7 @@ def compound_monthly_portfolio_sim(store, closed_holding):
     if closed_holding.get("return_pct") is None:
         return
     sim = store.setdefault("monthly_portfolio_sim", {
-        "start_value": 100000, "currency": "ILS", "value": 100000.0, "trade_log": [],
+        "start_value": 100000, "currency": "USD", "value": 100000.0, "trade_log": [],
     })
     sim["value"] = sim["value"] * (1 + closed_holding["return_pct"] / 100 * 0.10)
     sim["trade_log"].append({
@@ -2027,7 +2027,7 @@ def update_portfolio_simulation(store, flag_key="top10", sim_key="portfolio_sim"
     under its own key so it never mixes with the real numbers."""
     sim = store.setdefault(sim_key, {
         "start_value": 100000,
-        "currency": "ILS",
+        "currency": "USD",
         "value": 100000.0,
         "last_processed_date": None,
         "daily_log": [],
@@ -3973,9 +3973,14 @@ def build_strategy_comparison(store):
     add("top10", "⚡ טווח קצר - Top10 (ניסוי)", "short", "portfolio_sim")
     add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
     add("recommendations", "🎯 ההמלצות לטווח קצר (טאב המלצות)", "short", "portfolio_sim_recommendations")
+    add("live", "📒 התיק החי (3 מניות, כולל עמלות)", "live", "live_portfolio")
     add("long_enter", "🏛 ✅ טווח ארוך - כניסה במגמה תקינה", "long", "portfolio_sim_long_enter")
     add("long_dip", "🏛 🟡 טווח ארוך - קנייה בתיקון", "long", "portfolio_sim_long_dip")
     add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
+    mv = (store.get("portfolios_view") or {}).get("monthly")
+    if mv and mv.get("start_date"):
+        rows.append({"key": "monthly", "label": "📅 התיק החודשי", "layer": "long", "start_date": mv["start_date"],
+                     "value": mv["marked_value"], "return_pct": mv["return_pct"]})
     # v5.10.1: each row's gap vs S&P 500 is measured over THAT row's own
     # window (the long-term list started 30.9 and was being compared with
     # S&P's return since 21.8)
@@ -4229,6 +4234,342 @@ def build_recommendations(store):
     }
 
 
+# ===========================================================================
+# v5.12.0 - 📒 "תיקים": a LIVE paper portfolio ($100,000) that follows the
+# recommendations tab like a real investor would - 3 positions, whole
+# shares, commissions and slippage, smart (hysteresis) replacement - plus a
+# trade-based track record for the short-term recommendations. All values
+# in USD; TASE prices (Yahoo quotes them in agorot) are converted with the
+# live USD/ILS rate.
+# ===========================================================================
+LIVE_START_USD = 100000.0
+LIVE_SLOTS = 3
+LIVE_COMMISSION_PCT = 0.1          # per buy and per sell
+LIVE_MIN_FEE_USD = 5.0
+LIVE_SLIPPAGE_PCT = 0.05           # buys fill this much higher, sells this much lower
+LIVE_OUT_DAYS_TO_SELL = 3          # consecutive days out of the recommendations before a holding may be replaced
+LIVE_MIN_HOLD_DAYS = 5             # trading days; stops/targets ignore this
+LIVE_REPLACE_GAP = 10              # a replacement must score at least this much higher than the holding
+LIVE_TRIM_TOLERANCE = 1.10         # trim only when invested > 110% of the exposure target (avoids fee churn)
+LIVE_TOPUP_BELOW = 0.80            # top a position up only when it is under 80% of its slot
+REC_TRADE_MAX_DAYS = 20            # trade-based record: a short-term rec closes at target, stop, or after this many trading days
+
+
+def _usdils_rate():
+    ind = (load_json(CURRENT_PRICES_FILE, {}) or {}).get("indices") or {}
+    r = (ind.get("usdils") or {}).get("price")
+    try:
+        return float(r) if r else None
+    except (TypeError, ValueError):
+        return None
+
+
+def to_usd(ticker, native_price, usdils):
+    """TASE quotes are in agorot -> shekels -> dollars. Everything else is
+    treated as USD (same convention as the rest of the app's sims)."""
+    if native_price is None:
+        return None
+    p = float(native_price)
+    if ticker.endswith(".TA"):
+        if not usdils:
+            return None
+        return p / 100.0 / usdils
+    return p
+
+
+def _combined_score(timing, long_term):
+    if timing is None and long_term is None:
+        return None
+    if long_term is None:
+        return timing
+    if timing is None:
+        return long_term
+    return round(OVERALL_TIMING_WEIGHT * timing + (1 - OVERALL_TIMING_WEIGHT) * long_term, 1)
+
+
+def _live_fee(notional):
+    return round(max(LIVE_MIN_FEE_USD, abs(notional) * LIVE_COMMISSION_PCT / 100), 2)
+
+
+def _live_candidates(store):
+    """All current ✅ recommendations (short-term + long-term 'enter'),
+    ranked by the combined score. Dip entries are staged by definition,
+    so they are not full-size live positions."""
+    rec = store.get("recommendations") or {}
+    cands = {}
+    for r in rec.get("short") or []:
+        cands[r["ticker"]] = {"ticker": r["ticker"], "source": "short", "stop": r.get("stop"), "target": r.get("target"),
+                              "score": _combined_score(r.get("timing_score"), r.get("long_term_score"))}
+    for r in rec.get("long") or []:
+        if r["ticker"] in cands:
+            continue
+        cands[r["ticker"]] = {"ticker": r["ticker"], "source": "long", "stop": None, "target": None,
+                              "score": _combined_score(r.get("timing_score"), r.get("long_term_score"))}
+    return sorted(cands.values(), key=lambda c: c["score"] or 0, reverse=True)
+
+
+def manage_live_portfolio(store, today_entries):
+    today = date.today().isoformat()
+    lp = store.setdefault("live_portfolio", {
+        "start_date": today, "start_value": LIVE_START_USD, "currency": "USD", "cash": LIVE_START_USD,
+        "holdings": [], "trades": [], "daily_log": [], "last_decision_date": None,
+        "settings": {"commission_pct": LIVE_COMMISSION_PCT, "min_fee_usd": LIVE_MIN_FEE_USD,
+                     "slippage_pct": LIVE_SLIPPAGE_PCT, "slots": LIVE_SLOTS},
+    })
+    usdils = _usdils_rate()
+    live = (load_json(CURRENT_PRICES_FILE, {}) or {}).get("prices") or {}
+    by_ticker = {e["ticker"]: e for e in today_entries}
+
+    def native_now(t):
+        v = (live.get(t) or {}).get("price")
+        if v is None:
+            v = (by_ticker.get(t) or {}).get("price")
+        return v
+
+    # 1. mark to market (every run)
+    for h in lp["holdings"]:
+        n = native_now(h["ticker"])
+        u = to_usd(h["ticker"], n, usdils)
+        if u:
+            h["last_price_usd"], h["last_price_native"] = round(u, 4), n
+
+    def total_value():
+        return lp["cash"] + sum(h["shares"] * h["last_price_usd"] for h in lp["holdings"])
+
+    def sell(h, reason, shares=None):
+        shares = h["shares"] if shares is None else shares
+        px = h["last_price_usd"] * (1 - LIVE_SLIPPAGE_PCT / 100)
+        gross = shares * px
+        fee = _live_fee(gross)
+        lp["cash"] += gross - fee
+        cost_basis = shares * h["entry_price_usd"] + h["entry_fee_usd"] * shares / h["entry_shares"]
+        pnl = gross - fee - cost_basis
+        lp["trades"].append({"date": today, "ticker": h["ticker"], "side": "sell", "shares": shares,
+                             "price_usd": round(px, 4), "price_native": h.get("last_price_native"), "fee_usd": fee,
+                             "reason": reason, "pnl_usd": round(pnl, 2),
+                             "pnl_pct": round(pnl / cost_basis * 100, 2) if cost_basis else None,
+                             "held_days": h.get("held_days", 0), "source": h.get("source")})
+        h["shares"] -= shares
+        return shares
+
+    def buy(c, budget):
+        n = native_now(c["ticker"])
+        u = to_usd(c["ticker"], n, usdils)
+        if not u or budget <= 0:
+            return None
+        px = u * (1 + LIVE_SLIPPAGE_PCT / 100)
+        shares = int(budget // px)
+        while shares > 0 and shares * px + _live_fee(shares * px) > min(budget, lp["cash"]):
+            shares -= 1
+        if shares <= 0:
+            return None
+        fee = _live_fee(shares * px)
+        lp["cash"] -= shares * px + fee
+        lp["trades"].append({"date": today, "ticker": c["ticker"], "side": "buy", "shares": shares,
+                             "price_usd": round(px, 4), "price_native": n, "fee_usd": fee,
+                             "reason": c.get("why") or ("המלצה לטווח קצר" if c["source"] == "short" else "המלצה לטווח ארוך"),
+                             "source": c["source"]})
+        return {"ticker": c["ticker"], "shares": shares, "entry_shares": shares, "entry_price_usd": round(px, 4),
+                "entry_price_native": n, "entry_fee_usd": fee, "entry_date": today, "source": c["source"],
+                "stop": c.get("stop"), "target": c.get("target"), "score_at_entry": c.get("score"),
+                "last_price_usd": round(u, 4), "last_price_native": n, "held_days": 0, "out_days": 0}
+
+    # 2. decisions - once a day, only after today's recommendations exist
+    rec = store.get("recommendations") or {}
+    if lp.get("last_decision_date") != today and rec.get("date") == today and today_entries:
+        cands = _live_candidates(store)
+        cand_map = {c["ticker"]: c for c in cands}
+        exp_pct = rec.get("exposure_pct", 100)
+        for h in lp["holdings"]:
+            h["held_days"] = h.get("held_days", 0) + 1
+            h["out_days"] = 0 if h["ticker"] in cand_map else h.get("out_days", 0) + 1
+            e = by_ticker.get(h["ticker"]) or {}
+            b = build_score_breakdown(e, e.get("recommendation_mean"), e.get("upside_pct")) if e else {}
+            h["score_now"] = _combined_score(b.get("timing_score"), b.get("long_term_score")) if b else None
+
+        # 2a. hard exits: stop / target (native prices, same units as the rec card)
+        for h in list(lp["holdings"]):
+            n = h.get("last_price_native")
+            if n is None:
+                continue
+            if h.get("stop") and n <= h["stop"]:
+                sell(h, "🛑 סטופ")
+            elif h.get("target") and n >= h["target"]:
+                sell(h, "🎯 הגיעה ליעד")
+        lp["holdings"] = [h for h in lp["holdings"] if h["shares"] > 0]
+
+        # 2b. smart replacement: out of the recs for N days, held long enough,
+        # AND a clearly better candidate is waiting
+        held = {h["ticker"] for h in lp["holdings"]}
+        waiting = [c for c in cands if c["ticker"] not in held]   # best first
+        nxt = 0  # each waiting candidate can justify at most one replacement
+        for h in sorted(lp["holdings"], key=lambda x: x.get("score_now") or 0):
+            if h["out_days"] < LIVE_OUT_DAYS_TO_SELL or h["held_days"] < LIVE_MIN_HOLD_DAYS or nxt >= len(waiting):
+                continue
+            best = waiting[nxt]
+            if (best["score"] or 0) >= (h.get("score_now") or 0) + LIVE_REPLACE_GAP:
+                sell(h, f"🔄 הוחלפה ב-{best['ticker']} (מחוץ להמלצות {h['out_days']} ימים)")
+                best["why"] = f"מחליפה את {h['ticker']}"
+                nxt += 1
+        lp["holdings"] = [h for h in lp["holdings"] if h["shares"] > 0]
+
+        # 2c. exposure: trim when well above target, never churn small differences
+        value = total_value()
+        target_invested = value * exp_pct / 100
+        invested = value - lp["cash"]
+        if invested > target_invested * LIVE_TRIM_TOLERANCE and lp["holdings"]:
+            ratio = target_invested / invested
+            for h in lp["holdings"]:
+                cut = int(h["shares"] * (1 - ratio))
+                if cut > 0:
+                    sell(h, f"🧭 כלל חשיפה ({exp_pct}%)", cut)
+            lp["holdings"] = [h for h in lp["holdings"] if h["shares"] > 0]
+
+        # 2d. fill empty slots, then top up clearly under-sized positions
+        value = total_value()
+        slot = value * exp_pct / 100 / LIVE_SLOTS
+        held = {h["ticker"] for h in lp["holdings"]}
+        for c in [c for c in waiting if c["ticker"] not in held]:
+            if len(lp["holdings"]) >= LIVE_SLOTS:
+                break
+            invested = sum(h["shares"] * h["last_price_usd"] for h in lp["holdings"])
+            room = value * exp_pct / 100 - invested
+            pos = buy(c, min(slot, room, lp["cash"]))
+            if pos:
+                lp["holdings"].append(pos)
+        for h in lp["holdings"]:
+            cur = h["shares"] * h["last_price_usd"]
+            if cur < slot * LIVE_TOPUP_BELOW and h["ticker"] in cand_map:
+                extra = buy({**cand_map[h["ticker"]], "why": "השלמה לגודל פוזיציה"}, min(slot - cur, lp["cash"]))
+                if extra:
+                    tot = h["shares"] + extra["shares"]
+                    h["entry_price_usd"] = round((h["entry_price_usd"] * h["shares"] + extra["entry_price_usd"] * extra["shares"]) / tot, 4)
+                    h["entry_fee_usd"] += extra["entry_fee_usd"]
+                    h["entry_shares"] = h.get("entry_shares", h["shares"]) + extra["shares"]
+                    h["shares"] = tot
+        lp["last_decision_date"] = today
+
+    # 3. value log + stats (every run)
+    value = round(total_value(), 2)
+    lp["value"] = value
+    lp["total_return_pct"] = round((value / lp["start_value"] - 1) * 100, 2)
+    if lp["daily_log"] and lp["daily_log"][-1]["date"] == today:
+        lp["daily_log"][-1]["value"] = value
+    else:
+        lp["daily_log"].append({"date": today, "value": value})
+    lp["daily_log"] = lp["daily_log"][-500:]
+    lp["trades"] = lp["trades"][-500:]
+    closed = [t for t in lp["trades"] if t["side"] == "sell" and t.get("pnl_usd") is not None]
+    wins = [t for t in closed if t["pnl_usd"] > 0]
+    losses = [t for t in closed if t["pnl_usd"] <= 0]
+    lp["stats"] = {
+        "trades": len(lp["trades"]), "closed": len(closed),
+        "win_rate_pct": round(len(wins) / len(closed) * 100, 1) if closed else None,
+        "avg_win_pct": round(sum(t["pnl_pct"] for t in wins) / len(wins), 2) if wins else None,
+        "avg_loss_pct": round(sum(t["pnl_pct"] for t in losses) / len(losses), 2) if losses else None,
+        "fees_usd": round(sum(t["fee_usd"] for t in lp["trades"]), 2),
+        "realized_pnl_usd": round(sum(t["pnl_usd"] for t in closed), 2),
+        "invested_pct": round((value - lp["cash"]) / value * 100, 1) if value else 0,
+        "usdils": usdils,
+    }
+
+
+def build_rec_trade_record(store):
+    """Trade-based record of the short-term recommendations (rebuilt from
+    history every run): every day a ticker is recommended opens a virtual
+    trade at that day's price (unless the same ticker's trade is still
+    open); it closes at the pick-day target, stop, or after
+    REC_TRADE_MAX_DAYS trading days, judged on later days' prices only.
+    No commissions here - this measures the rules; the live portfolio
+    measures rules + costs."""
+    hist = store.get("history", [])
+    px = {}
+    for e in hist:
+        if e.get("price") is not None:
+            px.setdefault(e["ticker"], {})[e["date"]] = float(e["price"])
+    dates = sorted({e["date"] for e in hist})
+    recs = sorted([e for e in hist if e.get("rec_short")], key=lambda e: e["date"])
+    trades, open_until = [], {}
+    for e in recs:
+        t, d0 = e["ticker"], e["date"]
+        if open_until.get(t, "") >= d0:
+            continue
+        entry = float(e["price"])
+        stop = e["support"] * SELL_STOP_BUFFER if e.get("support") else None
+        target = e.get("resistance")
+        later = [d for d in dates if d > d0 and d in px.get(t, {})]
+        exit_d = exit_px = None
+        reason = "open"
+        for i, d in enumerate(later[:REC_TRADE_MAX_DAYS]):
+            p = px[t][d]
+            if stop and p <= stop:
+                exit_d, exit_px, reason = d, p, "stop"
+                break
+            if target and p >= target:
+                exit_d, exit_px, reason = d, p, "target"
+                break
+            if i == REC_TRADE_MAX_DAYS - 1:
+                exit_d, exit_px, reason = d, p, "time"
+        last_d = exit_d or (later[-1] if later else d0)
+        last_px = exit_px if exit_px is not None else (px[t][later[-1]] if later else entry)
+        open_until[t] = exit_d or "9999"
+        trades.append({"ticker": t, "entry_date": d0, "entry": round(entry, 2), "exit_date": exit_d,
+                       "exit": round(exit_px, 2) if exit_px is not None else None, "reason": reason,
+                       "last_date": last_d, "return_pct": round((last_px / entry - 1) * 100, 2)})
+    # a ticker that left the scanned universe has no more prices - close it
+    # at its last known price instead of leaving it "open" forever
+    latest = dates[-1] if dates else None
+    for x in trades:
+        if x["reason"] == "open" and latest and x["last_date"] < latest and \
+                (date.fromisoformat(latest) - date.fromisoformat(x["last_date"])).days > 7:
+            x["reason"], x["exit_date"] = "no_data", x["last_date"]
+    closed = [x for x in trades if x["reason"] != "open"]
+    wins = [x for x in closed if x["return_pct"] > 0]
+    losses = [x for x in closed if x["return_pct"] <= 0]
+    store["rec_trade_record"] = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "max_days": REC_TRADE_MAX_DAYS,
+        "trades": trades[-200:],
+        "n": len(trades), "closed": len(closed), "open": len(trades) - len(closed),
+        "win_rate_pct": round(len(wins) / len(closed) * 100, 1) if closed else None,
+        "avg_win_pct": round(sum(x["return_pct"] for x in wins) / len(wins), 2) if wins else None,
+        "avg_loss_pct": round(sum(x["return_pct"] for x in losses) / len(losses), 2) if losses else None,
+        "avg_trade_pct": round(sum(x["return_pct"] for x in closed) / len(closed), 2) if closed else None,
+        "by_reason": {r: sum(1 for x in closed if x["reason"] == r) for r in ("target", "stop", "time", "no_data")},
+    }
+
+
+def build_portfolios_view(store):
+    """Monthly portfolio marked to market with live prices, for the 📒 tab
+    (its sim only realizes value when a holding closes)."""
+    mp = store.get("monthly_portfolio") or {}
+    sim = store.get("monthly_portfolio_sim") or {}
+    live = (load_json(CURRENT_PRICES_FILE, {}) or {}).get("prices") or {}
+    usdils = _usdils_rate()
+    rows, rets = [], []
+    for h in mp.get("holdings") or []:
+        n = (live.get(h["ticker"]) or {}).get("price")
+        entry = h.get("entry_price")
+        ret = round((n / entry - 1) * 100, 2) if (n and entry) else None
+        if ret is not None:
+            rets.append(ret)
+        rows.append({"ticker": h["ticker"], "entry_date": h.get("entry_date"), "entry_native": _round_price(entry),
+                     "price_native": _round_price(n), "return_pct": ret, "warned": h.get("warned"),
+                     "day_pct": _round_price((live.get(h["ticker"]) or {}).get("pct_change"))})
+    realized = float(sim.get("value") or 100000)
+    n_slots = max(len(mp.get("holdings") or []), 10)
+    marked = realized * (1 + sum(rets) / 100 / n_slots) if rets else realized
+    store["portfolios_view"] = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "monthly": {"start_date": (mp.get("history") or [{}])[0].get("cycle_start") or mp.get("start_date"),
+                    "cycle_start": mp.get("start_date"), "next_refresh_date": mp.get("next_refresh_date"),
+                    "realized_value": round(realized, 2), "marked_value": round(marked, 2),
+                    "return_pct": round((marked / 100000 - 1) * 100, 2), "holdings": rows,
+                    "closed_trades": (sim.get("trade_log") or [])[-50:]},
+        "usdils": usdils,
+    }
+
+
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
@@ -4332,6 +4673,14 @@ def main():
         build_recommendations(prediction_store)
     except Exception as e:
         print(f"Recommendations failed: {type(e).__name__}: {e}")
+
+    try:
+        build_rec_trade_record(prediction_store)
+        manage_live_portfolio(prediction_store, today_entries_for_mp)
+        build_portfolios_view(prediction_store)
+        build_strategy_comparison(prediction_store)
+    except Exception as e:
+        print(f"Portfolios failed: {type(e).__name__}: {e}")
 
     prediction_store["last_run_status"] = {
         "checked_at": datetime.now(timezone.utc).isoformat(),
