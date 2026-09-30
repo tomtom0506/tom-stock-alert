@@ -35,7 +35,7 @@ current_prices.json, the code files) is still read-only.
 import json
 import py_compile
 import subprocess
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 from stock_alerts import (
     BASE_DIR, CURRENT_PRICES_FILE, PREDICTIONS_FILE,
@@ -169,12 +169,43 @@ def check_syntax(issues):
             issues.append(f"שגיאת syntax ב-{fname}: {e}")
 
 
-def check_stagnation(prices_data, today_str, issues, info):
-    prev = find_previous_snapshot("current_prices.json", today_str)
+STALE_FEED_MAX_HOURS = 30   # on a trading day, a price file older than this means the feed stopped updating
+
+
+def check_stagnation(prices_data, today_str, issues, info, updated_at=None):
+    """Did prices change between the last two sessions?
+
+    v5.10.1 fix (false alarm 30.9.2026): this used to compare the current
+    file against the last commit before TODAY. But QA runs at 04:00 UTC,
+    before any market opens, so the current file IS the last commit from
+    the previous evening - the check was comparing that snapshot to
+    (effectively) itself and flagged 100% "unchanged". Now the reference
+    point is the file's own timestamp: compare against the last commit from
+    before the day the current prices were written, i.e. the previous
+    session. A genuinely stuck feed is caught separately by age
+    (STALE_FEED_MAX_HOURS)."""
+    ref_date = (updated_at or "")[:10] or today_str
+    if updated_at:
+        try:
+            upd = datetime.fromisoformat(updated_at)
+            age_h = (datetime.now(timezone.utc) - upd).total_seconds() / 3600
+            # a whole weekday passed with no update = stuck (weekends are not
+            # counted, so Monday morning after a Friday close is fine; a
+            # market holiday can still trip this - rare, and worth a look anyway)
+            d, today_d, missed = upd.date() + timedelta(days=1), date.fromisoformat(today_str), 0
+            while d < today_d:
+                missed += d.weekday() < 5
+                d += timedelta(days=1)
+            if age_h > STALE_FEED_MAX_HOURS and missed:
+                issues.append(f"פיד המחירים לא התעדכן {age_h:.0f} שעות (עדכון אחרון {updated_at[:16].replace('T', ' ')} UTC).")
+        except (ValueError, TypeError):
+            pass
+    prev = find_previous_snapshot("current_prices.json", ref_date)
     if not prev:
         info.append("אין נתוני מחירים קודמים להשוואת סטגנציה (הרצה ראשונה?).")
         return
     prev_prices = prev.get("prices", {})
+    prev_date = (prev.get("updated_at") or "")[:10] or "?"
     common = [t for t in prices_data if t in prev_prices]
     if not common:
         return
@@ -183,7 +214,7 @@ def check_stagnation(prices_data, today_str, issues, info):
     if ratio >= STAGNATION_PRICE_MATCH_THRESHOLD:
         issues.append(
             f"חשד לפיד מחירים תקוע: {unchanged}/{len(common)} טיקרים ({ratio:.0%}) "
-            f"עם מחיר זהה בדיוק לאתמול."
+            f"עם מחיר זהה בדיוק לסשן הקודם ({prev_date})."
         )
 
 
@@ -509,7 +540,7 @@ def main():
     check_required_fields(store, today_str, issues)
     check_monthly_portfolio_prices(store, prices_data, issues)
     check_syntax(issues)
-    check_stagnation(prices_data, today_str, issues, info)
+    check_stagnation(prices_data, today_str, issues, info, prices_payload.get("updated_at"))
     check_accuracy_streak(store, issues)
     check_data_suspect_flags(store, today_str, outliers)
 
