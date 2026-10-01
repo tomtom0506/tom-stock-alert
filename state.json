@@ -1165,5 +1165,12 @@
   "US_ROG_bigmove_2026-10-01": true,
   "US_LQDA_bigmove_2026-10-01": true,
   "US_TRLV_bigmove_2026-10-01": true,
-  "US_JBL_bigmove_2026-10-01": true
+  "US_JBL_bigmove_2026-10-01": true,
+  "US_ACN_bigmove_2026-10-01": true,
+  "US_EFXT_bigmove_2026-10-01": true,
+  "US_FICO_bigmove_2026-10-01": true,
+  "US_SNPS_bigmove_2026-10-01": true,
+  "US_COHR_bigmove_2026-10-01": true,
+  "US_INOD_bigmove_2026-10-01": true,
+  "US_CTVA_bigmove_2026-10-01": true
 }
