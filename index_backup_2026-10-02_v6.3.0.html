@@ -1010,19 +1010,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.4.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.3.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.4.0", date: "2026-10-02", items: [
-    "🧪 שתי האסטרטגיות שעברו את מעבדת התיאוריות (26 שנה, 500 מניות, 3 שלבי בדיקה) נכנסו לאפליקציה: 🔄 ירידה חדה (מניית S&P 500 שירדה 12%+ ב-5 ימים מעל ממוצע 200 - קנייה בפתיחה הבאה, מכירה אחרי 10 ימי מסחר) ו-🚀 קפיצת חדשות (פער פתיחה 5%+, ווליום פי 3, סגירה חזקה, כשה-S&P מעל ממוצע 200 - החזקה 60 ימי מסחר). בלי סטופ ובלי יעד, בדיוק כמו במחקר (backend 5.13.0).",
-    "⚡ החלק של הטווח הקצר בטאב ההמלצות מבוסס עכשיו על שתי האסטרטגיות: לכל אות - מתי לקנות, מתי בדיוק למכור ולמה. הכללים הקודמים (שהפסידו ברקורד שלהם) הוחלפו, והרקורד שלהם נשמר להשוואה.",
-    "📒 שני תיקי אסטרטגיה חדשים בטאב 'תיקים' ($100,000 כל אחד, כולל עמלות), שנבנים מחדש מנתוני הסגירה אחרי כל יום מסחר - עם כשנה של היסטוריה שחושבה לאחור לפי אותם כללים. נבדק שהתיק מבצע בדיוק את אותן עסקאות כמו מנוע המחקר.",
-    "התיק החי לוקח את מועמדי הטווח הקצר מהאסטרטגיות, ומחזיק כל אחת בדיוק לתקופה שנבדקה - בלי להחליף אותה באמצע.",
-    "כרטיס החשיפה: תוקן תיאור המחיר של הכלל - כ-1% בשנה בגרסת 50% מזומן, וכ-3%-4% בשנה בשווקים עולים ביציאה מלאה למזומן (לפי שלב 2 של המחקר).",
-  ]},
   { version: "6.3.0", date: "2026-09-30", items: [
     "📒 טאב חדש 'תיקים' עם שני תיקי נייר בדולרים. התיק החי ($100,000): 3 המניות הכי מומלצות מתוך כל ה-✅ בטאב ההמלצות, מניות שלמות, עמלה 0.1% (מינימום $5) + החלקה 0.05%, יציאה בסטופ או ביעד, והחלפה חכמה - רק אחרי 3 ימים מחוץ להמלצות, 5 ימי החזקה, ומועמדת טובה ב-10 נקודות. מכבד את כלל החשיפה. יומן עסקאות מלא, אחוז עסקאות רווחיות, רווח/הפסד ממוצע וסה\"כ עמלות. לצידו התיק החודשי, עם שווי כולל רווח פתוח לפי המחירים החיים (backend 5.12.0).",
     "📏 הרקורד בטאב ההמלצות נמדד עכשיו לפי עסקאות: כל המלצה לטווח קצר נסגרת ביעד, בסטופ או אחרי 20 ימי מסחר - בדיוק מה שהכרטיס ממליץ. מוצגים מספר עסקאות, אחוז הצלחה, רווח והפסד ממוצעים ואיך נסגרו.",
@@ -2722,7 +2715,7 @@ function renderExposureCard(data) {
         S&amp;P 500 ${full ? "מעל ממוצע" : "מתחת לממוצע"} 200 יום (<span class="mono">${signedPct(ex.pct_vs_sma, 1)}</span>)${ex.last_flip_date ? ` · מאז ${fmtDateIL(ex.last_flip_date)}` : ""}
       </div>
       <div style="font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
-        הכלל נבדק על 26 שנה: בכל משבר חתך את הנפילה בערך בחצי (2008: ‎-23% במקום ‎-55%). המחיר: כ-1% תשואה בשנה בגרסת 50% מזומן, וכ-3%-4% בשנה בשווקים עולים אם יוצאים ל-100% מזומן. הוא לא מנבא את מחר - הוא מגן מנפילות ארוכות.
+        הכלל נבדק על 26 שנה: חתך את הנפילה המקסימלית מ-55% לכ-31%, במחיר של כ-1% תשואה בשנה. הוא לא מנבא את מחר - הוא מגן מנפילות ארוכות.
       </div>
     </div>`;
 }
@@ -2893,48 +2886,52 @@ function renderRecommendations(data) {
     ${small("חלוקה מוצעת בלבד. ההחלטה ומשקלי התיק האמיתיים הם שלך.")}`, full ? "var(--up)" : "#ffd76a"));
 
   // 2. short term
-  // v6.4.0: short term = the two research-validated strategies (theory lab stages 1-3)
-  const book = data.strategy_book || {};
-  const bookStat = (k) => {
-    const b = book[k];
-    if (!b) return "";
-    const st = b.stats || {};
-    return `<div class="index-tile" style="padding:7px 4px; text-align:center;">
-      <div class="index-label">${b.label}</div>
-      <div class="mono" style="font-weight:800; color:${(b.total_return_pct ?? 0) >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(b.total_return_pct, 1)}</div>
-      <div class="index-label">${st.closed ?? 0} עסק' · הצלחה ${st.win_rate_pct ?? "—"}%</div>
-      <div class="index-label">S&amp;P באותה תקופה ${b.spy_same_window_pct != null ? signedPct(b.spy_same_window_pct, 1) : "—"}</div>
-    </div>`;
-  };
-  const bookTrack = (book.A || book.B) ? `
-    <div style="font-size:12px; line-height:1.6; margin-bottom:8px;">📏 <b>הרקורד של שתי האסטרטגיות</b> בתיקי נייר מ-${fmtDateIL((book.A || book.B).start_date)} (חושב לאחור לפי אותם כללים, כולל עמלות):</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">${bookStat("A")}${bookStat("B")}</div>` : "";
+  const recSim = data.portfolio_sim_recommendations || {};
+  const recRet = recSim.value != null ? (recSim.value / 100000 - 1) * 100 : null;
   const tr = data.rec_trade_record;
-  const oldRecord = tr && tr.n ? `<details style="margin-top:8px;"><summary style="font-size:11px; color:var(--text-faint); cursor:pointer;">הכללים הקודמים (הוחלפו ב-2.10.26)</summary>
-      <div style="font-size:11px; color:var(--text-faint); padding:4px 0; line-height:1.6;">${tr.closed} עסקאות סגורות · הצלחה ${tr.win_rate_pct ?? "—"}% · ממוצע לעסקה ${tr.avg_trade_pct != null ? signedPct(tr.avg_trade_pct, 2) : "—"}. הוחלפו כי הפסידו - נשמרים להשוואה.</div></details>` : "";
+  const recTrack = tr && tr.n
+    ? `<div style="background:${(tr.avg_trade_pct ?? 0) >= 0 ? "var(--up-bg)" : "var(--down-bg)"}; border-radius:10px; padding:9px 11px; margin-bottom:10px; font-size:12px; line-height:1.6;">
+        📏 <b>הרקורד של הכללים, לפי עסקאות:</b> כל המלצה = עסקה שנסגרת ביעד, בסטופ או אחרי ${tr.max_days} ימי מסחר.
+        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:7px; text-align:center;">
+          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">עסקאות</div><div class="mono" style="font-weight:800;">${tr.closed}<span style="font-weight:400; color:var(--text-faint);">+${tr.open}</span></div></div>
+          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">הצלחה</div><div class="mono" style="font-weight:800;">${tr.win_rate_pct != null ? tr.win_rate_pct + "%" : "—"}</div></div>
+          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">רווח ממוצע</div><div class="mono" style="font-weight:800; color:var(--up);">${tr.avg_win_pct != null ? signedPct(tr.avg_win_pct, 1) : "—"}</div></div>
+          <div class="index-tile" style="padding:6px 2px;"><div class="index-label">הפסד ממוצע</div><div class="mono" style="font-weight:800; color:var(--down);">${tr.avg_loss_pct != null ? signedPct(tr.avg_loss_pct, 1) : "—"}</div></div>
+        </div>
+        <div style="font-size:10.5px; color:var(--text-faint); margin-top:6px;">ממוצע לעסקה סגורה: <span class="mono">${tr.avg_trade_pct != null ? signedPct(tr.avg_trade_pct, 2) : "—"}</span> · ${tr.by_reason ? `יעד ${tr.by_reason.target} · סטופ ${tr.by_reason.stop} · זמן ${tr.by_reason.time}${tr.by_reason.no_data ? ` · ללא נתון ${tr.by_reason.no_data}` : ""}` : ""} · "+" = עסקאות שעדיין פתוחות${r.rec_backfilled_from ? ` · מ-${fmtDateIL(r.rec_backfilled_from)} חושב לאחור לפי אותם כללים, על נתוני כל יום בלבד` : ""}</div>
+       </div>`
+    : recRet != null
+    ? `<div style="background:${recRet >= 0 ? "var(--up-bg)" : "var(--down-bg)"}; border-radius:10px; padding:8px 10px; margin-bottom:10px; font-size:12px; line-height:1.6;">
+        📏 <b>הרקורד של הכללים האלה:</b> מי שקנה כל המלצה לטווח קצר מאז ${fmtDateIL(r.rec_backfilled_from)} - <span class="mono" style="font-weight:800; color:${recRet >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(recRet, 2)}</span>. ${recRet < 0 ? "עד שהרקורד יתהפך - רק על נייר." : ""}
+        ${r.rec_backfilled_from ? `<div style="font-size:10.5px; color:var(--text-faint);">הימים שלפני ${fmtDateIL(r.date)} חושבו לאחור לפי אותם כללים, על נתוני כל יום בלבד.</div>` : ""}
+       </div>`
+    : "";
   let shortBody;
   if (r.short.length) {
-    shortBody = r.short.map(x => !x.strategy ? `
-      <div style="border:1px dashed var(--border); border-radius:10px; padding:9px 12px; margin-bottom:8px; font-size:12px; color:var(--text-faint);">
-        ${x.ticker} - המלצה לפי הכללים הקודמים. תוחלף באותות של האסטרטגיות החדשות בריצה הבאה.
-      </div>` : `
-      <div style="border:1px solid ${x.strategy === "A" ? "var(--border)" : "#ffd76a55"}; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="font-weight:800; font-size:15px;">✅ לקנות ${x.ticker} <span style="font-size:11px; font-weight:600; color:var(--text-dim);">${x.strategy_label}</span></span>
-          <span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span>
+    shortBody = r.short.map(x => `
+      <div style="border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-weight:800; font-size:15px;">✅ לקנות ${x.ticker}</span>
+          <span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}% מהתיק</span>
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; font-size:12px; text-align:center;">
-          <div>כניסה<br><span style="font-weight:700;">בפתיחה הבאה</span><br><span class="mono" style="font-size:11px; color:var(--text-faint);">סגירה אחרונה ${fmtTickerPrice(x.ticker, x.price)}</span></div>
-          <div>⏱ יציאה<br><span style="font-weight:700;">בסגירה של ~${fmtDateIL(x.exit_estimate)}</span><br><span style="font-size:11px; color:var(--text-faint);">${x.hold_sessions} ימי מסחר · בלי סטופ ובלי יעד</span></div>
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; font-size:12px; text-align:center;">
+          <div>כניסה<br><span class="mono" style="font-weight:700;">${fmtTickerPrice(x.ticker, x.price)}</span></div>
+          <div style="color:#5ee6a0;">🎯 יעד<br><span class="mono" style="font-weight:700;">${fmtTickerPrice(x.ticker, x.target)}</span> <span class="mono">(${signedPct(x.upside_pct)})</span></div>
+          <div style="color:#ff9a8a;">🛑 סטופ<br><span class="mono" style="font-weight:700;">${fmtTickerPrice(x.ticker, x.stop)}</span> <span class="mono">(${signedPct(x.downside_pct)})</span></div>
         </div>
-        <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">${x.why}${x.sector ? ` · ${x.sector}` : ""}${x.already_held ? ` · <span style="color:#ffd76a;">כבר מוחזקת בתיק האסטרטגיה</span>` : ""}</div>
+        <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">
+          תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span> · רווח/סיכון <span class="mono">${x.reward_risk}</span>${x.sector ? ` · ${x.sector}` : ""}${x.trend_template ? ` · Minervini ${x.trend_template.criteria_met}/${x.trend_template.criteria_total}` : ""}
+        </div>
       </div>`).join("");
   } else {
-    shortBody = `<div style="font-size:13px; font-weight:700; margin-bottom:6px;">⏸ אין אות קנייה היום</div>
-      <div style="font-size:12px; color:var(--text-dim);">אף מניית S&amp;P 500 לא עונה היום על התנאים של שתי האסטרטגיות. זה תקין - האותות מגיעים בגלים, בעיקר אחרי ימים סוערים בשוק.</div>`;
+    shortBody = `<div style="font-size:13px; font-weight:700; margin-bottom:6px;">⏸ אין קנייה לטווח קצר היום</div>
+      <div style="font-size:12px; color:var(--text-dim);">אף מניה ב-Top10 לא עוברת את כל התנאים. גם זו המלצה - לא חייבים לקנות כל יום.</div>`;
   }
-  const near = "";
-  parts.push(recCard("⚡ טווח קצר · אסטרטגיות שנבדקו על 26 שנה", bookTrack + shortBody + near + oldRecord + small(`${r.short_rules}${r.book_session ? ` · מחושב לפי סגירת ${fmtDateIL(r.book_session)}` : ""}`)));
+  const near = (r.short_near_miss || []).length
+    ? `<details style="margin-top:6px;"><summary style="font-size:12px; color:var(--text-dim); cursor:pointer;">קרובות אבל לא עברו (${r.short_near_miss.length})</summary>
+        ${r.short_near_miss.map(x => `<div style="font-size:11.5px; padding:4px 0; border-bottom:1px solid var(--border);"><b>${x.ticker}</b> - ${x.failed.join(" · ")}</div>`).join("")}
+       </details>` : "";
+  parts.push(recCard("⚡ טווח קצר (ימים עד שבועות) · ניסוי", recTrack + shortBody + near + small(`התנאים: ${r.short_rules}. יוצאים כשהמחיר מגיע ליעד או יורד לסטופ.`)));
 
   // 3. long term
   let longBody;
@@ -3112,60 +3109,10 @@ function renderMonthlyPortfolioCard(data) {
   </div>`;
 }
 
-function renderBookCard(b, desc) {
-  if (!b) return "";
-  const st = b.stats || {};
-  const ret = b.total_return_pct;
-  const cssUp = getComputedStyle(document.body).getPropertyValue("--up").trim() || "#58bd93";
-  const cssDown = getComputedStyle(document.body).getPropertyValue("--down").trim() || "#e07668";
-  const gap = b.spy_same_window_pct != null && ret != null ? ret - b.spy_same_window_pct : null;
-  const rows = (b.holdings || []).length ? b.holdings.map(h => {
-    const pct = h.last && h.entry ? (h.last / h.entry - 1) * 100 : null;
-    return `<div class="pf-row">
-      <div><span class="pf-tk">${h.ticker}</span><span class="pf-tag short">עוד ${h.sessions_left} ימי מסחר</span></div>
-      <div class="pf-pnl" style="color:${pct == null ? "var(--text-faint)" : (pct >= 0 ? "var(--up)" : "var(--down)")};">${pct != null ? signedPct(pct, 2) : "—"}<small>${h.shares} מניות</small></div>
-      <div class="pf-meta">נקנתה ${fmtDateIL(h.entry_date)} ב-${fmtUsd(h.entry, 2)} · סגירה אחרונה ${fmtUsd(h.last, 2)}</div>
-    </div>`;
-  }).join("") : `<div class="pf-empty">אין כרגע פוזיציות פתוחות - מחכים לאות.</div>`;
-  const trades = (b.trades || []).slice().reverse();
-  const tradeRows = trades.length ? trades.slice(0, 40).map(t => `
-    <div class="pf-trade">
-      <span class="pf-side ${t.pnl_usd >= 0 ? "buy" : "sell"}">${t.pnl_usd >= 0 ? "רווח" : "הפסד"}</span>
-      <div><b>${t.ticker}</b> · ${fmtDateIL(t.entry_date)} → ${fmtDateIL(t.exit_date)} <span style="color:var(--text-faint);">· ${fmtUsd(t.entry, 2)} → ${fmtUsd(t.exit, 2)} · עמלות ${fmtUsd(t.fees, 2)}</span></div>
-      <div class="pf-pnl" style="font-size:12px; color:${t.pnl_usd >= 0 ? "var(--up)" : "var(--down)"};">${fmtUsdSigned(t.pnl_usd)}<small>${signedPct(t.pnl_pct, 1)}</small></div>
-    </div>`).join("") : `<div class="pf-empty">עוד אין עסקאות סגורות.</div>`;
-  return `<div class="pf-hero live">
-    <div class="pf-eyebrow">תיק אסטרטגיה · נבדק על 26 שנה · כולל עמלות</div>
-    <div class="pf-name">${b.label}</div>
-    <div class="pf-sub">${desc} · מאז ${fmtDateIL(b.start_date)} (חושב לאחור לפי אותם כללים)</div>
-    <div class="pf-value">${fmtUsd(b.value)}</div>
-    <div class="pf-chips">
-      <span class="pf-chip ${pnlCls(ret)}">${signedPct(ret, 2)} מההתחלה</span>
-      ${gap != null ? `<span class="pf-chip ${pnlCls(gap)}">פער מול S&amp;P ${signedPct(gap, 2)}</span>` : ""}
-    </div>
-    ${sparkSvg((b.daily_log || []).map(r => r.value), (ret ?? 0) >= 0 ? cssUp : cssDown)}
-    <div class="pf-kpis">
-      <div class="pf-kpi"><div class="pf-kpi-l">עסקאות</div><div class="pf-kpi-v">${st.closed ?? 0}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">הצלחה</div><div class="pf-kpi-v">${st.win_rate_pct != null ? st.win_rate_pct + "%" : "—"}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">ממוצע לעסקה</div><div class="pf-kpi-v" style="color:${(st.avg_trade_pct ?? 0) >= 0 ? "var(--up)" : "var(--down)"};">${st.avg_trade_pct != null ? signedPct(st.avg_trade_pct, 1) : "—"}</div></div>
-      <div class="pf-kpi"><div class="pf-kpi-l">עמלות</div><div class="pf-kpi-v">${fmtUsd(st.fees_usd)}</div></div>
-    </div>
-    <div class="pf-section-h"><span>פוזיציות פתוחות (${(b.holdings || []).length}/${b.slots})</span><span class="mono">מזומן ${fmtUsd(b.cash)}</span></div>
-    ${rows}
-    ${(b.pending || []).length ? `<div class="pf-section-h"><span>🔔 אותות לפתיחה הבאה</span></div><div class="pf-meta">${b.pending.map(p => `<b>${p.ticker}</b>${p.already_held ? " (כבר בתיק)" : ""}`).join(" · ")}</div>` : ""}
-    <details class="pf-trades"><summary>📜 עסקאות סגורות (${trades.length})</summary>${tradeRows}</details>
-    <div class="pf-foot">כניסה בפתיחה של יום המסחר שאחרי האות, יציאה בסגירה של יום המסחר ה-${b.hold_sessions}, בלי סטופ ובלי יעד - בדיוק כמו במחקר. עד ${b.slots} פוזיציות שוות (כשיש יותר אותות מסלוטים, נבחרות החזקות ביותר). עמלה 0.1% (מינימום $5) + החלקה 0.05% לכל צד. התיק נבנה מחדש מנתוני הסגירה אחרי כל יום מסחר.</div>
-  </div>`;
-}
-
 function renderPortfolios(data) {
   const el = document.getElementById("portfoliosBody");
   if (!el) return;
-  const book = data.strategy_book || {};
-  el.innerHTML = renderLivePortfolioCard(data)
-    + renderBookCard(book.A, "מניית S&P 500 שירדה 12%+ ב-5 ימים מעל ממוצע 200 · החזקה 10 ימי מסחר")
-    + renderBookCard(book.B, "פער פתיחה 5%+ בווליום פי 3 וסגירה חזקה, כשה-S&P מעל ממוצע 200 · החזקה 60 ימי מסחר")
-    + renderMonthlyPortfolioCard(data);
+  el.innerHTML = renderLivePortfolioCard(data) + renderMonthlyPortfolioCard(data);
 }
 
 function renderDataFreshnessNote(data) {

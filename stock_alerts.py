@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.12.0"
+BACKEND_VERSION = "5.13.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -3974,6 +3974,15 @@ def build_strategy_comparison(store):
     add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
     add("recommendations", "🎯 ההמלצות לטווח קצר (טאב המלצות)", "short", "portfolio_sim_recommendations")
     add("live", "📒 התיק החי (3 מניות, כולל עמלות)", "live", "live_portfolio")
+    for key in ("A", "B"):
+        sb = (store.get("strategy_book") or {}).get(key)
+        if sb and sb.get("start_date"):
+            row = {"key": f"book_{key}", "label": f"{sb['label']} (תיק אסטרטגיה, כולל עמלות)", "layer": "short",
+                   "start_date": sb["start_date"], "value": sb["value"], "return_pct": sb["total_return_pct"]}
+            if sb.get("spy_same_window_pct") is not None:   # starts before our own S&P sim - use the book's own SPY window
+                row["sp500_same_window_pct"] = sb["spy_same_window_pct"]
+                row["vs_sp500_pct"] = round(row["return_pct"] - row["sp500_same_window_pct"], 2)
+            rows.append(row)
     add("long_enter", "🏛 ✅ טווח ארוך - כניסה במגמה תקינה", "long", "portfolio_sim_long_enter")
     add("long_dip", "🏛 🟡 טווח ארוך - קנייה בתיקון", "long", "portfolio_sim_long_dip")
     add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
@@ -3988,6 +3997,8 @@ def build_strategy_comparison(store):
     sp_log = sp.get("daily_log") or []
     if sp_log and sp.get("value") is not None:
         for r in rows:
+            if r.get("sp500_same_window_pct") is not None:
+                continue
             base = None
             for e in sp_log:
                 if r["start_date"] and e["date"] <= r["start_date"]:
@@ -4099,29 +4110,40 @@ def build_recommendations(store):
     by_ticker = {e["ticker"]: e for e in todays}
     top10 = [e for e in todays if e.get("top10")]
 
-    # --- short term ---
-    passing, near_miss = [], []
-    for e in top10:
-        ok, rr, stop, failed = _short_rec_candidate(e)
-        row = {"ticker": e["ticker"], "price": _round_price(e.get("price")), "target": _round_price(e.get("resistance")),
-               "stop": _round_price(stop), "reward_risk": round(rr, 2) if rr is not None else None,
-               "timing_score": e.get("timing_score"), "long_term_score": e.get("long_term_score"),
-               "sector": e.get("sector"), "trend_template": e.get("trend_template"), "earnings": e.get("earnings"),
-               "failed": failed}
-        (passing if ok else near_miss).append(row)
-    passing.sort(key=lambda r: ((r["timing_score"] or 0), r["reward_risk"] or 0), reverse=True)
-    short = passing[:REC_SHORT_MAX]
+    # --- short term (v5.13.0): the two research-validated strategies ---
+    # The previous rule set (Top10 + ✅ + Minervini + reward/risk) lost money
+    # in its own trade-based record and is retired; its history flags
+    # (rec_short) are kept untouched so that record stays visible, frozen.
+    book = store.get("strategy_book") or {}
     layer_short = REC_LAYER_SHARE["short"] * exp_pct / 100
+    short = []
+    for key in ("A", "B"):
+        sb = book.get(key) or {}
+        cfg = BOOK_STRATEGIES[key]
+        for pnd in (sb.get("pending") or [])[:REC_SHORT_MAX]:
+            e = by_ticker.get(pnd["ticker"]) or {}
+            b = build_score_breakdown(e, e.get("recommendation_mean"), e.get("upside_pct")) if e else {}
+            sig_d = date.fromisoformat(pnd["signal_date"])
+            exit_d, n_bd = sig_d, 0
+            while n_bd < cfg["hold"]:
+                exit_d += timedelta(days=1)
+                n_bd += exit_d.weekday() < 5
+            if key == "A":
+                score = 90 + min(max((pnd.get("rank") or 0) * 100 - 12, 0), 9)
+                why = f"ירדה {round((pnd.get('rank') or 0) * 100, 1)}% ב-5 ימים, במגמה עולה"
+            else:
+                score = 85 + min(max((pnd.get("rank") or 0) - 3, 0), 4)
+                why = f"קפיצת פתיחה בווליום פי {round(pnd.get('rank') or 0, 1)}"
+            short.append({"ticker": pnd["ticker"], "strategy": key, "strategy_label": cfg["label"],
+                          "price": pnd["close"], "signal_date": pnd["signal_date"], "hold_sessions": cfg["hold"],
+                          "exit_estimate": exit_d.isoformat(), "why": why, "already_held": pnd.get("already_held"),
+                          "target": None, "stop": None, "sector": e.get("sector"),
+                          "timing_score": b.get("timing_score"), "long_term_score": b.get("long_term_score"),
+                          "book_score": round(score, 1)})
+    short.sort(key=lambda r: -r["book_score"])
     for r in short:
-        r["weight_pct"] = round(layer_short / len(short), 1)
-        r["upside_pct"] = round((r["target"] / r["price"] - 1) * 100, 1) if r["price"] and r["target"] else None
-        r["downside_pct"] = round((r["stop"] / r["price"] - 1) * 100, 1) if r["price"] and r["stop"] else None
-    # flag for grading/simulation (deterministic within a day: today's entries don't change after the daily run)
-    short_set = {r["ticker"] for r in short}
-    for e in todays:
-        if e.get("top10"):
-            e["rec_short"] = e["ticker"] in short_set
-    near_miss.sort(key=lambda r: len(r["failed"]))
+        r["weight_pct"] = round(layer_short / max(len(short), 1), 1)
+    near_miss = []
 
     # --- long term ---
     lt = store.get("long_term_picks") or {}
@@ -4218,7 +4240,8 @@ def build_recommendations(store):
         "cash_pct": round(100 - exp_pct, 1),
         "short": short,
         "short_near_miss": near_miss[:5],
-        "short_rules": f"מתוך ה-Top10: תג ✅, מגמת Minervini תקינה, יחס רווח/סיכון {REC_SHORT_MIN_RR} לפחות, ואין דוח כספי ב-{REC_SHORT_EARNINGS_BLACKOUT_DAYS} הימים הקרובים",
+        "short_rules": "🔄 ירידה חדה: מניית S&P 500 שירדה 12%+ ב-5 ימים מעל ממוצע 200 - קנייה בפתיחה הבאה, מכירה בסגירה של יום המסחר ה-10. 🚀 קפיצת חדשות: פער פתיחה 5%+, ווליום פי 3, סגירה בחצי העליון, כשה-S&P מעל ממוצע 200 - החזקה 60 ימי מסחר. בלי סטופ ובלי יעד, בדיוק כמו במחקר.",
+        "book_session": book.get("session"),
         "long_lead_sector": lead,
         "long_sectors": sector_rows,
         "long": long_recs,
@@ -4299,7 +4322,9 @@ def _live_candidates(store):
     cands = {}
     for r in rec.get("short") or []:
         cands[r["ticker"]] = {"ticker": r["ticker"], "source": "short", "stop": r.get("stop"), "target": r.get("target"),
-                              "score": _combined_score(r.get("timing_score"), r.get("long_term_score"))}
+                              "max_hold": r.get("hold_sessions"), "strategy": r.get("strategy"),
+                              "why": f"{r.get('strategy_label', 'טווח קצר')}: {r.get('why', '')}",
+                              "score": r.get("book_score") or _combined_score(r.get("timing_score"), r.get("long_term_score"))}
     for r in rec.get("long") or []:
         if r["ticker"] in cands:
             continue
@@ -4372,6 +4397,7 @@ def manage_live_portfolio(store, today_entries):
         return {"ticker": c["ticker"], "shares": shares, "entry_shares": shares, "entry_price_usd": round(px, 4),
                 "entry_price_native": n, "entry_fee_usd": fee, "entry_date": today, "source": c["source"],
                 "stop": c.get("stop"), "target": c.get("target"), "score_at_entry": c.get("score"),
+                "max_hold": c.get("max_hold"), "strategy": c.get("strategy"),
                 "last_price_usd": round(u, 4), "last_price_native": n, "held_days": 0, "out_days": 0}
 
     # 2. decisions - once a day, only after today's recommendations exist
@@ -4396,6 +4422,8 @@ def manage_live_portfolio(store, today_entries):
                 sell(h, "🛑 סטופ")
             elif h.get("target") and n >= h["target"]:
                 sell(h, "🎯 הגיעה ליעד")
+            elif h.get("max_hold") and h.get("held_days", 0) >= h["max_hold"]:
+                sell(h, f"⏱ סוף תקופת ההחזקה ({h['max_hold']} ימי מסחר)")
         lp["holdings"] = [h for h in lp["holdings"] if h["shares"] > 0]
 
         # 2b. smart replacement: out of the recs for N days, held long enough,
@@ -4406,6 +4434,8 @@ def manage_live_portfolio(store, today_entries):
         for h in sorted(lp["holdings"], key=lambda x: x.get("score_now") or 0):
             if h["out_days"] < LIVE_OUT_DAYS_TO_SELL or h["held_days"] < LIVE_MIN_HOLD_DAYS or nxt >= len(waiting):
                 continue
+            if h.get("max_hold"):
+                continue  # research strategies are held for their full period, never swapped out early
             best = waiting[nxt]
             if (best["score"] or 0) >= (h.get("score_now") or 0) + LIVE_REPLACE_GAP:
                 sell(h, f"🔄 הוחלפה ב-{best['ticker']} (מחוץ להמלצות {h['out_days']} ימים)")
@@ -4570,6 +4600,210 @@ def build_portfolios_view(store):
     }
 
 
+# ===========================================================================
+# v5.13.0 - the two strategies that survived the 26-year theory lab
+# (stages 1-3, 2.10.2026), run EXACTLY as researched:
+#   A "ירידה חדה":   S&P 500 stock, close <= -12% vs 5 sessions ago, close
+#                    above its 200-day average -> buy the NEXT open, sell at
+#                    the close of the 10th session. No stop, no target.
+#   B "קפיצת חדשות": open >= +5% vs previous close, volume >= 3x its 20-day
+#                    average, close in the upper half of the day's range,
+#                    S&P 500 above its 200-day average -> buy the next open,
+#                    sell at the close of the 60th session.
+# The "strategy book" rebuilds both paper portfolios from daily bars after
+# every completed session - entries and exits use the real open/close of
+# the right day, the same way the research did, plus a ~1-year backfill so
+# there is a track record from day one. Isolated from the prediction
+# pipeline on purpose (its own download, its own state).
+# ===========================================================================
+BOOK_PERIOD = "2y"                 # 200 sessions for the average + ~1 year of backfill
+BOOK_COST_PCT = 0.1                # commission per side (min $5) - same as the live portfolio
+BOOK_SLIPPAGE_PCT = 0.05
+BOOK_STRATEGIES = {
+    "A": {"label": "🔄 ירידה חדה", "hold": 10, "slots": 10, "drop": -0.12},
+    "B": {"label": "🚀 קפיצת חדשות", "hold": 60, "slots": 20, "gap": 0.05, "vol_x": 3.0},
+}
+US_CLOSE_NY = (16, 15)             # a bar for "today" is only complete after this New York time
+
+
+def _ny_now():
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo("America/New_York"))
+    except Exception:
+        return datetime.now(timezone.utc) - timedelta(hours=4)
+
+
+def _download_book_panels(tickers):
+    O, H, L, C, V = {}, {}, {}, {}, {}
+    for i in range(0, len(tickers), BATCH_SIZE):
+        batch = tickers[i:i + BATCH_SIZE]
+        try:
+            data = yf.download(tickers=" ".join(batch), period=BOOK_PERIOD, group_by="ticker",
+                               threads=True, progress=False, auto_adjust=True)
+        except Exception as e:
+            print(f"Strategy-book batch download error: {e}")
+            continue
+        for t in batch:
+            try:
+                df = data[t] if len(batch) > 1 else data
+                df = df[["Open", "High", "Low", "Close", "Volume"]].dropna(subset=["Close"])
+            except Exception:
+                continue
+            if len(df) < 210:
+                continue
+            O[t], H[t], L[t], C[t], V[t] = df["Open"], df["High"], df["Low"], df["Close"], df["Volume"]
+        time.sleep(1)
+    mk = lambda d: pd.DataFrame(d).sort_index()
+    return mk(O), mk(H), mk(L), mk(C), mk(V)
+
+
+def compute_book_signals(O, H, L, C, V, spy_close):
+    sma200 = C.rolling(200).mean()
+    a = (C / C.shift(5) - 1 <= BOOK_STRATEGIES["A"]["drop"]) & (C > sma200)
+    vol20 = V.rolling(20).mean()
+    strong = (C - L) / (H - L).replace(0, np.nan) > 0.5
+    gate = (spy_close > spy_close.rolling(200).mean()).reindex(C.index).ffill().fillna(False)
+    b = (O / C.shift(1) - 1 >= BOOK_STRATEGIES["B"]["gap"]) & (V >= BOOK_STRATEGIES["B"]["vol_x"] * vol20) & strong
+    b = b & gate.values[:, None]
+    # ranking keys when there are more signals than free slots
+    a_rank = -(C / C.shift(5) - 1)          # bigger drop first
+    b_rank = V / vol20                      # bigger volume surge first
+    return {"A": (a.fillna(False), a_rank), "B": (b.fillna(False), b_rank)}
+
+
+def simulate_book(key, sig, rank, O, C, start_i):
+    """Day by day from start_i: exits at the close of each position's last
+    session, then new entries at today's open for yesterday's signals (only
+    into free slots, best-ranked first), then mark to market at the close.
+    Position size = current equity / slots (compounding), whole shares."""
+    cfg = BOOK_STRATEGIES[key]
+    hold, slots = cfg["hold"], cfg["slots"]
+    idx, cols = C.index, list(C.columns)
+    Ov, Cv = O.values, C.values
+    S = sig.values
+    R = rank.values
+    cash, positions, trades, log = 100000.0, [], [], []
+    last_exit = {}   # j -> session index of the last exit: a signal on/before that day is skipped (same as the research engine)
+
+    def fee(notional):
+        return max(5.0, notional * BOOK_COST_PCT / 100)
+
+    for k in range(start_i, len(idx)):
+        # exits (close of the hold-th session, counted from the entry session)
+        keep = []
+        for p in positions:
+            if k - p["entry_i"] + 1 >= hold and np.isfinite(Cv[k, p["j"]]):
+                px = Cv[k, p["j"]] * (1 - BOOK_SLIPPAGE_PCT / 100)
+                gross = p["shares"] * px
+                f = fee(gross)
+                cash += gross - f
+                cost = p["shares"] * p["entry_px"] + p["fee"]
+                trades.append({"ticker": cols[p["j"]], "entry_date": idx[p["entry_i"]].strftime("%Y-%m-%d"),
+                               "exit_date": idx[k].strftime("%Y-%m-%d"), "entry": round(p["entry_px"], 2),
+                               "exit": round(px, 2), "shares": p["shares"], "fees": round(p["fee"] + f, 2),
+                               "pnl_usd": round(gross - f - cost, 2), "pnl_pct": round((gross - f - cost) / cost * 100, 2)})
+                last_exit[p["j"]] = k
+            else:
+                keep.append(p)
+        positions = keep
+        # entries at today's open for yesterday's signals
+        if k - 1 >= 0:
+            held = {p["j"] for p in positions}
+            cand = [j for j in np.flatnonzero(S[k - 1]) if j not in held and np.isfinite(Ov[k, j]) and Ov[k, j] > 0
+                    and k - 1 > last_exit.get(j, -1)]
+            cand.sort(key=lambda j: -(R[k - 1, j] if np.isfinite(R[k - 1, j]) else -9e9))
+            equity = cash + sum(p["shares"] * (Cv[k - 1, p["j"]] if np.isfinite(Cv[k - 1, p["j"]]) else p["entry_px"]) for p in positions)
+            for j in cand:
+                if len(positions) >= slots:
+                    break
+                px = Ov[k, j] * (1 + BOOK_SLIPPAGE_PCT / 100)
+                budget = min(equity / slots, cash)
+                shares = int(budget // px)
+                while shares > 0 and shares * px + fee(shares * px) > cash:
+                    shares -= 1
+                if shares <= 0:
+                    continue
+                f = fee(shares * px)
+                cash -= shares * px + f
+                positions.append({"j": j, "entry_i": k, "entry_px": px, "shares": shares, "fee": f})
+        value = cash + sum(p["shares"] * (Cv[k, p["j"]] if np.isfinite(Cv[k, p["j"]]) else p["entry_px"]) for p in positions)
+        log.append({"date": idx[k].strftime("%Y-%m-%d"), "value": round(value, 2), "positions": len(positions)})
+
+    last = len(idx) - 1
+    holdings = [{"ticker": cols[p["j"]], "entry_date": idx[p["entry_i"]].strftime("%Y-%m-%d"),
+                 "entry": round(p["entry_px"], 2), "shares": p["shares"],
+                 "last": round(float(Cv[last, p["j"]]), 2) if np.isfinite(Cv[last, p["j"]]) else None,
+                 "sessions_held": last - p["entry_i"] + 1, "sessions_left": max(hold - (last - p["entry_i"] + 1), 0)}
+                for p in positions]
+    pending = []
+    held = {h["ticker"] for h in holdings}
+    for j in np.flatnonzero(S[last]):
+        t = cols[j]
+        pending.append({"ticker": t, "signal_date": idx[last].strftime("%Y-%m-%d"), "close": round(float(Cv[last, j]), 2),
+                        "rank": round(float(R[last, j]), 3) if np.isfinite(R[last, j]) else None, "already_held": t in held})
+    pending.sort(key=lambda x: -(x["rank"] or 0))
+    closed = trades
+    wins = [t for t in closed if t["pnl_usd"] > 0]
+    losses = [t for t in closed if t["pnl_usd"] <= 0]
+    value = log[-1]["value"] if log else 100000.0
+    return {
+        "key": key, "label": cfg["label"], "hold_sessions": hold, "slots": slots,
+        "start_date": log[0]["date"] if log else None, "value": value,
+        "total_return_pct": round((value / 100000 - 1) * 100, 2),
+        "cash": round(cash, 2), "holdings": holdings, "pending": pending,
+        "trades": trades[-300:], "daily_log": log[-400:],
+        "stats": {"closed": len(closed), "win_rate_pct": round(len(wins) / len(closed) * 100, 1) if closed else None,
+                  "avg_win_pct": round(sum(t["pnl_pct"] for t in wins) / len(wins), 2) if wins else None,
+                  "avg_loss_pct": round(sum(t["pnl_pct"] for t in losses) / len(losses), 2) if losses else None,
+                  "avg_trade_pct": round(sum(t["pnl_pct"] for t in closed) / len(closed), 2) if closed else None,
+                  "fees_usd": round(sum(t["fees"] for t in closed) + sum(p["fee"] for p in positions), 2)},
+    }
+
+
+def run_strategy_book(store, force=False):
+    """Once per completed US session (idempotent): download ~2 years of
+    daily bars for the S&P 500, drop today's bar if the session is still
+    running, rebuild both strategy portfolios from scratch."""
+    sp = get_sp500_tickers()
+    if not sp:
+        return
+    try:
+        spy = yf.Ticker("SPY").history(period=BOOK_PERIOD)["Close"].dropna()
+        spy.index = spy.index.tz_localize(None) if getattr(spy.index, "tz", None) is not None else spy.index
+    except Exception as e:
+        print(f"Strategy-book SPY fetch failed: {e}")
+        return
+    ny = _ny_now()
+    last_bar = spy.index[-1].date()
+    session_complete = not (last_bar == ny.date() and (ny.hour, ny.minute) < US_CLOSE_NY)
+    session = last_bar if session_complete else spy.index[-2].date()
+    book = store.get("strategy_book") or {}
+    if not force and book.get("session") == session.isoformat():
+        return
+    O, H, L, C, V = _download_book_panels(sorted(set(sp)))
+    if C.empty:
+        return
+    for df in (O, H, L, C, V):
+        df.index = df.index.tz_localize(None) if getattr(df.index, "tz", None) is not None else df.index
+    keep = C.index.date <= session
+    O, H, L, C, V = O[keep], H[keep], L[keep], C[keep], V[keep]
+    spy = spy[spy.index.date <= session]
+    sigs = compute_book_signals(O, H, L, C, V, spy)
+    start_i = 200
+    out = {"session": session.isoformat(), "generated_at": datetime.now(timezone.utc).isoformat(),
+           "universe": int(C.shape[1]), "bars": int(C.shape[0]),
+           "research": "theory lab stages 1-3 (26y, 500 stocks): A +1.0%/trade vs market t=4.9, 9/9 variants; "
+                       "B +2.0%/trade t=3.6, 10/11 variants (median ~0 - a few big winners carry it)"}
+    for key, (sig, rank) in sigs.items():
+        res = simulate_book(key, sig, rank, O, C, start_i)
+        if res.get("start_date"):
+            sw = spy[spy.index.date >= date.fromisoformat(res["start_date"])]
+            res["spy_same_window_pct"] = round((float(sw.iloc[-1]) / float(sw.iloc[0]) - 1) * 100, 2) if len(sw) > 1 else None
+        out[key] = res
+    store["strategy_book"] = out
+
+
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
@@ -4667,6 +4901,11 @@ def main():
         build_strategy_comparison(prediction_store)
     except Exception as e:
         print(f"Long-term picks failed: {type(e).__name__}: {e}")
+
+    try:
+        run_strategy_book(prediction_store)
+    except Exception as e:
+        print(f"Strategy book failed: {type(e).__name__}: {e}")
 
     try:
         backfill_rec_flags(prediction_store)
