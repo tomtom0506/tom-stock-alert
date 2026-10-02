@@ -706,7 +706,7 @@
   <div id="longTermSection" data-tab="stocks" data-subtab="longterm">
     <div class="section-title">🏛 טווח ארוך - 10 מניות איכות</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
-      חברות ענק מ-S&amp;P 500 שמדורגות לפי איכות עסקית (רווחיות, צמיחה, מינוף, תזרים) ודירוג אנליסטים, עד 3 מאותו סקטור. מתעדכן פעם בחודש. לכל מניה מוצג גם מכפיל הרווח שלה מול הממוצע שלה בשנים האחרונות, ו-<b>💎</b> כשהיא זולה ב-15% ומעלה מול עצמה (נמדד מהיום, בסימולציה משלו). תג כניסה: <b>✅ אפשר להיכנס</b> (תזמון חיובי ומגמה תקינה), <b>🟡 בתיקון</b> (תזמון חיובי אבל המגמה הארוכה שבורה - כניסה בשלבים) או <b>⏳ להמתין</b>. ציון האיכות לא נבדק היסטורית (אין נתוני דוחות היסטוריים חינמיים) - הוא נמדד מהיום, בסימולציה משלו מול S&amp;P 500.
+      חברות ענק מ-S&amp;P 500 שמדורגות לפי איכות עסקית (רווחיות, צמיחה, מינוף, תזרים) ודירוג אנליסטים, עד 3 מאותו סקטור. מתעדכן פעם בחודש. לכל מניה תג כניסה: <b>✅ אפשר להיכנס</b> (תזמון חיובי ומגמה תקינה), <b>🟡 בתיקון</b> (תזמון חיובי אבל המגמה הארוכה שבורה - כניסה בשלבים) או <b>⏳ להמתין</b>. ציון האיכות לא נבדק היסטורית (אין נתוני דוחות היסטוריים חינמיים) - הוא נמדד מהיום, בסימולציה משלו מול S&amp;P 500.
     </div>
     <div id="longTermMeta" style="font-size:12px; color:var(--text-dim); margin-bottom:8px;"></div>
     <div id="longTermList" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -1010,17 +1010,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.5.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.4.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.5.0", date: "2026-10-03", items: [
-    "💎 מדד שווי ברשימת הטווח הארוך: לכל מניה - מכפיל הרווח היום מול הממוצע של אותה חברה ב-4 השנים האחרונות, ותשואת התזרים החופשי. 💎 'זולה מול עצמה' כשהמכפיל נמוך ב-15% ומעלה מהממוצע שלה (ורק אם כל השנים היו רווחיות). לא ניתן לבדוק לאחור - Yahoo לא שומר היסטוריית דוחות - ולכן נמדד מהיום בסימולציה משלו בהשוואת האסטרטגיות (backend 5.14.0).",
-    "גרף 'בדוק מניה': תוקנו התוויות 'תמיכה'/'התנגדות' והתאריך הראשון שנחתכו בקצה השמאלי.",
-    "🧪 בשורת האסטרטגיות, כשאין אות: נוסף הסבר שאין כלל מוכח למכירה של מניה בודדת, וההגנה המוכחת היא ברמת התיק (לפי שלב 4 של המחקר).",
-  ]},
   { version: "6.4.1", date: "2026-10-02", items: [
     "🧪 'בדוק מניה' מציג שורה אחת לפי האסטרטגיות שנבדקו על 26 שנה: לקנות (בפתיחה הבאה, ועד מתי להחזיק), להחזיק עד תאריך, למכור, או שאין אות. למניות מחוץ ל-S&P 500 מצוין שהאסטרטגיות רלוונטיות רק למניות המדד. התשובה לקוחה ישירות מתיקי האסטרטגיה, כך שהיא תמיד תואמת את מה שהם עושים (backend 5.13.1).",
   ]},
@@ -2104,7 +2099,7 @@ function strategyLineHtml(v) {
   if (v.action === "hold") return box("rgba(255,215,106,0.12)", "#ffd76a", `${v.label}: להחזיק עד ${d(v.exit_date)} (עוד ${v.sessions_left} ימי מסחר)`);
   if (v.action === "sell") return box("var(--down-bg)", "var(--down)", `${v.label}: למכור בסגירה של ${d(v.exit_date)}`);
   if (v.action === "not_applicable") return box("transparent", "var(--text-faint)", "אסטרטגיות שנבדקו: רלוונטיות רק למניות S&amp;P 500", "var(--border)");
-  return box("transparent", "var(--text-dim)", "אסטרטגיות שנבדקו: אין אות כרגע<div style=\"font-size:11px; font-weight:400; color:var(--text-faint); margin-top:3px;\">אין כלל מוכח למכירה של מניה בודדת. ההגנה המוכחת היא ברמת התיק - כלל החשיפה</div>", "var(--border)");
+  return box("transparent", "var(--text-dim)", "אסטרטגיות שנבדקו: אין אות - לא לקנות לפיהן כרגע", "var(--border)");
 }
 
 function scoreBreakdownCardHtml(data) {
@@ -2381,11 +2376,6 @@ function initStockChart(root, chart, data) {
 
     // price grid (4 lines) + labels on the right
     ctx.font = "10px 'IBM Plex Mono', ui-monospace, monospace";
-    // v6.5.0: the page is RTL, and a canvas inherits that - text drawn at
-    // the left edge then grew leftwards out of the canvas ("תמיכה"/"התנגדות"
-    // and the first date were clipped). Draw all chart text left-to-right.
-    ctx.direction = "ltr";
-    ctx.textAlign = "left";
     ctx.fillStyle = faint; ctx.strokeStyle = border; ctx.lineWidth = 1;
     for (let k = 0; k <= 3; k++) {
       const v = g.min + (g.max - g.min) * (k / 3);
@@ -2790,14 +2780,6 @@ function renderLayersCard(data) {
     </div>`;
 }
 
-// v6.5.0: 💎 cheap versus the company's own history (P/E now vs its ~4-year average)
-function valueLineHtml(p) {
-  const v = p && p.valuation;
-  if (!v || v.pe_now == null) return "";
-  const fy = v.fcf_yield_now_pct != null ? ` · תשואת תזרים ${v.fcf_yield_now_pct}% (ממוצע ${v.fcf_yield_avg_pct}%)` : "";
-  return `<div style="font-size:11px; margin-top:4px; color:${p.value_tag ? "#7fd8ff" : "var(--text-faint)"};">${p.value_tag ? "💎 זולה מול עצמה · " : ""}מכפיל רווח ${v.pe_now} מול ממוצע ${v.pe_avg} (${signedPct(v.pe_vs_avg_pct, 0)})${fy}</div>`;
-}
-
 function renderLongTerm(data) {
   const list = document.getElementById("longTermList");
   const meta = document.getElementById("longTermMeta");
@@ -2829,7 +2811,6 @@ function renderLongTerm(data) {
         <div style="font-size:11px; color:var(--text-faint); margin-top:3px;">
           ${p.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(p.ticker, p.price)}</span>${p.change_since_pick_pct != null ? ` · מאז ${fmtDateIL(p.picked_on)}: <span class="mono" style="color:${p.change_since_pick_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(p.change_since_pick_pct)}</span>` : ""}
         </div>
-        ${valueLineHtml(p)}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
           ${tag}
           <span style="font-size:11px; color:var(--text-dim);">איכות <span class="mono">${p.quality_score != null ? Number(p.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${p.analyst_score != null ? Number(p.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${p.timing_score != null ? Number(p.timing_score).toFixed(0) : "—"}</span></span>
@@ -2980,7 +2961,7 @@ function renderRecommendations(data) {
     longBody = `
       <div style="font-size:13px; line-height:1.7; margin-bottom:8px;">📌 <b>הסקטור המוביל: ${r.long_lead_sector}</b> - ${lead.count} מניות ברשימת האיכות, ציון ממוצע <span class="mono">${lead.avg_long_term_score}</span>, ${lead.enter_count} בתזמון כניסה.</div>
       ${(() => {
-        const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}${x.value_tag ? ` · <span style="color:#7fd8ff;">💎 זולה מול עצמה</span>` : ""}`;
+        const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}`;
         const enterHtml = (r.long || []).map(x => `
           <div style="border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px;">
             <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">✅ לקנות ${x.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>

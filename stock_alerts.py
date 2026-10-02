@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.13.1"
+BACKEND_VERSION = "5.14.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -3989,6 +3989,10 @@ def manage_long_term_picks(store, today_entries):
         p["overall_score"] = p["long_term_score"]
         p["score_components"] = {"timing": p["timing_score"], "quality": p["quality_score"], "analyst": p["analyst_score"]}
         p["verdict"] = compute_verdict(p["timing_score"], p["long_term_score"], has_fundamentals=True)
+    try:
+        update_valuations(store, lt["picks"], today)
+    except Exception as e:
+        print(f"Valuation update failed: {e}")
 
 
 def build_strategy_comparison(store):
@@ -4027,6 +4031,7 @@ def build_strategy_comparison(store):
             rows.append(row)
     add("long_enter", "🏛 ✅ טווח ארוך - כניסה במגמה תקינה", "long", "portfolio_sim_long_enter")
     add("long_dip", "🏛 🟡 טווח ארוך - קנייה בתיקון", "long", "portfolio_sim_long_dip")
+    add("long_value", "🏛 💎 טווח ארוך - זולה מול השווי שלה", "long", "portfolio_sim_long_value")
     add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
     mv = (store.get("portfolios_view") or {}).get("monthly")
     if mv and mv.get("start_date"):
@@ -4144,6 +4149,109 @@ def backfill_rec_flags(store):
     store["rec_backfill_done"] = {"at": today, "first_rec_date": first}
 
 
+# ===========================================================================
+# v5.14.0 - 💎 valuation lens for the long-term list: is this quality
+# company cheap versus ITS OWN recent history? (Tomer, 2.10.2026: "buy good
+# companies below their value".) Yahoo has no long fundamentals history, so
+# this can't be backtested - it is measured live from today in its own sim.
+#   P/E now (price / trailing EPS) vs the average P/E at the last ~4 fiscal
+#   year ends (year-end price / that year's diluted EPS). 💎 when the P/E is
+#   at least 15% below the company's own average and every EPS was positive
+#   (a P/E on a loss year is meaningless). Free-cash-flow yield is shown as
+#   a second opinion but doesn't decide the tag.
+# ===========================================================================
+VALUE_DISCOUNT = 0.85              # P/E now <= 85% of the company's own average -> 💎
+VALUE_CACHE_DAYS = 30              # financial statements change quarterly - refetch monthly
+
+
+def _row(df, names):
+    if df is None or getattr(df, "empty", True):
+        return None
+    for n in names:
+        if n in df.index:
+            return df.loc[n]
+    return None
+
+
+def fetch_valuation_history(ticker):
+    """Yearly EPS, free cash flow and the year-end price, from yfinance.
+    Returns {"years": [{"date", "eps", "fcf", "price"}...], "shares"} or None."""
+    tk = yf.Ticker(ticker)
+    inc = tk.income_stmt
+    cf = tk.cashflow
+    eps = _row(inc, ["Diluted EPS", "Basic EPS"])
+    fcf = _row(cf, ["Free Cash Flow"])
+    if eps is None:
+        return None
+    hist = tk.history(period="6y")["Close"].dropna()
+    if hist.empty:
+        return None
+    hist.index = hist.index.tz_localize(None) if getattr(hist.index, "tz", None) is not None else hist.index
+    years = []
+    for d, v in eps.items():
+        try:
+            d = pd.Timestamp(d)
+        except Exception:
+            continue
+        before = hist[hist.index <= d]
+        if before.empty or v is None or not np.isfinite(float(v)):
+            continue
+        f = fcf.get(d) if fcf is not None else None
+        years.append({"date": d.strftime("%Y-%m-%d"), "eps": float(v), "price": round(float(before.iloc[-1]), 2),
+                      "fcf": float(f) if f is not None and np.isfinite(float(f)) else None})
+    years.sort(key=lambda y: y["date"])
+    info = {}
+    try:
+        info = tk.info or {}
+    except Exception:
+        pass
+    return {"years": years[-5:], "shares": info.get("sharesOutstanding"), "trailing_eps": info.get("trailingEps")}
+
+
+def valuation_view(hist_v, price):
+    """Pure function (testable): current vs own-average P/E and FCF yield."""
+    if not hist_v or not price:
+        return None
+    ys = hist_v.get("years") or []
+    pes = [y["price"] / y["eps"] for y in ys if y.get("eps") and y["eps"] > 0]
+    all_positive = bool(ys) and all((y.get("eps") or 0) > 0 for y in ys)
+    t_eps = hist_v.get("trailing_eps") or (ys[-1]["eps"] if ys else None)
+    out = {"years": len(ys), "all_eps_positive": all_positive}
+    if t_eps and t_eps > 0 and len(pes) >= 3:
+        pe_now = price / t_eps
+        pe_avg = sum(pes) / len(pes)
+        out.update({"pe_now": round(pe_now, 1), "pe_avg": round(pe_avg, 1),
+                    "pe_vs_avg_pct": round((pe_now / pe_avg - 1) * 100, 1)})
+        out["cheap"] = bool(all_positive and pe_now <= pe_avg * VALUE_DISCOUNT)
+    else:
+        out["cheap"] = False
+    shares = hist_v.get("shares")
+    fys = [y for y in ys if y.get("fcf") is not None]
+    if shares and fys:
+        fy_now = fys[-1]["fcf"] / (shares * price) * 100
+        fy_avg = sum(y["fcf"] / (shares * y["price"]) * 100 for y in fys) / len(fys)
+        out.update({"fcf_yield_now_pct": round(fy_now, 2), "fcf_yield_avg_pct": round(fy_avg, 2)})
+    return out
+
+
+def update_valuations(store, picks, today):
+    cache = store.setdefault("valuation_cache", {})
+    cutoff = (date.fromisoformat(today) - timedelta(days=VALUE_CACHE_DAYS)).isoformat()
+    for p in picks:
+        t = p["ticker"]
+        c = cache.get(t)
+        if not c or c.get("fetched", "") < cutoff:
+            try:
+                h = fetch_valuation_history(t)
+                if h:
+                    cache[t] = {"fetched": today, **h}
+                    c = cache[t]
+            except Exception as e:
+                print(f"Valuation fetch failed for {t}: {e}")
+        p["valuation"] = valuation_view(c, p.get("price")) if c else None
+        p["value_tag"] = bool(p["valuation"] and p["valuation"].get("cheap"))
+
+
 def build_recommendations(store):
     today = date.today().isoformat()
     exposure = store.get("exposure") or {}
@@ -4210,7 +4318,8 @@ def build_recommendations(store):
                 "price": p.get("price"), "long_term_score": p.get("long_term_score"),
                 "quality_score": p.get("quality_score"), "analyst_score": p.get("analyst_score"),
                 "timing_score": p.get("timing_score"), "trend_met": tt.get("criteria_met"),
-                "trend_total": tt.get("criteria_total"), "entry_tag": p.get("entry_tag")}
+                "trend_total": tt.get("criteria_total"), "entry_tag": p.get("entry_tag"),
+                "value_tag": p.get("value_tag"), "valuation": p.get("valuation")}
     long_recs = [_long_row(p) for p in enter[:REC_LONG_MAX]]
     dips = sorted([p for p in picks if p.get("entry_tag") == "dip"],
                   key=lambda p: ((p.get("sector") or "לא ידוע") == lead, p.get("long_term_score") or 0), reverse=True)
@@ -4224,9 +4333,11 @@ def build_recommendations(store):
         r["first_tranche_pct"] = round(r["weight_pct"] * LONG_TERM_DIP_FIRST_TRANCHE, 1)
     # measured like everything else: flag today's entries so each entry type gets its own graded sim
     enter_set, dip_set = {r["ticker"] for r in long_recs}, {r["ticker"] for r in dip_recs}
+    value_set = {p["ticker"] for p in picks if p.get("value_tag")}
     for e in todays:
         e["rec_long_enter"] = e["ticker"] in enter_set
         e["rec_long_dip"] = e["ticker"] in dip_set
+        e["rec_long_value"] = e["ticker"] in value_set
     watch = [{"ticker": p["ticker"], "sector": p.get("sector"), "long_term_score": p.get("long_term_score"),
               "timing_score": p.get("timing_score")} for p in picks if p.get("entry_tag") == "wait"]
 
@@ -4893,6 +5004,7 @@ def main():
         update_portfolio_simulation(prediction_store, "rec_short", "portfolio_sim_recommendations")
         update_portfolio_simulation(prediction_store, "rec_long_enter", "portfolio_sim_long_enter")
         update_portfolio_simulation(prediction_store, "rec_long_dip", "portfolio_sim_long_dip")
+        update_portfolio_simulation(prediction_store, "rec_long_value", "portfolio_sim_long_value")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 

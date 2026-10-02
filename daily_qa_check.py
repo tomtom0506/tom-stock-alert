@@ -326,7 +326,7 @@ PRICE_MAX_DECIMALS = 2
 STALE_SIM_DAYS = 5              # a parallel portfolio sim not advanced for this many days is stuck
 # v5.12.0: sims driven by recommendation flags only advance on days that
 # actually had a recommendation of that kind - quiet stretches are normal
-SPARSE_SIMS = {"portfolio_sim_recommendations", "portfolio_sim_long_enter", "portfolio_sim_long_dip"}
+SPARSE_SIMS = {"portfolio_sim_recommendations", "portfolio_sim_long_enter", "portfolio_sim_long_dip", "portfolio_sim_long_value"}
 
 # metrics recorded daily (see record_daily_log) whose outputs should NOT be
 # empty for DEAD_FEATURE_DAYS straight trading days in normal operation
