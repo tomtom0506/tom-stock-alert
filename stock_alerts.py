@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.13.0"
+BACKEND_VERSION = "5.13.1"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -2779,6 +2779,44 @@ def _round_price(v, digits=2):
         return v
 
 
+def _add_sessions(d_iso, n):
+    d, k = date.fromisoformat(d_iso), 0
+    while k < n:
+        d += timedelta(days=1)
+        k += d.weekday() < 5
+    return d.isoformat()
+
+
+def strategy_view_for(ticker, book):
+    """v5.13.1 - the one line 'בדוק מניה' shows about the research-validated
+    strategies: buy / hold / sell / nothing, and until when. Read from the
+    strategy book (rebuilt after every US close for all S&P 500 names), so
+    the answer is exactly what the strategy portfolios are doing."""
+    if not book or not book.get("session"):
+        return {"action": "unknown"}
+    tickers = set(book.get("tickers") or [])
+    if tickers and ticker not in tickers:
+        return {"action": "not_applicable", "session": book["session"]}
+    session = book["session"]
+    for key in ("A", "B"):
+        b = book.get(key) or {}
+        for h in b.get("holdings") or []:
+            if h["ticker"] == ticker:
+                left = int(h.get("sessions_left") or 0)
+                return {"action": "sell" if left <= 1 else "hold", "strategy": key, "label": b.get("label"),
+                        "entry_date": h.get("entry_date"), "sessions_left": left,
+                        "exit_date": _add_sessions(session, max(left, 1)), "session": session}
+    for key in ("A", "B"):
+        b = book.get(key) or {}
+        for pnd in b.get("pending") or []:
+            if pnd["ticker"] == ticker:
+                hold = BOOK_STRATEGIES[key]["hold"]
+                return {"action": "buy", "strategy": key, "label": b.get("label"),
+                        "entry_date": _add_sessions(session, 1), "exit_date": _add_sessions(session, hold),
+                        "session": session}
+    return {"action": "none", "session": session}
+
+
 def compute_single_ticker_score(ticker, technical_factors, fundamental_factors, market_regime, rs_reference=None):
     """The 'בדוק מניה' on-demand analysis (see check_stock.py): reuses the
     exact same scoring engines the daily Top10 pipeline uses
@@ -2926,6 +2964,10 @@ def analyze_single_ticker(ticker):
     # the scoring inputs are byte-for-byte unchanged; any failure here only
     # drops the chart, never the whole check.
     result["chart"] = get_price_chart_data(ticker)
+    try:
+        result["strategy_view"] = strategy_view_for(ticker, load_json(PREDICTIONS_FILE, {}).get("strategy_book"))
+    except Exception as e:
+        print(f"Strategy view failed for {ticker}: {e}")
     return result
 
 
@@ -4779,8 +4821,8 @@ def run_strategy_book(store, force=False):
     session_complete = not (last_bar == ny.date() and (ny.hour, ny.minute) < US_CLOSE_NY)
     session = last_bar if session_complete else spy.index[-2].date()
     book = store.get("strategy_book") or {}
-    if not force and book.get("session") == session.isoformat():
-        return
+    if not force and book.get("session") == session.isoformat() and book.get("tickers"):
+        return  # (a book built before v5.13.1 has no ticker list - rebuild it once)
     O, H, L, C, V = _download_book_panels(sorted(set(sp)))
     if C.empty:
         return
@@ -4792,7 +4834,7 @@ def run_strategy_book(store, force=False):
     sigs = compute_book_signals(O, H, L, C, V, spy)
     start_i = 200
     out = {"session": session.isoformat(), "generated_at": datetime.now(timezone.utc).isoformat(),
-           "universe": int(C.shape[1]), "bars": int(C.shape[0]),
+           "universe": int(C.shape[1]), "bars": int(C.shape[0]), "tickers": sorted(C.columns),
            "research": "theory lab stages 1-3 (26y, 500 stocks): A +1.0%/trade vs market t=4.9, 9/9 variants; "
                        "B +2.0%/trade t=3.6, 10/11 variants (median ~0 - a few big winners carry it)"}
     for key, (sig, rank) in sigs.items():

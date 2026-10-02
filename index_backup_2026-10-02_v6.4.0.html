@@ -1010,15 +1010,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.4.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.4.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.4.1", date: "2026-10-02", items: [
-    "🧪 'בדוק מניה' מציג שורה אחת לפי האסטרטגיות שנבדקו על 26 שנה: לקנות (בפתיחה הבאה, ועד מתי להחזיק), להחזיק עד תאריך, למכור, או שאין אות. למניות מחוץ ל-S&P 500 מצוין שהאסטרטגיות רלוונטיות רק למניות המדד. התשובה לקוחה ישירות מתיקי האסטרטגיה, כך שהיא תמיד תואמת את מה שהם עושים (backend 5.13.1).",
-  ]},
   { version: "6.4.0", date: "2026-10-02", items: [
     "🧪 שתי האסטרטגיות שעברו את מעבדת התיאוריות (26 שנה, 500 מניות, 3 שלבי בדיקה) נכנסו לאפליקציה: 🔄 ירידה חדה (מניית S&P 500 שירדה 12%+ ב-5 ימים מעל ממוצע 200 - קנייה בפתיחה הבאה, מכירה אחרי 10 ימי מסחר) ו-🚀 קפיצת חדשות (פער פתיחה 5%+, ווליום פי 3, סגירה חזקה, כשה-S&P מעל ממוצע 200 - החזקה 60 ימי מסחר). בלי סטופ ובלי יעד, בדיוק כמו במחקר (backend 5.13.0).",
     "⚡ החלק של הטווח הקצר בטאב ההמלצות מבוסס עכשיו על שתי האסטרטגיות: לכל אות - מתי לקנות, מתי בדיוק למכור ולמה. הכללים הקודמים (שהפסידו ברקורד שלהם) הוחלפו, והרקורד שלהם נשמר להשוואה.",
@@ -2090,18 +2087,6 @@ function scoreTileHtml(title, value, sub) {
     </div>`;
 }
 
-// v6.4.1: one line in "בדוק מניה" - what the research-validated strategies say: buy / hold / sell, and until when
-function strategyLineHtml(v) {
-  if (!v || v.action === "unknown") return "";
-  const box = (bg, color, text, border) => `<div style="background:${bg}; color:${color}; ${border ? `border:1px solid ${border};` : ""} border-radius:10px; padding:8px 12px; font-size:13px; font-weight:700; text-align:center; margin:-2px 0 12px;">🧪 ${text}</div>`;
-  const d = x => fmtDateIL(x).slice(0, 5);
-  if (v.action === "buy") return box("var(--up-bg)", "var(--up)", `${v.label}: לקנות בפתיחה הבאה · להחזיק עד ${d(v.exit_date)}`);
-  if (v.action === "hold") return box("rgba(255,215,106,0.12)", "#ffd76a", `${v.label}: להחזיק עד ${d(v.exit_date)} (עוד ${v.sessions_left} ימי מסחר)`);
-  if (v.action === "sell") return box("var(--down-bg)", "var(--down)", `${v.label}: למכור בסגירה של ${d(v.exit_date)}`);
-  if (v.action === "not_applicable") return box("transparent", "var(--text-faint)", "אסטרטגיות שנבדקו: רלוונטיות רק למניות S&amp;P 500", "var(--border)");
-  return box("transparent", "var(--text-dim)", "אסטרטגיות שנבדקו: אין אות - לא לקנות לפיהן כרגע", "var(--border)");
-}
-
 function scoreBreakdownCardHtml(data) {
   if (!data) return "";
   if (data.error) {
@@ -2229,7 +2214,6 @@ function scoreBreakdownCardHtml(data) {
       </div>
       ${scoresHtml}
       <div style="text-align:center; margin-bottom:10px;">${verdictTagHtml(verdict)}</div>
-      ${strategyLineHtml(data.strategy_view)}
       <div style="font-size:12px; color:var(--text-faint); display:flex; justify-content:space-between; margin-bottom:6px;">
         <span>מחיר: <span class="mono">${fmtTickerPrice(data.ticker, data.price)}</span></span>
         <span>תמיכה: <span class="mono">${fmtTickerPrice(data.ticker, data.support)}</span></span>
