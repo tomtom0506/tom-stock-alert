@@ -93,7 +93,7 @@ class Lab2(S1.Lab):
         ewc = self.ew_cum.values
         return (1 + self.ew_intra[e]) * (ewc[x] / ewc[e]) - 1
 
-    def trades(self, signal, hold, gate=None):
+    def trades(self, signal, hold, gate=None, cost=None):
         """Same rules as stage 1 (enter open t+1, exit close of t+hold, no
         overlapping trades per ticker). gate: bool Series by date - no NEW
         trades on days it is False (the exposure rule)."""
@@ -113,7 +113,7 @@ class Lab2(S1.Lab):
                 x = min(e + hold - 1, n - 1)
                 if not (np.isfinite(O[e, j]) and O[e, j] > 0 and np.isfinite(C[x, j])):
                     continue
-                net = (C[x, j] / O[e, j]) * (1 - COST) ** 2 - 1
+                net = (C[x, j] / O[e, j]) * (1 - (COST if cost is None else cost)) ** 2 - 1
                 out.append((idx[i], t, net, net - self.bench(i, x), x - e + 1))
                 nxt = x
         return pd.DataFrame(out, columns=["date", "ticker", "ret", "excess", "days"]).set_index("date")
