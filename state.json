@@ -1180,5 +1180,10 @@
   "US_FICO_bigmove_2026-10-02": true,
   "US_EFXT_bigmove_2026-10-02": true,
   "US_COHR_bigmove_2026-10-02": true,
-  "US_CTVA_bigmove_2026-10-02": true
+  "US_CTVA_bigmove_2026-10-02": true,
+  "US_SYNA_bigmove_2026-10-02": true,
+  "US_IBRX_bigmove_2026-10-02": true,
+  "US_MXL_bigmove_2026-10-02": true,
+  "US_IMOS_bigmove_2026-10-02": true,
+  "US_STX_bigmove_2026-10-02": true
 }
