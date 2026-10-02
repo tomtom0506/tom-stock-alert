@@ -170,6 +170,31 @@ def check_syntax(issues):
 
 
 STALE_FEED_MAX_HOURS = 30   # on a trading day, a price file older than this means the feed stopped updating
+US_OPEN_UTC = (13, 30)      # 09:30 New York (EDT); during EST the open is 14:30 UTC - the earlier bound is the safe one
+
+
+def _last_session_date(updated_at):
+    """Date of the latest US trading session whose prices a snapshot can
+    contain. v5.12.1 fix (second false alarm, 2.10.2026): the price job
+    also runs overnight, so a file written at 07:29 UTC still holds the
+    previous day's closes - and comparing it with the 21:57 UTC snapshot of
+    the night before compared one session with itself. A snapshot written
+    before the US open belongs to the previous weekday's session."""
+    if not updated_at:
+        return None
+    try:
+        ts = datetime.fromisoformat(updated_at)
+    except ValueError:
+        return None
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+    ts = ts.astimezone(timezone.utc)
+    d = ts.date()
+    if (ts.hour, ts.minute) < US_OPEN_UTC:
+        d -= timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d.isoformat()
 
 
 def check_stagnation(prices_data, today_str, issues, info, updated_at=None):
@@ -184,7 +209,7 @@ def check_stagnation(prices_data, today_str, issues, info, updated_at=None):
     before the day the current prices were written, i.e. the previous
     session. A genuinely stuck feed is caught separately by age
     (STALE_FEED_MAX_HOURS)."""
-    ref_date = (updated_at or "")[:10] or today_str
+    ref_date = _last_session_date(updated_at) or today_str
     if updated_at:
         try:
             upd = datetime.fromisoformat(updated_at)
