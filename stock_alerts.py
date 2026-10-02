@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.14.1"
+BACKEND_VERSION = "5.16.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -232,7 +232,9 @@ def run_watchlist_alerts(state, prediction_store=None):
             e["ticker"] for e in prediction_store.get("history", []) if e.get("date") == today_iso and e.get("top10")
         ] + [p["ticker"] for p in ((prediction_store.get("tomorrow_forecast") or {}).get("picks") or [])] + [
             p["ticker"] for p in ((prediction_store.get("long_term_picks") or {}).get("picks") or [])
-        ] + [h["ticker"] for h in ((prediction_store.get("live_portfolio") or {}).get("holdings") or [])]
+        ] + [h["ticker"] for h in ((prediction_store.get("live_portfolio") or {}).get("holdings") or [])] + [
+            h["ticker"] for k in ("A", "B") for h in (((prediction_store.get("strategy_book") or {}).get(k) or {}).get("holdings") or [])
+        ]  # v5.15.0: unusual-move alerts need a live price for every list the user follows
     crypto_exposed_tickers = load_json(CRYPTO_EXPOSED_FILE, [])
     # keeps the dynamic predictions list's price/% line fresh every 15 min,
     # same as the manual watchlist - without re-running the full daily engine
@@ -5033,6 +5035,8 @@ def run_strategy_book(store, force=False):
     sigs = compute_book_signals(O, H, L, C, V, spy)
     start_i = 200
     out = {"session": session.isoformat(), "generated_at": datetime.now(timezone.utc).isoformat(),
+           # first session the book ran LIVE (everything before it is backfill) - kept across rebuilds
+           "live_start": (store.get("strategy_book") or {}).get("live_start") or "2026-10-01",
            "universe": int(C.shape[1]), "bars": int(C.shape[0]), "tickers": sorted(C.columns),
            "research": "theory lab stages 1-3 (26y, 500 stocks): A +1.0%/trade vs market t=4.9, 9/9 variants; "
                        "B +2.0%/trade t=3.6, 10/11 variants (median ~0 - a few big winners carry it)"}
@@ -5043,6 +5047,308 @@ def run_strategy_book(store, force=False):
             res["spy_same_window_pct"] = round((float(sw.iloc[-1]) / float(sw.iloc[0]) - 1) * 100, 2) if len(sw) > 1 else None
         out[key] = res
     store["strategy_book"] = out
+
+
+# ===========================================================================
+# v5.15.0 - 🚨 unusual moves + 📰 "why?" + 📚 event log.
+# Every run: any stock on one of the user's lists that moves >= 7% today
+# triggers ONE Telegram alert per ticker per day, with the latest free
+# Yahoo headlines and a keyword-based guess at the kind of news. Every
+# event is logged, and its outcome 5/10/20 sessions later is filled in
+# from the daily snapshots, so over time the log shows how each kind of
+# news-driven move actually played out. Information only - it does not
+# change any recommendation (no historical news data exists to test a rule).
+# ===========================================================================
+MOVE_ALERT_PCT = 7.0
+MOVE_EVENTS_MAX = 600
+MOVE_OUTCOME_SESSIONS = (5, 10, 20)
+NEWS_MAX_AGE_DAYS = 3
+NEWS_CATEGORIES = [
+    ("earnings", "דוח כספי / תחזית", ["earnings", "results", "quarter", "guidance", "outlook", "forecast", "eps", "revenue", "beats", "misses", "profit warning"]),
+    ("rating", "שינוי דירוג אנליסטים", ["downgrade", "upgrade", "price target", "rating", "initiates", "analyst", "overweight", "underweight", "outperform"]),
+    ("competition", "תחרות / היצע", ["competition", "competitor", "rival", "capacity", "market share", "price war", "pricing pressure", "expansion", "expand", "double"]),
+    ("legal", "משפט / רגולציה", ["lawsuit", "sues", "probe", "investigation", "sec ", "fda", "regulator", "antitrust", "recall", "ban", "tariff", "fine"]),
+    ("deal", "מיזוג / רכישה", ["acquire", "acquisition", "merger", "buyout", "takeover", "deal", "spin-off", "stake", "bid"]),
+    ("offering", "הנפקה / דילול", ["offering", "dilution", "convertible", "share sale", "secondary"]),
+    ("macro", "שוק / מאקרו", ["fed ", "federal reserve", "inflation", "rate cut", "rate hike", "jobs report", "wall street", "stock market"]),
+]
+
+
+def _parse_news_item(item):
+    """yfinance has two shapes: old flat dicts, and (1.x) {'content': {...}}."""
+    c = item.get("content") if isinstance(item.get("content"), dict) else item
+    title = c.get("title")
+    if not title:
+        return None
+    provider = c.get("provider") or {}
+    publisher = provider.get("displayName") if isinstance(provider, dict) else None
+    publisher = publisher or c.get("publisher")
+    url = ((c.get("canonicalUrl") or {}).get("url") if isinstance(c.get("canonicalUrl"), dict) else None) \
+        or ((c.get("clickThroughUrl") or {}).get("url") if isinstance(c.get("clickThroughUrl"), dict) else None) or c.get("link")
+    when = c.get("pubDate") or c.get("displayTime")
+    if not when and c.get("providerPublishTime"):
+        try:
+            when = datetime.fromtimestamp(int(c["providerPublishTime"]), tz=timezone.utc).isoformat()
+        except Exception:
+            when = None
+    return {"title": str(title)[:200], "publisher": publisher, "url": url, "published": when}
+
+
+def fetch_headlines(ticker, limit=5):
+    try:
+        raw = yf.Ticker(ticker).news or []
+    except Exception as e:
+        print(f"News fetch failed for {ticker}: {e}")
+        return []
+    out, cutoff = [], datetime.now(timezone.utc) - timedelta(days=NEWS_MAX_AGE_DAYS)
+    for it in raw:
+        n = _parse_news_item(it) if isinstance(it, dict) else None
+        if not n:
+            continue
+        try:
+            if n["published"] and datetime.fromisoformat(str(n["published"]).replace("Z", "+00:00")) < cutoff:
+                continue
+        except Exception:
+            pass
+        out.append(n)
+        if len(out) >= limit:
+            break
+    return out
+
+
+def classify_headlines(headlines):
+    """Keyword vote over the titles. Returns (key, Hebrew label)."""
+    if not headlines:
+        return "none", "ללא חדשה ברורה"
+    text = " ".join(h["title"].lower() for h in headlines)
+    best, best_n = None, 0
+    for key, label, words in NEWS_CATEGORIES:
+        n = sum(text.count(w) for w in words)
+        if n > best_n:
+            best, best_n = (key, label), n
+    return best if best else ("other", "חדשה אחרת")
+
+
+def _followed_lists(store):
+    """{ticker: [list labels]} for everything the user follows in the app."""
+    lists = {}
+
+    def add(t, label):
+        if t:
+            lists.setdefault(t, [])
+            if label not in lists[t]:
+                lists[t].append(label)
+    book = store.get("strategy_book") or {}
+    for k, lab in (("A", "תיק A"), ("B", "תיק B")):
+        for h in ((book.get(k) or {}).get("holdings") or []):
+            add(h["ticker"], lab)
+    for h in ((store.get("live_portfolio") or {}).get("holdings") or []):
+        add(h["ticker"], "התיק החי")
+    for h in ((store.get("monthly_portfolio") or {}).get("holdings") or []):
+        add(h["ticker"], "תיק חודשי")
+    for p in ((store.get("long_term_picks") or {}).get("picks") or []):
+        add(p["ticker"], "טווח ארוך")
+    today = date.today().isoformat()
+    for e in store.get("history", []):
+        if e.get("date") == today and e.get("top10"):
+            add(e["ticker"], "Top10")
+    for h in load_json(MY_PORTFOLIO_FILE, []) or []:
+        add(h.get("ticker"), "התיק שלי")
+    return lists
+
+
+def _price_session_date():
+    """Which US session today's live % change belongs to: the current one
+    from the 09:30 New York open, otherwise the previous weekday's (so a
+    weekend or pre-market run never re-alerts Friday's move as a new day)."""
+    ny = _ny_now()
+    d = ny.date()
+    if d.weekday() >= 5 or (ny.hour, ny.minute) < (9, 30):
+        d -= timedelta(days=1)
+        while d.weekday() >= 5:
+            d -= timedelta(days=1)
+    return d.isoformat()
+
+
+def scan_unusual_moves(store, send=True):
+    prices = (load_json(CURRENT_PRICES_FILE, {}) or {}).get("prices") or {}
+    today = _price_session_date()
+    log = store.setdefault("move_events", [])
+    already = {(e["date"], e["ticker"]) for e in log}
+    lists = _followed_lists(store)
+    sector = {e["ticker"]: e.get("sector") for e in store.get("history", []) if e.get("sector")}
+    new = []
+    for t, labels in lists.items():
+        lp = prices.get(t) or {}
+        pct = lp.get("pct_change")
+        if pct is None or not np.isfinite(pct) or abs(pct) < MOVE_ALERT_PCT or (today, t) in already:
+            continue
+        heads = fetch_headlines(t)
+        cat, cat_label = classify_headlines(heads)
+        ev = {"date": today, "ticker": t, "pct": round(float(pct), 2), "price": _round_price(lp.get("price")),
+              "lists": labels, "sector": sector.get(t), "category": cat, "category_label": cat_label,
+              "headlines": heads[:3], "detected_at": datetime.now(timezone.utc).isoformat(), "outcome": {}}
+        log.append(ev)
+        new.append(ev)
+    store["move_events"] = log[-MOVE_EVENTS_MAX:]
+    if send and new:
+        for ev in new:
+            arrow = "🔺" if ev["pct"] > 0 else "🔻"
+            lines = [f"{arrow} {ev['ticker']} {ev['pct']:+.1f}% היום · {', '.join(ev['lists'])}",
+                     f"📰 סיבה משוערת: {ev['category_label']}"]
+            for h in ev["headlines"]:
+                lines.append(f"• {h['title']}" + (f" ({h['publisher']})" if h.get("publisher") else ""))
+            if not ev["headlines"]:
+                lines.append("לא נמצאו כותרות מהימים האחרונים ב-Yahoo")
+            lines.append("מידע בלבד - לא משנה אף המלצה באפליקציה.")
+            try:
+                send_telegram_message("🚨 תנועה חריגה\n" + "\n".join(lines))
+            except Exception as e:
+                print(f"Move alert telegram failed: {e}")
+    return new
+
+
+def update_move_outcomes(store):
+    """Fill in the return 5/10/20 sessions after each event, measured from
+    the event day's close (the first clean daily snapshot after the event)."""
+    by = {}
+    for e in store.get("history", []):
+        if e.get("price") is not None and not e.get("stale_snapshot"):
+            by.setdefault(e["ticker"], {})[e["date"]] = float(e["price"])
+    for ev in store.get("move_events", []):
+        series = by.get(ev["ticker"])
+        if not series:
+            continue
+        days = sorted(d for d in series if d > ev["date"])
+        if not days:
+            continue
+        base = series[days[0]]
+        ev["base_price"] = round(base, 2)
+        for n in MOVE_OUTCOME_SESSIONS:
+            if len(days) > n and str(n) not in ev["outcome"]:
+                ev["outcome"][str(n)] = round((series[days[n]] / base - 1) * 100, 2)
+    stats = {}
+    for ev in store.get("move_events", []):
+        key = (ev["category"], "up" if ev["pct"] > 0 else "down")
+        st = stats.setdefault(key, {"category": ev["category"], "label": ev["category_label"],
+                                    "direction": key[1], "n": 0, **{f"n{k}": 0 for k in MOVE_OUTCOME_SESSIONS},
+                                    **{f"sum{k}": 0.0 for k in MOVE_OUTCOME_SESSIONS}})
+        st["n"] += 1
+        for k in MOVE_OUTCOME_SESSIONS:
+            v = ev["outcome"].get(str(k))
+            if v is not None:
+                st[f"n{k}"] += 1
+                st[f"sum{k}"] += v
+    rows = []
+    for st in stats.values():
+        row = {"category": st["category"], "label": st["label"], "direction": st["direction"], "events": st["n"]}
+        for k in MOVE_OUTCOME_SESSIONS:
+            row[f"avg_{k}d_pct"] = round(st[f"sum{k}"] / st[f"n{k}"], 2) if st[f"n{k}"] else None
+            row[f"n_{k}d"] = st[f"n{k}"]
+        rows.append(row)
+    rows.sort(key=lambda r: -r["events"])
+    store["move_event_stats"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows,
+                                 "total_events": len(store.get("move_events", []))}
+
+
+# ===========================================================================
+# v5.16.0 - promotion / demotion rule. A list labeled 🧪 earns 🟢 "promising"
+# after 30 live trading days ahead of the S&P 500, and ✅ after 60 days if it
+# beats the S&P 500 by 3%+ AND in more than half of the months. The two
+# validated strategies keep ✅ only while their LIVE record (backfill
+# excluded) is not trailing the S&P 500 by more than 3% after 30+ days.
+# ===========================================================================
+PROMISING_SESSIONS = 30
+PROVEN_SESSIONS = 60
+PROVEN_EXCESS_PCT = 3.0
+DEMOTE_EXCESS_PCT = -3.0
+
+
+def _series_from_log(log, value_key="value_end", start_key="value_start", since=None):
+    """[(date, value)] with a base point, from a sim daily_log."""
+    rows = [r for r in (log or []) if r.get(value_key) is not None and (since is None or r["date"] >= since)]
+    if not rows:
+        return []
+    base = rows[0].get(start_key)
+    out = [(rows[0]["date"], float(base))] if base else []
+    out += [(r["date"], float(r[value_key])) for r in rows]
+    return out
+
+
+def _value_on_or_before(series, d):
+    v = None
+    for dd, val in series:
+        if dd <= d:
+            v = val
+        else:
+            break
+    return v
+
+
+def evaluate_list(series, spx, validated=False):
+    """series/spx: sorted [(date, value)]. Returns the status record."""
+    if len(series) < 2:
+        return {"status": "validated" if validated else "experiment", "sessions": 0}
+    start, end = series[0][0], series[-1][0]
+    ret = (series[-1][1] / series[0][1] - 1) * 100
+    s0, s1 = _value_on_or_before(spx, start), _value_on_or_before(spx, end)
+    spx_ret = (s1 / s0 - 1) * 100 if s0 and s1 else None
+    excess = round(ret - spx_ret, 2) if spx_ret is not None else None
+    sessions = len(series) - 1
+    months = {}
+    for d, v in series:
+        months.setdefault(d[:7], []).append((d, v))
+    beat = total = 0
+    prev_end = None
+    for m in sorted(months):
+        pts = months[m]
+        a_d, a_v = (prev_end if prev_end else pts[0])
+        b_d, b_v = pts[-1]
+        prev_end = pts[-1]
+        if b_d == a_d:
+            continue
+        sa_, sb_ = _value_on_or_before(spx, a_d), _value_on_or_before(spx, b_d)
+        if not (sa_ and sb_):
+            continue
+        total += 1
+        beat += (b_v / a_v - 1) > (sb_ / sa_ - 1)
+    beat_pct = round(beat / total * 100, 1) if total else None
+    if validated:
+        status = "warning" if sessions >= PROMISING_SESSIONS and excess is not None and excess < DEMOTE_EXCESS_PCT else "validated"
+    elif sessions >= PROVEN_SESSIONS and excess is not None and excess >= PROVEN_EXCESS_PCT and (beat_pct or 0) > 50:
+        status = "proven"
+    elif sessions >= PROMISING_SESSIONS and excess is not None and excess > 0:
+        status = "promising"
+    else:
+        status = "experiment"
+    return {"status": status, "sessions": sessions, "start": start, "end": end, "return_pct": round(ret, 2),
+            "spx_return_pct": round(spx_ret, 2) if spx_ret is not None else None, "excess_pct": excess,
+            "months": total, "months_beating_pct": beat_pct}
+
+
+def build_list_status(store):
+    spx = _series_from_log((store.get("index_sim_sp500") or {}).get("daily_log"))
+    out = {}
+    lists = [
+        ("top10", "⚡ Top10", "portfolio_sim", False),
+        ("long_term", "🏛 טווח ארוך (כל הרשימה)", "long_term_sim", False),
+        ("long_enter", "🏛 תזמון חיובי", "portfolio_sim_long_enter", False),
+        ("long_dip", "🏛 בתיקון", "portfolio_sim_long_dip", False),
+        ("long_value", "🏛 💎 זולה מול עצמה", "portfolio_sim_long_value", False),
+    ]
+    for key, label, sim_key, validated in lists:
+        log = (store.get(sim_key) or {}).get("daily_log") or []
+        ser = _series_from_log(log) if log and "value_start" in log[0] else [(r["date"], float(r["value_end"])) for r in log if r.get("value_end") is not None]
+        out[key] = {"label": label, **evaluate_list(ser, spx, validated)}
+    book = store.get("strategy_book") or {}
+    live_start = book.get("live_start")
+    for k in ("A", "B"):
+        b = book.get(k) or {}
+        ser = [(r["date"], float(r["value"])) for r in (b.get("daily_log") or []) if live_start and r["date"] >= live_start]
+        out[f"book_{k}"] = {"label": b.get("label", k), "live_since": live_start, **evaluate_list(ser, spx, validated=True)}
+    out["_rules"] = {"promising_sessions": PROMISING_SESSIONS, "proven_sessions": PROVEN_SESSIONS,
+                     "proven_excess_pct": PROVEN_EXCESS_PCT, "demote_excess_pct": DEMOTE_EXCESS_PCT}
+    store["list_status"] = out
 
 
 def main():
@@ -5132,6 +5438,12 @@ def main():
     run_watchlist_alerts(state, prediction_store)
 
     try:
+        scan_unusual_moves(prediction_store)
+        update_move_outcomes(prediction_store)
+    except Exception as e:
+        print(f"Unusual-move scan failed: {type(e).__name__}: {e}")
+
+    try:
         update_my_portfolio(prediction_store)
     except Exception as e:
         print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
@@ -5164,6 +5476,7 @@ def main():
         manage_live_portfolio(prediction_store, today_entries_for_mp)
         build_portfolios_view(prediction_store)
         build_strategy_comparison(prediction_store)
+        build_list_status(prediction_store)
     except Exception as e:
         print(f"Portfolios failed: {type(e).__name__}: {e}")
 

@@ -592,6 +592,7 @@
   </div>
 
   <div id="homeExposureCard" data-tab="home"></div>
+  <div id="homeMovesCard" data-tab="home"></div>
   <div id="homeLayersCard" data-tab="home"></div>
   <div class="stats-row hidden" id="statsRow" data-tab="home">
     <div class="stat-tile" id="statAccuracyTile" style="cursor:pointer;"><div class="stat-num mono" id="statAccuracy">—</div><div class="stat-label">אחוז הצלחת חיזוי ℹ️</div></div>
@@ -612,6 +613,11 @@
   <div id="recsSection" data-tab="recs">
     <div class="section-title">🎯 סיכום והמלצות</div>
     <div id="recsBody"></div>
+  </div>
+
+  <div id="eventLogSection" data-tab="simulation" data-subtab="performance">
+    <div class="section-title">📚 יומן תנועות חריגות</div>
+    <div id="eventLogBody"></div>
   </div>
 
   <div id="strategiesSection" data-tab="simulation" data-subtab="performance">
@@ -726,7 +732,7 @@
 
   <div id="predictionsSection" class="hidden" data-tab="stocks" data-subtab="top10">
     <div style="background:rgba(255,215,106,0.08); border:1px solid rgba(255,215,106,0.35); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; line-height:1.6; color:var(--text-dim);">
-      🧪 <b>ניסוי - טווח קצר (ימים עד שבועות).</b> מחקר של 26 שנה לא מצא לנוסחה יתרון מובהק על פני החזקה של כל המניות, ולכן זו לא בסיס להשקעה משמעותית. לכל מניה מוצגים מראש יעד וסטופ.
+      <span id="top10StatusChip"></span><br>🧪 <b>ניסוי - טווח קצר (ימים עד שבועות).</b> מחקר של 26 שנה לא מצא לנוסחה יתרון מובהק על פני החזקה של כל המניות, ולכן זו לא בסיס להשקעה משמעותית. לכל מניה מוצגים מראש יעד וסטופ.
     </div>
     <div id="starredSection" class="hidden">
       <div class="section-title">⭐ מניות במעקב</div>
@@ -1010,12 +1016,21 @@
 </div>
 
 <script>
-const APP_VERSION = "6.5.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.7.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.7.0", date: "2026-10-03", items: [
+    "כלל קידום והורדה אוטומטי לכל רשימה: רשימה 🧪 מקבלת 🟢 'מבטיח' אחרי 30 ימי מסחר שבהם היא לפני ה-S&P 500, ו-✅ 'הוכח בזמן אמת' אחרי 60 ימים אם היא מנצחת את ה-S&P ב-3%+ וגם ביותר ממחצית החודשים - ואז התגים שלה הופכים בעצמם ל-✅. שתי האסטרטגיות שעברו את המחקר שומרות על ה-✅ רק כל עוד בזמן אמת (בלי ההיסטוריה שחושבה לאחור) הן לא מפגרות אחרי ה-S&P ביותר מ-3% אחרי 30 ימים; אחרת - ⚠️ (backend 5.16.0).",
+    "ליד כל רשימה מוצג המצב וההתקדמות, למשל '🧪 ניסוי · 12/60 ימים · +1.2% מול S&P': בטאב ההמלצות, בטווח הארוך, ב-Top10 ובהשוואת האסטרטגיות.",
+  ]},
+  { version: "6.6.0", date: "2026-10-03", items: [
+    "🚨 התראה על תנועות חריגות: מניה מאחת הרשימות שלך (תיקי האסטרטגיה, התיק החי, התיק החודשי, התיק שלי, טווח ארוך, Top10) שזזה 7%+ ביום - הודעת טלגרם אחת לכל מניה ביום, וכרטיס בטאב 'היום' (backend 5.15.0).",
+    "📰 'למה זה קרה?': עם כל התראה - הכותרות האחרונות מ-Yahoo (עם מקור ולינק) וסיווג אוטומטי של סוג החדשה לפי מילות מפתח (דוח, דירוג, תחרות, משפט/רגולציה, מיזוג, הנפקה, מאקרו). מידע בלבד - לא משנה אף המלצה.",
+    "📚 יומן תנועות חריגות (סימולציה ← ביצועים): כל אירוע נרשם, יחד עם מה שקרה למניה 5, 10 ו-20 ימי מסחר אחר כך, וממוצעים לפי סוג החדשה וכיוון התנועה - כדי ללמוד עם הזמן איך מגיבות מניות לכל סוג חדשה.",
+  ]},
   { version: "6.5.2", date: "2026-10-03", items: [
     "✅ שמור עכשיו רק למה שהוכח: אותות שתי האסטרטגיות (טווח קצר בטאב ההמלצות) וכלל החשיפה. ברשימות שלא נבדקו היסטורית - Top10, טווח ארוך, תג ההמלצה בכרטיסים וב'בדוק מניה' - התגים הוחלפו ב-🧪 ניסוי (למשל '🧪 תזמון חיובי · ניסוי' במקום '✅ מומלץ לקנייה כרגע'), כדי שמה שהאפליקציה מציגה יתאים למה שהיא באמת יודעת.",
   ]},
@@ -2088,9 +2103,31 @@ const VERDICT_META = {
   neutral: { text: "⚪ אין איתות ברור כרגע", color: "var(--text-faint)" },
 };
 
+// v6.7.0: promotion / demotion status of every list (build_list_status in the backend)
+let listStatus = {};
+function isProven(key) { return (listStatus[key] || {}).status === "proven"; }
+function listStatusChip(key, opts) {
+  const st = listStatus[key];
+  if (!st) return "";
+  const rules = listStatus._rules || { proven_sessions: 60 };
+  const ex = st.excess_pct != null ? ` · ${signedPct(st.excess_pct, 1)} מול S&amp;P` : "";
+  const M = {
+    experiment: ["🧪 ניסוי", "var(--text-dim)", "var(--border)"],
+    promising: ["🟢 מבטיח", "#5ee6a0", "#5ee6a055"],
+    proven: ["✅ הוכח בזמן אמת", "#5ee6a0", "#5ee6a0"],
+    validated: ["✅ נבדק על 26 שנה", "#5ee6a0", "#5ee6a055"],
+    warning: ["⚠️ מפגר אחרי S&amp;P בזמן אמת", "#ffd76a", "#ffd76a"],
+  }[st.status] || ["🧪 ניסוי", "var(--text-dim)", "var(--border)"];
+  const progress = (st.status === "validated" || st.status === "warning")
+    ? ` · בזמן אמת: ${st.sessions || 0} ימי מסחר${ex}`
+    : (st.status === "proven" ? ex : ` · ${st.sessions || 0}/${rules.proven_sessions} ימים${ex}`);
+  return `<span style="display:inline-block; font-size:11px; font-weight:700; color:${M[1]}; border:1px solid ${M[2]}; border-radius:999px; padding:2px 9px; margin:${(opts && opts.margin) || "0 0 8px"};">${M[0]}${progress}</span>`;
+}
+
 function verdictTagHtml(verdict, fontSize) {
-  const m = VERDICT_META[verdict];
+  let m = VERDICT_META[verdict];
   if (!m) return "";
+  if (verdict === "buy" && isProven("top10")) m = { text: "✅ תזמון חיובי · הוכח בזמן אמת", color: m.color };
   return `<div style="color:${m.color}; font-size:${fontSize || 13}px; font-weight:700;">${m.text}</div>`;
 }
 
@@ -2830,12 +2867,12 @@ function renderLongTerm(data) {
     return;
   }
   const gate = data.snapshot_gate || {};
-  meta.innerHTML = `${gate.session ? `הציונים לפי סגירת ${fmtDateIL(gate.session)} · המחירים חיים · ` : ""}עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">$${Math.round(sim.value || 100000).toLocaleString("en-US")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
+  meta.innerHTML = `<div>${listStatusChip("long_term")}</div>${gate.session ? `הציונים לפי סגירת ${fmtDateIL(gate.session)} · המחירים חיים · ` : ""}עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">$${Math.round(sim.value || 100000).toLocaleString("en-US")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
   list.innerHTML = picks.map(p => {
     const idx = scoreBadgeRegistry.push(p) - 1;
     const TAGS = {
-      enter: ["#5ee6a0", "🧪 ניסוי · תזמון חיובי"],
-      dip: ["#ffd76a", "🧪 ניסוי · בתיקון"],
+      enter: ["#5ee6a0", isProven("long_enter") ? "✅ אפשר להיכנס · הוכח בזמן אמת" : "🧪 ניסוי · תזמון חיובי"],
+      dip: ["#ffd76a", isProven("long_dip") ? "✅ בתיקון · הוכח בזמן אמת" : "🧪 ניסוי · בתיקון"],
       wait: ["var(--text-faint)", "⏳ להמתין לתזמון"],
     };
     const tg = TAGS[p.entry_tag];
@@ -2875,6 +2912,7 @@ function renderStrategies(data) {
       <div style="min-width:0;">
         <div style="font-size:13px; ${r.layer === "benchmark" ? "color:var(--text-dim);" : "font-weight:700;"}">${r.label}</div>
         <div style="font-size:10.5px; color:var(--text-faint);">${layerName[r.layer] || ""} · מאז ${fmtDateIL(r.start_date)}</div>
+        ${listStatus[r.key] ? listStatusChip(r.key, { margin: "3px 0 0" }) : ""}
       </div>
       <div style="text-align:left;">
         <div class="mono" style="font-weight:800; color:${r.return_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(r.return_pct, 2)}</div>
@@ -2981,7 +3019,7 @@ function renderRecommendations(data) {
       </div>` : `
       <div style="border:1px solid ${x.strategy === "A" ? "var(--border)" : "#ffd76a55"}; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="font-weight:800; font-size:15px;">✅ לקנות ${x.ticker} <span style="font-size:11px; font-weight:600; color:var(--text-dim);">${x.strategy_label}</span></span>
+          <span style="font-weight:800; font-size:15px;">${(listStatus["book_" + x.strategy] || {}).status === "warning" ? `⚠️ ${x.ticker} · האסטרטגיה מפגרת בזמן אמת` : `✅ לקנות ${x.ticker}`} <span style="font-size:11px; font-weight:600; color:var(--text-dim);">${x.strategy_label}</span></span>
           <span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span>
         </div>
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; font-size:12px; text-align:center;">
@@ -2995,7 +3033,7 @@ function renderRecommendations(data) {
       <div style="font-size:12px; color:var(--text-dim);">אף מניית S&amp;P 500 לא עונה היום על התנאים של שתי האסטרטגיות. זה תקין - האותות מגיעים בגלים, בעיקר אחרי ימים סוערים בשוק.</div>`;
   }
   const near = "";
-  parts.push(recCard("⚡ טווח קצר · אסטרטגיות שנבדקו על 26 שנה", bookTrack + shortBody + near + oldRecord + small(`${r.short_rules}${r.book_session ? ` · מחושב לפי סגירת ${fmtDateIL(r.book_session)}` : ""}`)));
+  parts.push(recCard("⚡ טווח קצר · אסטרטגיות שנבדקו על 26 שנה", `<div>${listStatusChip("book_A")} ${listStatusChip("book_B")}</div>` + bookTrack + shortBody + near + oldRecord + small(`${r.short_rules}${r.book_session ? ` · מחושב לפי סגירת ${fmtDateIL(r.book_session)}` : ""}`)));
 
   // 3. long term
   let longBody;
@@ -3009,7 +3047,7 @@ function renderRecommendations(data) {
         const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}${x.value_tag ? ` · <span style="color:#7fd8ff;">💎 זולה מול עצמה</span>` : ""}`;
         const enterHtml = (r.long || []).map(x => `
           <div style="border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">🧪 ${x.ticker} · ניסוי <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">${isProven("long_enter") ? `✅ לקנות ${x.ticker}` : `🧪 ${x.ticker} · ניסוי`} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
             <div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${stats(x)}</div>
           </div>`).join("");
         const dipHtml = (r.long_dip || []).map(x => `
@@ -3024,7 +3062,7 @@ function renderRecommendations(data) {
       ${(r.long_watch || []).length ? `<div style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">👀 במעקב (איכותיות, מחכות לתזמון): ${r.long_watch.map(w => `<b>${w.ticker}</b>`).join(", ")}</div>` : ""}
       ${r.long_rules ? `<div style="font-size:10.5px; color:var(--text-faint); margin-top:6px; line-height:1.6;">${r.long_rules}</div>` : ""}`;
   }
-  parts.push(recCard("🏛 טווח ארוך (חודשים עד שנים)", longBody + small("הרשימה מתעדכנת פעם בחודש לפי איכות עסקית ודירוג אנליסטים. ציון האיכות לא נבדק היסטורית - נמדד מהיום.")));
+  parts.push(recCard("🏛 טווח ארוך (חודשים עד שנים)", `<div>${listStatusChip("long_enter")} ${listStatusChip("long_dip")}</div>` + longBody + small("הרשימה מתעדכנת פעם בחודש לפי איכות עסקית ודירוג אנליסטים. ציון האיכות לא נבדק היסטורית - נמדד מהיום.")));
 
   // 4. holdings warnings
   const w = r.warnings || [];
@@ -3229,6 +3267,64 @@ function renderPortfolios(data) {
     + renderMonthlyPortfolioCard(data);
 }
 
+// ---------- v6.6.0: 🚨 unusual moves + 📚 event log ----------
+function moveHeadlinesHtml(ev) {
+  if (!(ev.headlines || []).length) return `<div style="font-size:11px; color:var(--text-faint); margin-top:4px;">לא נמצאו כותרות מהימים האחרונים</div>`;
+  return ev.headlines.map(h => `<div style="font-size:11.5px; margin-top:4px; line-height:1.5;">• ${h.url ? `<a href="${h.url}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
+}
+
+function renderMovesCard(data) {
+  const el = document.getElementById("homeMovesCard");
+  if (!el) return;
+  const evs = data.move_events || [];
+  if (!evs.length) { el.innerHTML = ""; return; }
+  const last = evs.reduce((m, e) => e.date > m ? e.date : m, "");
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const fresh = (Date.parse(todayIso) - Date.parse(last)) / 864e5 <= 3;   // latest event day, if within the last 3 days (covers weekends)
+  const shown = fresh ? evs.filter(e => e.date === last) : [];
+  if (!shown.length) { el.innerHTML = ""; return; }
+  el.innerHTML = `
+    <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px; border:1px solid #ff9a8a66;">
+      <div style="font-size:13px; font-weight:800; margin-bottom:2px;">🚨 תנועות חריגות · ${fmtDateIL(last)}</div>
+      <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">מניות מהרשימות שלך שזזו 7% ומעלה. מידע בלבד - לא משנה אף המלצה.</div>
+      ${shown.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).map(ev => `
+        <div style="padding:8px 0; border-top:1px solid var(--border);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-weight:800;">${ev.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${(ev.lists || []).join(" · ")}</span></span>
+            <span class="mono" style="font-weight:800; color:${ev.pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(ev.pct, 1)}</span>
+          </div>
+          <div style="font-size:11.5px; color:var(--text-dim); margin-top:2px;">📰 סיבה משוערת: <b>${ev.category_label}</b></div>
+          ${moveHeadlinesHtml(ev)}
+        </div>`).join("")}
+    </div>`;
+}
+
+function renderEventLog(data) {
+  const el = document.getElementById("eventLogBody");
+  if (!el) return;
+  const st = data.move_event_stats || {};
+  const rows = st.rows || [];
+  const evs = (data.move_events || []).slice().reverse();
+  if (!evs.length) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">עוד אין אירועים. כל תנועה של 7%+ במניה מהרשימות שלך תירשם כאן, יחד עם מה שקרה לה 5, 10 ו-20 ימי מסחר אחר כך.</div>`; return; }
+  const cell = (v, n) => v == null ? `<span style="color:var(--text-faint);">—</span>` : `<span class="mono" style="color:${v >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(v, 1)}</span><span style="font-size:9.5px; color:var(--text-faint);"> (${n})</span>`;
+  el.innerHTML = `
+    <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px; line-height:1.6;">${st.total_events || evs.length} אירועים · התשואה הממוצעת אחרי האירוע, מסגירת יום האירוע. בסוגריים: על כמה אירועים זה מחושב - פחות מ-20 זה עדיין רעש.</div>
+    <div style="display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:4px; font-size:11px; color:var(--text-faint); padding-bottom:4px; border-bottom:1px solid var(--border);">
+      <span>סוג · כיוון</span><span>5 ימים</span><span>10 ימים</span><span>20 ימים</span>
+    </div>
+    ${rows.map(r => `<div style="display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:4px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
+      <span>${r.direction === "down" ? "🔻" : "🔺"} ${r.label} <span style="color:var(--text-faint);">(${r.events})</span></span>
+      <span>${cell(r.avg_5d_pct, r.n_5d)}</span><span>${cell(r.avg_10d_pct, r.n_10d)}</span><span>${cell(r.avg_20d_pct, r.n_20d)}</span>
+    </div>`).join("")}
+    <details style="margin-top:8px;"><summary style="font-size:12px; color:var(--text-dim); cursor:pointer;">אירועים אחרונים (${evs.length})</summary>
+      ${evs.slice(0, 30).map(ev => `<div style="padding:7px 0; border-top:1px solid var(--border); font-size:12px;">
+        <b>${ev.ticker}</b> <span class="mono" style="color:${ev.pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(ev.pct, 1)}</span> <span style="color:var(--text-faint);">· ${fmtDateIL(ev.date)} · ${ev.category_label}</span>
+        <span style="float:left; font-size:11px;">${["5", "10", "20"].map(k => ev.outcome && ev.outcome[k] != null ? `${k}י׳ ${signedPct(ev.outcome[k], 1)}` : "").filter(Boolean).join(" · ") || `<span style="color:var(--text-faint);">ממתין לתוצאה</span>`}</span>
+        ${(ev.headlines || [])[0] ? `<div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${ev.headlines[0].title}</div>` : ""}
+      </div>`).join("")}
+    </details>`;
+}
+
 function renderDataFreshnessNote(data) {
   const el = document.getElementById("dataFreshnessNote");
   const parts = [];
@@ -3287,6 +3383,8 @@ async function loadPredictions() {
     renderCryptoExposedSection();
     renderPredictionsList();
     renderBuySellQueue(data);
+    listStatus = data.list_status || {};
+    { const c = document.getElementById("top10StatusChip"); if (c) c.innerHTML = listStatusChip("top10", { margin: "0 0 4px" }); }
     try {
       renderExposureCard(data);
       renderLayersCard(data);
@@ -3294,6 +3392,8 @@ async function loadPredictions() {
       renderStrategies(data);
       renderRecommendations(data);
       renderPortfolios(data);
+      renderMovesCard(data);
+      renderEventLog(data);
       renderPortfolioDailyTiles(data);
     } catch (e) { console.error("three-layer render failed", e); }
     section.classList.remove("hidden");
