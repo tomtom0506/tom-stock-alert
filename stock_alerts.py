@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.14.0"
+BACKEND_VERSION = "5.14.1"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -1373,7 +1373,7 @@ MIN_FACTOR_SAMPLE = 20  # ignore a trigger's stats until it has enough graded oc
 
 
 def analyze_factor_performance(store):
-    graded = [e for e in store["history"] if e.get("graded")]
+    graded = [e for e in store["history"] if e.get("graded") and not e.get("stale_snapshot")]  # v5.14.1: copied-snapshot days excluded
     baseline = round(sum(1 for e in graded if e["correct"]) / len(graded) * 100, 1) if graded else None
 
     results = []
@@ -1430,7 +1430,7 @@ def send_factor_analysis_report(analysis):
 
 
 def recompute_accuracy(store):
-    graded = [e for e in store["history"] if e.get("graded")]
+    graded = [e for e in store["history"] if e.get("graded") and not e.get("stale_snapshot")]  # v5.14.1: copied-snapshot days excluded
     strong_graded = [e for e in graded if e.get("strong")]
     top10_graded = [e for e in graded if e.get("top10")]
     # "up only" = exactly the population the ₪100,000 portfolio simulation
@@ -1548,6 +1548,29 @@ def recompute_accuracy(store):
         "il": calc([e for e in graded if is_israeli(e["ticker"])]),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def mark_stale_snapshot_days(store):
+    """Idempotent: flag history days whose snapshot was a copy of the
+    previous day (>= STALE_SNAPSHOT_SHARE identical US prices). Their entry
+    price is really the previous session's, so their graded move spans two
+    sessions - accuracy stats leave them out. (The previous day itself is
+    fine: grading uses live prices, not the next snapshot.)"""
+    by = {}
+    for e in store.get("history", []):
+        if e.get("price") is not None and not e["ticker"].endswith(".TA"):
+            by.setdefault(e["date"], {})[e["ticker"]] = e["price"]
+    days = sorted(by)
+    bad = set()
+    for a, b in zip(days, days[1:]):
+        common = set(by[a]) & set(by[b])
+        if len(common) >= 50 and sum(1 for t in common if by[a][t] == by[b][t]) / len(common) >= STALE_SNAPSHOT_SHARE:
+            bad.add(b)   # b's entry price is really a's price, so b's graded move spans two sessions
+    for e in store.get("history", []):
+        if e["date"] in bad:
+            e["stale_snapshot"] = True
+    store["stale_snapshot_days"] = sorted(bad)
+    return sorted(bad)
 
 
 def grade_pending_predictions(store):
@@ -3276,11 +3299,66 @@ def compute_position_queue(history, today_entries, real_top10_tickers, today_str
     return hold_items, sell_items
 
 
+STALE_SNAPSHOT_SHARE = 0.5   # this share of US prices identical to the previous snapshot = Yahoo served stale data
+
+
+def expected_last_session():
+    """The last US session that should be COMPLETE right now (same rule as
+    the strategy book): before 16:15 New York time it's the previous
+    weekday, otherwise today (weekends roll back to Friday)."""
+    ny = _ny_now()
+    d = ny.date()
+    if (ny.hour, ny.minute) < US_CLOSE_NY:
+        d -= timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d
+
+
+def yahoo_daily_is_fresh():
+    """v5.14.1 (the WDC case, 3.10.2026): the daily snapshot is taken by the
+    first run after 00:00 UTC - exactly when Yahoo sometimes still serves
+    the previous session's daily bars. On 7 of the last 19 trading days the
+    whole snapshot was a copy of the day before. Returns (fresh, last_bar,
+    expected) - the snapshot is only taken when SPY's latest daily bar is
+    the last completed session; otherwise the next 15-minute run retries."""
+    try:
+        bars = yf.Ticker("SPY").history(period="10d")["Close"].dropna()
+        last = bars.index[-1].date()
+    except Exception as e:
+        print(f"Freshness check failed ({e}) - not blocking the run")
+        return True, None, None
+    exp = expected_last_session()
+    return last >= exp, last, exp
+
+
+def snapshot_looks_stale(store, today):
+    """Second guard, after the snapshot is built: if most US prices equal
+    the previous snapshot's prices exactly, Yahoo served stale data."""
+    dates = sorted({e["date"] for e in store["history"] if e["date"] < today})
+    if not dates:
+        return False, 0.0
+    prev = {e["ticker"]: e.get("price") for e in store["history"] if e["date"] == dates[-1]}
+    cur = [e for e in store["history"] if e["date"] == today and not e["ticker"].endswith(".TA")]
+    pairs = [(e.get("price"), prev.get(e["ticker"])) for e in cur if prev.get(e["ticker"]) is not None and e.get("price") is not None]
+    if len(pairs) < 50:
+        return False, 0.0
+    share = sum(1 for a, b in pairs if a == b) / len(pairs)
+    return share >= STALE_SNAPSHOT_SHARE, share
+
+
 def run_predictions(store):
     today = date.today().isoformat()
     already_predicted_today = any(e.get("date") == today for e in store["history"])
     if already_predicted_today:
         print("Predictions already run today, skipping.")
+        return
+    fresh, last_bar, expected = yahoo_daily_is_fresh()
+    if not fresh:
+        print(f"Yahoo daily data not fresh yet (SPY last bar {last_bar}, expected {expected}) - "
+              f"skipping the daily snapshot, will retry next run.")
+        store["snapshot_gate"] = {"checked_at": datetime.now(timezone.utc).isoformat(), "status": "waiting",
+                                  "last_bar": str(last_bar), "expected": str(expected)}
         return
 
     universe = build_prediction_universe()
@@ -3414,6 +3492,16 @@ def run_predictions(store):
             entry[k] = v
 
         store["history"].append(entry)
+
+    stale, share = snapshot_looks_stale(store, today)
+    if stale:
+        store["history"] = [e for e in store["history"] if e["date"] != today]
+        print(f"Daily snapshot rejected: {share:.0%} of US prices identical to the previous snapshot - will retry next run.")
+        store["snapshot_gate"] = {"checked_at": datetime.now(timezone.utc).isoformat(), "status": "rejected_stale",
+                                  "identical_share": round(share, 3)}
+        return
+    store["snapshot_gate"] = {"checked_at": datetime.now(timezone.utc).isoformat(), "status": "ok",
+                              "session": str(expected_last_session()), "identical_share": round(share, 3)}
 
     # --- market breadth: how many stocks crossed the "directionally
     # significant" threshold today, regardless of how many we actually
@@ -4993,6 +5081,10 @@ def main():
     today_str = date.today().isoformat()
 
     try:
+        try:
+            mark_stale_snapshot_days(prediction_store)
+        except Exception as e:
+            print(f"Stale-day marking failed: {e}")
         grade_pending_predictions(prediction_store)
         update_portfolio_simulation(prediction_store)
         update_portfolio_simulation(prediction_store, "top10_experimental", "portfolio_sim_experimental")

@@ -467,6 +467,28 @@ def check_stale_sims(store, today_str, issues):
         issues.append(f"סימולציות תיק שלא התקדמו מעל {STALE_SIM_DAYS} ימים: {', '.join(stale)}")
 
 
+def check_snapshot_freshness(store, issues, info):
+    """v5.14.1 - the daily snapshot (history entries) is a different thing
+    from the live price feed: on 8 days in September it was a copy of the
+    previous day's prices (Yahoo served stale data at 00:15 UTC) and the
+    live-feed check above could not see it. Since 5.14.1 the engine refuses
+    to take such a snapshot; this check makes sure that keeps working."""
+    hist = store.get("history", [])
+    dates = sorted({e["date"] for e in hist})
+    if len(dates) >= 2:
+        a, b = dates[-2], dates[-1]
+        pa = {e["ticker"]: e.get("price") for e in hist if e["date"] == a and not e["ticker"].endswith(".TA")}
+        pb = {e["ticker"]: e.get("price") for e in hist if e["date"] == b and not e["ticker"].endswith(".TA")}
+        common = [t for t in pb if pa.get(t) is not None and pb.get(t) is not None]
+        if len(common) >= 50:
+            share = sum(1 for t in common if pa[t] == pb[t]) / len(common)
+            if share >= 0.5:
+                issues.append(f"התמונה היומית של {b} זהה ב-{share:.0%} למחירים של {a} - נתונים ישנים מ-Yahoo נכנסו לחישוב")
+    gate = store.get("snapshot_gate") or {}
+    if gate.get("status") in ("waiting", "rejected_stale"):
+        info.append(f"שער הרעננות עדיין מחכה לנתונים טריים מ-Yahoo ({gate.get('status')}, נבדק {str(gate.get('checked_at'))[:16]})")
+
+
 def record_daily_log(store, today_str, prices_payload):
     """Appends one enriched record for today to qa_daily_log.json - the
     accumulating evidence base generate_conclusions() reads from. Skips if
@@ -572,6 +594,7 @@ def main():
     check_accuracy_streak(store, issues)
     check_data_suspect_flags(store, today_str, outliers)
 
+    check_snapshot_freshness(store, issues, info)
     check_direction_consistency(store, today_str, issues)
     check_analyst_gap(store, today_str, info)
     check_component_redundancy(store, today_str, issues)

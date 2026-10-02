@@ -706,7 +706,7 @@
   <div id="longTermSection" data-tab="stocks" data-subtab="longterm">
     <div class="section-title">🏛 טווח ארוך - 10 מניות איכות</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
-      חברות ענק מ-S&amp;P 500 שמדורגות לפי איכות עסקית (רווחיות, צמיחה, מינוף, תזרים) ודירוג אנליסטים, עד 3 מאותו סקטור. מתעדכן פעם בחודש. לכל מניה מוצג גם מכפיל הרווח שלה מול הממוצע שלה בשנים האחרונות, ו-<b>💎</b> כשהיא זולה ב-15% ומעלה מול עצמה (נמדד מהיום, בסימולציה משלו). תגי הכניסה כאן הם <b>🧪 ניסוי</b> - הרשימה לא נבדקה היסטורית ונמדדת מהיום: <b>תזמון חיובי</b> (תזמון חיובי ומגמה תקינה), <b>בתיקון</b> (תזמון חיובי אבל המגמה הארוכה שבורה) או <b>⏳ להמתין</b>. ✅ שמור רק לאותות של שתי האסטרטגיות שעברו את המחקר. ציון האיכות לא נבדק היסטורית (אין נתוני דוחות היסטוריים חינמיים) - הוא נמדד מהיום, בסימולציה משלו מול S&amp;P 500.
+      חברות ענק מ-S&amp;P 500 שמדורגות לפי איכות עסקית (רווחיות, צמיחה, מינוף, תזרים) ודירוג אנליסטים, עד 3 מאותו סקטור. מתעדכן פעם בחודש. לכל מניה מוצג גם מכפיל הרווח שלה מול הממוצע שלה בשנים האחרונות, ו-<b>💎</b> כשהיא זולה ב-15% ומעלה מול עצמה (נמדד מהיום, בסימולציה משלו). תג כניסה: <b>✅ אפשר להיכנס</b> (תזמון חיובי ומגמה תקינה), <b>🟡 בתיקון</b> (תזמון חיובי אבל המגמה הארוכה שבורה - כניסה בשלבים) או <b>⏳ להמתין</b>. ציון האיכות לא נבדק היסטורית (אין נתוני דוחות היסטוריים חינמיים) - הוא נמדד מהיום, בסימולציה משלו מול S&amp;P 500.
     </div>
     <div id="longTermMeta" style="font-size:12px; color:var(--text-dim); margin-bottom:8px;"></div>
     <div id="longTermList" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -764,7 +764,7 @@
       </div>
       <div id="buySellQueueBody">
         <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px; line-height:1.6;">כל מניה שהומלצה ב-30 הימים האחרונים נמצאת באחת משלוש הרשימות - שום מניה לא נעלמת בלי הסבר. לחיצה על שורה פותחת פירוט מלא.</div>
-        <div style="font-size:12px; font-weight:700; color:#5ee6a0; margin-bottom:6px;">🧪 Top10 · ניסוי (<span id="queueCountBuy">0</span>) <span style="font-weight:400; color:var(--text-faint);">- ה-Top10 הרשמי של היום</span></div>
+        <div style="font-size:12px; font-weight:700; color:#5ee6a0; margin-bottom:6px;">🟢 קנייה (<span id="queueCountBuy">0</span>) <span style="font-weight:400; color:var(--text-faint);">- ה-Top10 הרשמי של היום</span></div>
         <div id="buyQueueList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;"></div>
         <div style="font-size:12px; font-weight:700; color:#ffd76a; margin-bottom:6px;">🟡 החזקה (<span id="queueCountHold">0</span>) <span style="font-weight:400; color:var(--text-faint);">- הומלצה לאחרונה, אין איתות יציאה</span></div>
         <div id="holdQueueList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;"></div>
@@ -1010,21 +1010,12 @@
 </div>
 
 <script>
-const APP_VERSION = "6.5.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.5.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
-  { version: "6.5.2", date: "2026-10-03", items: [
-    "✅ שמור עכשיו רק למה שהוכח: אותות שתי האסטרטגיות (טווח קצר בטאב ההמלצות) וכלל החשיפה. ברשימות שלא נבדקו היסטורית - Top10, טווח ארוך, תג ההמלצה בכרטיסים וב'בדוק מניה' - התגים הוחלפו ב-🧪 ניסוי (למשל '🧪 תזמון חיובי · ניסוי' במקום '✅ מומלץ לקנייה כרגע'), כדי שמה שהאפליקציה מציגה יתאים למה שהיא באמת יודעת.",
-  ]},
-  { version: "6.5.1", date: "2026-10-03", items: [
-    "תוקן באג נתונים חמור (מקרה WDC): התמונה היומית נלקחה בריצה הראשונה אחרי חצות UTC - בדיוק כש-Yahoo מחזיר לפעמים מחירים של יום קודם. ב-8 ימים בספטמבר התמונה כולה הייתה העתק של היום הקודם. מעכשיו האפליקציה מחכה עד ש-Yahoo מחזיר את יום המסחר האחרון שהסתיים, ודוחה תמונה שרוב המחירים בה זהים ליום הקודם (backend 5.14.1).",
-    "8 הימים הפגועים סומנו והוצאו מחישובי הדיוק (הדיוק של ה-Top10 כמעט לא השתנה: 49.3% → 49.5%). תיקי האסטרטגיה A ו-B לא הושפעו - הם תמיד בדקו שיום המסחר הושלם.",
-    "מחיר חי בטאב 'טווח ארוך' ובחלון הפירוט, כולל שינוי יומי, עם הערה לפי איזו סגירה חושבו הציונים - כך תנועה חדה במהלך היום נראית מיד, עוד לפני שהציונים מתעדכנים.",
-    "QA: בדיקה חדשה שהתמונה היומית אינה העתק של היום הקודם.",
-  ]},
   { version: "6.5.0", date: "2026-10-03", items: [
     "💎 מדד שווי ברשימת הטווח הארוך: לכל מניה - מכפיל הרווח היום מול הממוצע של אותה חברה ב-4 השנים האחרונות, ותשואת התזרים החופשי. 💎 'זולה מול עצמה' כשהמכפיל נמוך ב-15% ומעלה מהממוצע שלה (ורק אם כל השנים היו רווחיות). לא ניתן לבדוק לאחור - Yahoo לא שומר היסטוריית דוחות - ולכן נמדד מהיום בסימולציה משלו בהשוואת האסטרטגיות (backend 5.14.0).",
     "גרף 'בדוק מניה': תוקנו התוויות 'תמיכה'/'התנגדות' והתאריך הראשון שנחתכו בקצה השמאלי.",
@@ -2082,9 +2073,9 @@ function effectiveVerdict(p) {
 }
 
 const VERDICT_META = {
-  buy: { text: "🧪 תזמון חיובי · ניסוי", color: "#5ee6a0" },
-  quality_wait: { text: "🧪 איכותית, תזמון חלש · ניסוי", color: "#ffd76a" },
-  avoid: { text: "🧪 תזמון שלילי · ניסוי", color: "#ff9a8a" },
+  buy: { text: "✅ מומלץ לקנייה כרגע", color: "#5ee6a0" },
+  quality_wait: { text: "🟡 חברה איכותית - להמתין לתזמון", color: "#ffd76a" },
+  avoid: { text: "❌ לא מומלץ לרכישה כרגע", color: "#ff5c5c" },
   neutral: { text: "⚪ אין איתות ברור כרגע", color: "var(--text-faint)" },
 };
 
@@ -2245,7 +2236,7 @@ function scoreBreakdownCardHtml(data) {
       <div style="text-align:center; margin-bottom:10px;">${verdictTagHtml(verdict)}</div>
       ${strategyLineHtml(data.strategy_view)}
       <div style="font-size:12px; color:var(--text-faint); display:flex; justify-content:space-between; margin-bottom:6px;">
-        <span>מחיר: <span class="mono">${fmtTickerPrice(data.ticker, data.price)}</span>${data.live_price != null && data.price != null && Math.abs(data.live_price / data.price - 1) > 0.005 ? ` <span style="color:${data.live_price >= data.price ? "var(--up)" : "var(--down)"};">· עכשיו <span class="mono">${fmtTickerPrice(data.ticker, data.live_price)}</span></span>` : ""}</span>
+        <span>מחיר: <span class="mono">${fmtTickerPrice(data.ticker, data.price)}</span></span>
         <span>תמיכה: <span class="mono">${fmtTickerPrice(data.ticker, data.support)}</span></span>
         <span>התנגדות: <span class="mono">${fmtTickerPrice(data.ticker, data.resistance)}</span></span>
       </div>
@@ -2519,9 +2510,7 @@ function fmtNum1(v) {
 }
 
 function showScoreBreakdownModal(p) {
-  const lv = livePriceOf(p.ticker);
   const data = {
-    live_price: lv ? lv.price : null,
     ticker: p.ticker,
     predicted_direction: p.predicted,
     overall_score: p.overall_score,
@@ -2809,14 +2798,6 @@ function valueLineHtml(p) {
   return `<div style="font-size:11px; margin-top:4px; color:${p.value_tag ? "#7fd8ff" : "var(--text-faint)"};">${p.value_tag ? "💎 זולה מול עצמה · " : ""}מכפיל רווח ${v.pe_now} מול ממוצע ${v.pe_avg} (${signedPct(v.pe_vs_avg_pct, 0)})${fy}</div>`;
 }
 
-// v6.5.1: live price (current_prices.json, refreshed every 15 minutes) -
-// the scores themselves come from the once-a-day snapshot, so a big move
-// during the day shows up here before the scores catch up (the WDC case).
-function livePriceOf(t) {
-  const lp = (typeof currentPrices !== "undefined" && currentPrices) ? currentPrices[t] : null;
-  return lp && lp.price != null && Number.isFinite(Number(lp.price)) ? { price: Number(lp.price), pct_change: lp.pct_change != null ? Number(lp.pct_change) : null } : null;
-}
-
 function renderLongTerm(data) {
   const list = document.getElementById("longTermList");
   const meta = document.getElementById("longTermMeta");
@@ -2829,13 +2810,12 @@ function renderLongTerm(data) {
     list.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">הרשימה נבנית: אוספים דוחות של מניות S&amp;P 500 בהדרגה (כמה עשרות בכל ריצה). נאספו עד עכשיו ${lt.fundamentals_coverage_pct ?? 0}% - הרשימה תופיע כשיגיע ל-90%.</div>`;
     return;
   }
-  const gate = data.snapshot_gate || {};
-  meta.innerHTML = `${gate.session ? `הציונים לפי סגירת ${fmtDateIL(gate.session)} · המחירים חיים · ` : ""}עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">$${Math.round(sim.value || 100000).toLocaleString("en-US")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
+  meta.innerHTML = `עודכן ${fmtDateIL(lt.refreshed_on)} · עדכון הבא ${fmtDateIL(lt.next_refresh_date)} · סימולציה: <span class="mono">$${Math.round(sim.value || 100000).toLocaleString("en-US")}</span> (${signedPct(((sim.value || 100000) / 100000 - 1) * 100, 2)} מאז ${fmtDateIL(sim.start_date)})`;
   list.innerHTML = picks.map(p => {
     const idx = scoreBadgeRegistry.push(p) - 1;
     const TAGS = {
-      enter: ["#5ee6a0", "🧪 ניסוי · תזמון חיובי"],
-      dip: ["#ffd76a", "🧪 ניסוי · בתיקון"],
+      enter: ["#5ee6a0", "✅ אפשר להיכנס עכשיו"],
+      dip: ["#ffd76a", "🟡 בתיקון - כניסה בשלבים"],
       wait: ["var(--text-faint)", "⏳ להמתין לתזמון"],
     };
     const tg = TAGS[p.entry_tag];
@@ -2847,13 +2827,7 @@ function renderLongTerm(data) {
           <span class="mono" style="font-weight:800; color:${scoreToneColor(p.long_term_score)};" title="ציון טווח ארוך">🏛 ${p.long_term_score != null ? Number(p.long_term_score).toFixed(0) : "—"}</span>
         </div>
         <div style="font-size:11px; color:var(--text-faint); margin-top:3px;">
-          ${(() => {
-            const lv = livePriceOf(p.ticker);
-            const px = lv ? lv.price : p.price;
-            const since = (lv && p.entry_price) ? (lv.price / p.entry_price - 1) * 100 : p.change_since_pick_pct;
-            const day = lv && lv.pct_change != null ? ` <span class="mono" style="color:${lv.pct_change >= 0 ? "var(--up)" : "var(--down)"};">(${signedPct(lv.pct_change)} היום)</span>` : "";
-            return `${p.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(p.ticker, px)}</span>${day}${since != null ? ` · מאז ${fmtDateIL(p.picked_on)}: <span class="mono" style="color:${since >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(since)}</span>` : ""}`;
-          })()}
+          ${p.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(p.ticker, p.price)}</span>${p.change_since_pick_pct != null ? ` · מאז ${fmtDateIL(p.picked_on)}: <span class="mono" style="color:${p.change_since_pick_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(p.change_since_pick_pct)}</span>` : ""}
         </div>
         ${valueLineHtml(p)}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
@@ -3009,12 +2983,12 @@ function renderRecommendations(data) {
         const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}${x.value_tag ? ` · <span style="color:#7fd8ff;">💎 זולה מול עצמה</span>` : ""}`;
         const enterHtml = (r.long || []).map(x => `
           <div style="border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">🧪 ${x.ticker} · ניסוי <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">✅ לקנות ${x.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
             <div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${stats(x)}</div>
           </div>`).join("");
         const dipHtml = (r.long_dip || []).map(x => `
           <div style="border:1px solid #ffd76a66; border-radius:10px; padding:9px 12px; margin-bottom:6px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">🧪 ${x.ticker} · בתיקון · ניסוי <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">${x.first_tranche_pct}% עכשיו מתוך ${x.weight_pct}%</span></div>
+            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">🟡 ${x.ticker} בתיקון <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">${x.first_tranche_pct}% עכשיו מתוך ${x.weight_pct}%</span></div>
             <div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${stats(x)}</div>
             <div style="font-size:11px; color:#ffd76a; margin-top:3px;">חברה איכותית שהמגמה הארוכה שלה שבורה, עם תזמון קצר חיובי. כניסה בשלבים - שליש עכשיו, והשאר רק אם המגמה משתפרת.</div>
           </div>`).join("");
@@ -3140,7 +3114,7 @@ function renderLivePortfolioCard(data) {
     <div class="pf-section-h"><span>החזקות</span><span class="mono">${fmtUsd(invested)}</span></div>
     ${rows}
     <details class="pf-trades"><summary>📜 יומן עסקאות (${trades.length})</summary>${tradeRows}</details>
-    <div class="pf-foot">כללים: 3 פוזיציות שוות מתוך ההמלצות בטאב ההמלצות - קודם אותות שתי האסטרטגיות שהוכחו, ואחריהן רשימת הטווח הארוך (ניסוי). יציאה מיידית בסטופ או ביעד. מניה שיצאה מההמלצות מוחלפת רק אחרי 3 ימים בחוץ, 5 ימי החזקה לפחות, ומועמדת טובה ממנה ב-10 נקודות. עמלה ${set.commission_pct ?? 0.1}% (מינימום $${set.min_fee_usd ?? 5}) + החלקה ${set.slippage_pct ?? 0.05}%. מניות שלמות בלבד. מניות ת"א מומרות לפי שער הדולר החי.</div>
+    <div class="pf-foot">כללים: 3 פוזיציות שוות מתוך כל ה-✅ בטאב ההמלצות (ציון משוקלל). יציאה מיידית בסטופ או ביעד. מניה שיצאה מההמלצות מוחלפת רק אחרי 3 ימים בחוץ, 5 ימי החזקה לפחות, ומועמדת טובה ממנה ב-10 נקודות. עמלה ${set.commission_pct ?? 0.1}% (מינימום $${set.min_fee_usd ?? 5}) + החלקה ${set.slippage_pct ?? 0.05}%. מניות שלמות בלבד. מניות ת"א מומרות לפי שער הדולר החי.</div>
   </div>`;
 }
 
