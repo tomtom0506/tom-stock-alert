@@ -1,0 +1,33 @@
+name: 🗄️ גיבוי שבועי (נקודת שחזור)
+
+# Every Sunday morning: tags the current state of the whole repo as
+# backup-YYYY-MM-DD. A tag is a permanent, free restore point - nothing is
+# copied, nothing grows. To restore: open the tag on GitHub and download /
+# re-upload the files you need (or ask Claude with the date).
+on:
+  schedule:
+    - cron: "0 5 * * 0"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Create restore point
+        run: |
+          TAG="backup-$(date -u +%Y-%m-%d)"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "${TAG} already exists - nothing to do"
+            exit 0
+          fi
+          git tag "${TAG}"
+          git push origin "refs/tags/${TAG}"
+          echo "Created restore point ${TAG}"

@@ -3,7 +3,12 @@ name: Check Stock Prices
 on:
   schedule:
     - cron: "*/15 * * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      refresh_news:
+        description: "חפש מחדש חדשות לתנועות החריגות של הימים האחרונים"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -32,6 +37,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          NEWS_REFRESH: ${{ inputs.refresh_news == 'true' && 'true' || 'false' }}   # only ever "true"/"false" reaches the script
         run: python stock_alerts.py
 
       - name: Commit updated state (if changed)
