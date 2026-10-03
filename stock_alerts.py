@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.17.0"
+BACKEND_VERSION = "5.17.1"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -98,9 +98,15 @@ def send_telegram_message(text, parse_mode=None):
     payload = {"chat_id": TELEGRAM_CHAT_ID, "text": text}
     if parse_mode:
         payload["parse_mode"] = parse_mode
-    resp = requests.post(url, data=payload)
+    # security (v5.17.1): the URL contains the bot token and the Actions logs
+    # of this public repo are public - never print the URL or a raw exception
+    try:
+        resp = requests.post(url, data=payload, timeout=20)
+    except Exception as e:
+        print(f"Failed to send Telegram message: {type(e).__name__}")
+        return
     if not resp.ok:
-        print(f"Failed to send Telegram message: {resp.status_code} {resp.text}")
+        print(f"Failed to send Telegram message: HTTP {resp.status_code}")
 
 
 TELEGRAM_MAX_CHARS = 3500  # keep well under Telegram's 4096-char hard limit

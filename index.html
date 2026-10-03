@@ -9,6 +9,10 @@
 <meta name="apple-mobile-web-app-title" content="המעקב שלי">
 <link rel="icon" href="favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- v6.8.0 security: second line of defense. Scripts/styles only from this page itself;
+     network only to GitHub (data + the owner's own API calls); no plugins, no <base>, no forms. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src https://raw.githubusercontent.com https://api.github.com; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -1016,12 +1020,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.7.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.8.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.8.0", date: "2026-10-03", items: [
+    "🔐 תיקוני אבטחה אחרי סקירה מלאה: כל מידע חיצוני (כותרות חדשות, שמות ותיאורי חברות, טיקרים, כל השדות בקבצי הנתונים) מוצג עכשיו כטקסט בלבד ולא כקוד, ולינקים מתקבלים רק אם הם http(s). זה סוגר פרצה שבה כותרת זדונית יכלה להריץ קוד באפליקציה ולקרוא את טוקן ה-GitHub מהדפדפן.",
+    "🔐 מדיניות אבטחת תוכן (CSP): הדפדפן חוסם טעינת קוד ממקורות זרים ותקשורת לכל כתובת מלבד GitHub - שכבת הגנה שנייה אם יתגלה חור נוסף. בנוסף, האפליקציה לא שולחת כתובת הפניה (referrer) כשפותחים לינק חיצוני.",
+    "🔐 backend 5.17.1: שגיאות בשליחה לטלגרם לא נרשמות יותר עם הכתובת (שמכילה את טוקן הבוט) בלוגים הציבוריים של Actions. workflows: שם מניה ומספר שנים מאומתים לפני שימוש, ולא מוזרקים ישירות לפקודות.",
+  ]},
   { version: "6.7.1", date: "2026-10-03", items: [
     "📰 התראות התנועות החריגות מבוססות עכשיו על ארבעה מקורות חדשות: Google News (לפי שם החברה), Finnhub (מפתח חינמי), ושני השירותים של Yahoo - ממוזגים, מהחדש לישן, בלי כפילויות. אירוע שהגיע בלי כותרות נבדק שוב בריצות הבאות, ואם נמצאות - נשלחת הודעת המשך (backend 5.16.1-5.17.0).",
     "📄 דיווחים רשמיים מ-SEC EDGAR: אם החברה הגישה 8-K/6-K בימים האחרונים (תוצאות כספיות, שינוי בהנהלה, הסכם מהותי וכו'), ההתראה והכרטיס בטאב 'היום' מציגים אותו עם לינק לדיווח, והוא קובע את סוג החדשה כשהכותרות לא חד-משמעיות.",
@@ -1348,6 +1357,34 @@ document.getElementById("refreshBtn").addEventListener("click", () => {
 });
 
 const CONFIG_KEY = "gh-watchlist-config";
+// ---------- v6.8.0 security: everything from outside is text, never HTML ----------
+// News headlines, company names, business summaries, tickers and every other
+// string in the JSON files come from third parties (Yahoo, Google News,
+// Finnhub, SEC, a public S&P 500 list). Most of the UI is built with
+// innerHTML, so a crafted headline could otherwise run code in this page and
+// read the GitHub token from localStorage. All fetched data is escaped once,
+// on load; links are additionally limited to http(s).
+const ESC_RE = /[&<>"'`]/;
+const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;", "`": "&#96;" };
+function escHtml(v) {
+  if (v == null) return "";
+  const s = String(v);
+  return ESC_RE.test(s) ? s.replace(/[&<>"'`]/g, c => ESC_MAP[c]) : s;
+}
+function deepSanitize(x) {
+  if (typeof x === "string") return ESC_RE.test(x) ? escHtml(x) : x;
+  if (Array.isArray(x)) { for (let i = 0; i < x.length; i++) x[i] = deepSanitize(x[i]); return x; }
+  if (x && typeof x === "object") { for (const k of Object.keys(x)) x[k] = deepSanitize(x[k]); return x; }
+  return x;
+}
+async function safeJson(res) { return deepSanitize(await res.json()); }
+// an (already-escaped) URL is used only if it is plain http(s)
+function safeUrl(u) {
+  if (!u) return null;
+  const s = String(u).trim();
+  return /^https?:\/\//i.test(s) ? s : null;
+}
+
 let owner = "", repo = "", token = "", sha = null, rows = [];
 let latestPredictionsByTicker = {};
 let currentPrices = {};
@@ -1391,7 +1428,7 @@ async function loadCurrentPrices() {
   try {
     const res = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/current_prices.json?t=${Date.now()}`);
     if (!res.ok) return;
-    const data = await res.json();
+    const data = await safeJson(res);
     currentPrices = data.prices || {};
     renderMarketIndices(data.indices || {});
   } catch (e) {
@@ -1546,7 +1583,7 @@ function factorBadgesHtml(p) {
     badges.push(`<span class="factor-badge">👥 ${p.analyst_count} אנליסטים${recText}</span>`);
   }
   if (p.news_link) {
-    badges.push(`<a class="factor-badge news" href="${p.news_link}" target="_blank" rel="noopener">📰 כתבה עדכנית</a>`);
+    badges.push(`<a class="factor-badge news" href="${safeUrl(p.news_link) || "#"}" target="_blank" rel="noopener">📰 כתבה עדכנית</a>`);
   }
   return badges.length ? `<div class="factor-badges">${badges.join("")}</div>` : "";
 }
@@ -1940,7 +1977,7 @@ async function triggerFullRecompute(statusElId) {
         try {
           const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/predictions.json?t=${Date.now()}`);
           if (r.ok) {
-            const data = await r.json();
+            const data = await safeJson(r);
             const status = data.last_run_status;
             const statusAt = status && status.checked_at ? new Date(status.checked_at).getTime() : 0;
             if (statusAt > triggeredAt) {
@@ -2018,7 +2055,7 @@ const CHECK_STOCK_HISTORY_MAX = 10;
 function loadCheckStockHistory() {
   try {
     const raw = localStorage.getItem(CHECK_STOCK_HISTORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    return raw ? deepSanitize(JSON.parse(raw)) : [];
   } catch (e) {
     return [];
   }
@@ -2644,7 +2681,7 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
       try {
         const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/stock_check_result.json?t=${Date.now()}`);
         if (r.ok) {
-          const data = await r.json();
+          const data = await safeJson(r);
           const checkedAt = data.checked_at ? new Date(data.checked_at).getTime() : 0;
           const tickerMatches = (data.ticker || "").toUpperCase() === ticker;
           if ((data.error && tickerMatches) || (checkedAt > triggeredAt && tickerMatches)) {
@@ -3273,13 +3310,13 @@ function renderPortfolios(data) {
 
 // ---------- v6.6.0: 🚨 unusual moves + 📚 event log ----------
 function moveHeadlinesHtml(ev) {
-  const fil = (ev.filings || []).map(f => `<div style="font-size:11.5px; margin-top:4px;">📄 <a href="${f.url}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">דיווח רשמי ${f.form} (${fmtDateIL(f.date)})</a>: ${(f.labels || []).join(", ") || "ללא פירוט סעיפים"}</div>`).join("");
+  const fil = (ev.filings || []).map(f => `<div style="font-size:11.5px; margin-top:4px;">📄 <a href="${safeUrl(f.url) || "#"}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">דיווח רשמי ${f.form} (${fmtDateIL(f.date)})</a>: ${(f.labels || []).join(", ") || "ללא פירוט סעיפים"}</div>`).join("");
   return fil + moveHeadlinesOnly(ev);
 }
 
 function moveHeadlinesOnly(ev) {
   if (!(ev.headlines || []).length) return `<div style="font-size:11px; color:var(--text-faint); margin-top:4px;">לא נמצאו כותרות מהימים האחרונים</div>`;
-  return ev.headlines.map(h => `<div style="font-size:11.5px; margin-top:4px; line-height:1.5;">• ${h.url ? `<a href="${h.url}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
+  return ev.headlines.map(h => `<div style="font-size:11.5px; margin-top:4px; line-height:1.5;">• ${safeUrl(h.url) ? `<a href="${safeUrl(h.url)}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
 }
 
 function renderMovesCard(data) {
@@ -3364,7 +3401,7 @@ async function loadPredictions() {
     await loadCurrentPrices();
     const res = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/predictions.json?t=${Date.now()}`);
     if (!res.ok) { section.classList.add("hidden"); return; }
-    const data = await res.json();
+    const data = await safeJson(res);
     const history = data.history || [];
     const acc = data.accuracy || {};
 

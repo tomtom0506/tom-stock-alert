@@ -126,7 +126,8 @@ def send_telegram_message(text):
     try:
         requests.post(url, data={"chat_id": chat_id, "text": text}, timeout=15)
     except Exception as e:
-        print(f"Failed to send Telegram message: {e}")
+        # security: the URL holds the bot token and Actions logs of this public repo are public
+        print(f"Failed to send Telegram message: {type(e).__name__}")
 
 
 def get_sp500_tickers():
