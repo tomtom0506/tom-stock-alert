@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.17.4"
+BACKEND_VERSION = "5.18.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -5676,6 +5676,187 @@ def build_list_status(store):
     store["list_status"] = out
 
 
+# ===========================================================================
+# v5.18.0 - 🔔 early-warning news for stocks that are actually HELD (live
+# portfolio, strategy books A/B, monthly portfolio, "התיק שלי"), sent even
+# without a price move:
+#   📅 earnings in 1-2 days (known in advance - the most common cause of
+#      10%+ jumps/drops), 📄 a new material SEC filing (8-K/6-K - often filed
+#      after the close, so there is a night before the market reacts),
+#   ⚠️ a "heavy" headline (downgrade, guidance cut, investigation, offering,
+#      CEO exit, recall, bankruptcy...).
+# One Telegram message per run with everything new; each item logged with
+# what the stock did 5/10/20 sessions later, to learn which kinds matter.
+# Information only - nothing here changes a recommendation.
+# ===========================================================================
+HOLD_NEWS_PER_RUN = 8                  # tickers checked per run (rotating) - keeps each 15-minute run light
+HOLD_NEWS_RECHECK_HOURS = 2            # a ticker's news/filings are re-checked at most this often
+HOLD_NEWS_MAX_AGE_HOURS = 30           # only headlines/filings this fresh can trigger an alert
+HOLD_NEWS_EVENTS_MAX = 600
+EARNINGS_ALERT_DAYS = (1, 2)
+HEAVY_FILING_ITEMS = {"1.01", "1.02", "1.03", "2.01", "2.02", "2.05", "2.06", "3.01", "4.02", "5.02"}
+HEAVY_NEWS_RULES = [
+    ("downgrade", "הורדת דירוג", ["downgrade", "downgrades", "downgraded", "cut to sell", "cut to underperform", "lowers price target", "cuts price target"]),
+    ("guidance_cut", "הורדת תחזית / אזהרת רווח", ["cuts guidance", "lowers guidance", "lowered guidance", "cuts outlook", "lowers outlook", "profit warning", "warns", "slashes forecast", "cuts forecast"]),
+    ("investigation", "חקירה / תביעה", ["investigation", "probe", "subpoena", "sec charges", "doj", "class action", "lawsuit", "fraud"]),
+    ("offering", "הנפקה / דילול", ["stock offering", "share offering", "public offering", "dilution", "convertible notes", "at-the-market"]),
+    ("ceo_exit", "עזיבת מנכ\"ל / סמנכ\"ל כספים", ["ceo steps down", "ceo resigns", "ceo to step down", "cfo resigns", "cfo steps down", "ousted", "departure of ceo"]),
+    ("recall", "ריקול / בעיה במוצר", ["recall", "halts production", "safety issue"]),
+    ("distress", "מצוקה פיננסית", ["bankruptcy", "chapter 11", "default", "going concern", "delisting", "delisted"]),
+]
+
+
+def _heavy_category(title):
+    """Whole-word / whole-phrase match (so 'doj' doesn't fire inside 'dojo',
+    'warns' doesn't fire inside 'forewarns'... and 'default' needs to be a word)."""
+    import re
+    t = str(title).lower()
+    for key, label, words in HEAVY_NEWS_RULES:
+        if any(re.search(r"(?<![a-z])" + re.escape(w) + r"(?![a-z])", t) for w in words):
+            return key, label
+    return None, None
+
+
+def _held_tickers(store):
+    held = {}
+
+    def add(t, label):
+        if t and not str(t).endswith("-USD"):
+            held.setdefault(t, [])
+            if label not in held[t]:
+                held[t].append(label)
+    for h in ((store.get("live_portfolio") or {}).get("holdings") or []):
+        add(h["ticker"], "התיק החי")
+    book = store.get("strategy_book") or {}
+    for k, lab in (("A", "תיק A"), ("B", "תיק B")):
+        for h in ((book.get(k) or {}).get("holdings") or []):
+            add(h["ticker"], lab)
+    for h in ((store.get("monthly_portfolio") or {}).get("holdings") or []):
+        add(h["ticker"], "תיק חודשי")
+    for h in load_json(MY_PORTFOLIO_FILE, []) or []:
+        add(h.get("ticker"), "התיק שלי")
+    return held
+
+
+def scan_holdings_news(store, send=True):
+    now = datetime.now(timezone.utc)
+    today = date.today().isoformat()
+    held = _held_tickers(store)
+    st = store.setdefault("holding_news_state", {"checked": {}, "seen": {}, "earnings": {}})
+    log = store.setdefault("holding_news_events", [])
+    names = {t: (c or {}).get("name") for t, c in (store.get("fundamentals_cache") or {}).items()}
+    new = []
+
+    def seen_once(key):
+        if key in st["seen"]:
+            return True
+        st["seen"][key] = today
+        return False
+
+    # 📅 earnings - once a day per ticker (cheap yfinance calendar), alert once per report date
+    for t, labels in held.items():
+        e = st["earnings"].get(t) or {}
+        if e.get("checked") != today:
+            info = get_upcoming_earnings_date(t)
+            st["earnings"][t] = {"checked": today, **(info or {})}
+            e = st["earnings"][t]
+        if not e.get("date"):
+            continue
+        days = (date.fromisoformat(e["date"]) - date.today()).days
+        if days in EARNINGS_ALERT_DAYS and not seen_once(f"earn|{t}|{e['date']}"):
+            new.append({"kind": "earnings", "category": "earnings_soon", "category_label": "דוח כספי מתקרב",
+                        "ticker": t, "lists": labels, "text": f"דוח כספי ב-{e['date']} (בעוד {days} ימים) - צפויה תנודה חדה"})
+
+    # 📄 filings + ⚠️ heavy headlines - rotating batch, each ticker at most every HOLD_NEWS_RECHECK_HOURS
+    due = sorted(held, key=lambda t: st["checked"].get(t, ""))
+    due = [t for t in due if not st["checked"].get(t) or
+           (now - datetime.fromisoformat(st["checked"][t])).total_seconds() > HOLD_NEWS_RECHECK_HOURS * 3600][:HOLD_NEWS_PER_RUN]
+    fresh_cut = now - timedelta(hours=HOLD_NEWS_MAX_AGE_HOURS)
+    for t in due:
+        st["checked"][t] = now.isoformat()
+        diag = {}
+        for f in _filings_safe(t, diag):
+            heavy = [it for it in f.get("items") or [] if it in HEAVY_FILING_ITEMS]
+            if not heavy or f["date"] < fresh_cut.date().isoformat() or seen_once(f"sec|{f['url']}"):
+                continue
+            k, lab = SEC_8K_ITEMS.get(heavy[0], ("other", "דיווח"))
+            new.append({"kind": "filing", "category": f"filing_{k}", "category_label": f"דיווח רשמי: {', '.join(f['labels'])}",
+                        "ticker": t, "lists": held[t], "text": f"{f['form']} מ-{f['date']}: {', '.join(f['labels'])}", "url": f["url"]})
+        for h in fetch_headlines(t, limit=10, name=names.get(t)):
+            k, lab = _heavy_category(h["title"])
+            d = _pub_dt(h)
+            if not k or (d is not None and d < fresh_cut) or seen_once(f"news|{t}|{_headline_key(h['title'])[:60]}"):
+                continue
+            translate_headlines([h], store)
+            new.append({"kind": "headline", "category": k, "category_label": lab, "ticker": t, "lists": held[t],
+                        "text": h.get("title_he") or h["title"], "title": h["title"], "publisher": h.get("publisher"),
+                        "url": h.get("url")})
+    # forget dedupe keys after 10 days
+    cutoff = (date.today() - timedelta(days=10)).isoformat()
+    st["seen"] = {k: v for k, v in st["seen"].items() if v >= cutoff}
+
+    for ev in new:
+        ev.update({"date": _price_session_date(), "detected_at": now.isoformat(), "outcome": {}})
+        log.append(ev)
+    store["holding_news_events"] = log[-HOLD_NEWS_EVENTS_MAX:]
+    if send and new:
+        icon = {"earnings": "📅", "filing": "📄", "headline": "⚠️"}
+        lines = ["🔔 עדכון למניות בתיקים שלך"]
+        for ev in new:
+            lines.append(f"{icon[ev['kind']]} {ev['ticker']} ({', '.join(ev['lists'])}): {ev['text']}"
+                         + (f" ({ev['publisher']})" if ev.get("publisher") else ""))
+            if ev.get("title") and ev.get("text") != ev.get("title"):
+                lines.append(f"   {ev['title']}")
+        lines.append("מידע בלבד - לא משנה אף המלצה באפליקציה.")
+        try:
+            send_telegram_message("\n".join(lines))
+        except Exception as e:
+            print(f"Holdings news telegram failed: {type(e).__name__}")
+    return new
+
+
+def update_holding_news_outcomes(store):
+    """Same outcome measurement as the unusual-move log (5/10/20 sessions
+    after the event day's close), plus averages per kind of news."""
+    by = {}
+    for e in store.get("history", []):
+        if e.get("price") is not None and not e.get("stale_snapshot"):
+            by.setdefault(e["ticker"], {})[e["date"]] = float(e["price"])
+    for ev in store.get("holding_news_events", []):
+        series = by.get(ev["ticker"])
+        if not series:
+            continue
+        days = sorted(d for d in series if d > ev["date"])
+        if not days:
+            continue
+        base = series[days[0]]
+        for n in MOVE_OUTCOME_SESSIONS:
+            if len(days) > n and str(n) not in ev["outcome"]:
+                ev["outcome"][str(n)] = round((series[days[n]] / base - 1) * 100, 2)
+    stats = {}
+    for ev in store.get("holding_news_events", []):
+        r = stats.setdefault(ev["category"], {"category": ev["category"], "label": ev["category_label"].replace(":", " ·"),
+                                              "kind": ev["kind"], "events": 0,
+                                              **{f"n{k}": 0 for k in MOVE_OUTCOME_SESSIONS},
+                                              **{f"sum{k}": 0.0 for k in MOVE_OUTCOME_SESSIONS}})
+        r["events"] += 1
+        for k in MOVE_OUTCOME_SESSIONS:
+            v = ev["outcome"].get(str(k))
+            if v is not None:
+                r[f"n{k}"] += 1
+                r[f"sum{k}"] += v
+    rows = []
+    for r in stats.values():
+        row = {"category": r["category"], "label": r["label"], "kind": r["kind"], "events": r["events"]}
+        for k in MOVE_OUTCOME_SESSIONS:
+            row[f"avg_{k}d_pct"] = round(r[f"sum{k}"] / r[f"n{k}"], 2) if r[f"n{k}"] else None
+            row[f"n_{k}d"] = r[f"n{k}"]
+        rows.append(row)
+    rows.sort(key=lambda r: -r["events"])
+    store["holding_news_stats"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows,
+                                   "total_events": len(store.get("holding_news_events", []))}
+
+
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
@@ -5699,6 +5880,11 @@ def main():
             update_move_outcomes(prediction_store)
         except Exception as e:
             print(f"Unusual-move scan failed: {type(e).__name__}")
+        try:
+            scan_holdings_news(prediction_store)
+            update_holding_news_outcomes(prediction_store)
+        except Exception as e:
+            print(f"Holdings news scan failed: {type(e).__name__}")
         print("Market hasn't traded today yet (weekend/holiday/pre-open) - "
               "skipping mover alerts, grading, and new predictions.")
         # explicit, timestamped signal the frontend's "🔄 עדכן ניתוח" button
@@ -5776,6 +5962,12 @@ def main():
         update_move_outcomes(prediction_store)
     except Exception as e:
         print(f"Unusual-move scan failed: {type(e).__name__}")
+
+    try:
+        scan_holdings_news(prediction_store)
+        update_holding_news_outcomes(prediction_store)
+    except Exception as e:
+        print(f"Holdings news scan failed: {type(e).__name__}")
 
     try:
         update_my_portfolio(prediction_store)
