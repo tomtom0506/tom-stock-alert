@@ -1020,12 +1020,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.8.2"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.8.3"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.8.3", date: "2026-10-03", items: [
+    "📰 הכותרות מתורגמות לעברית (MyMemory, חינמי), עם המקור באנגלית מתחת - בטלגרם ובכרטיס התנועות החריגות. אם התרגום לא זמין, מוצג המקור באנגלית (backend 5.17.4).",
+    "📰 הכותרות מסודרות לפי הקרבה לזמן התנועה ולא לפי החדשות ביותר - כדי שההסבר יישאר הסיפור שגרם לתנועה, ולא כתבות דעה שפורסמו יום אחר כך. בחיפוש חוזר הכותרות שכבר נמצאו נשמרות וממוזגות עם החדשות, והסיווג מחושב על עד 6 כותרות.",
+    "תוקן: אותה כתבה הופיעה פעמיים כשמקור אחד הוסיף לכותרת תגית כמו '(NASDAQ:WDC)' או ' - שם המקור'.",
+  ]},
   { version: "6.8.2", date: "2026-10-03", items: [
     "📄 תוקן החיבור לדיווחים הרשמיים ב-SEC EDGAR: רשות ניירות הערך חוסמת בקשות בלי כתובת מייל ליצירת קשר, ולכן הדיווחים (8-K/6-K) לא הגיעו. הכתובת נלקחת עכשיו מסוד מוצפן ב-GitHub (SEC_CONTACT_EMAIL) ולא מופיעה בשום מקום ציבורי - backend 5.17.3.",
   ]},
@@ -3325,7 +3330,13 @@ function moveHeadlinesHtml(ev) {
 
 function moveHeadlinesOnly(ev) {
   if (!(ev.headlines || []).length) return `<div style="font-size:11px; color:var(--text-faint); margin-top:4px;">לא נמצאו כותרות מהימים האחרונים</div>`;
-  return ev.headlines.map(h => `<div style="font-size:11.5px; margin-top:4px; line-height:1.5;">• ${safeUrl(h.url) ? `<a href="${safeUrl(h.url)}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
+  // v6.8.3: Hebrew translation first (when available), the English original underneath
+  return ev.headlines.map(h => {
+    const main = h.title_he || h.title;
+    const link = safeUrl(h.url) ? `<a href="${safeUrl(h.url)}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${main}</a>` : main;
+    const orig = h.title_he ? `<div dir="ltr" style="font-size:10.5px; color:var(--text-faint); text-align:left; margin-top:1px;">${h.title}</div>` : "";
+    return `<div style="font-size:11.5px; margin-top:5px; line-height:1.5;">• ${link}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}${orig}</div>`;
+  }).join("");
 }
 
 function bindRefreshNews() {
@@ -3384,7 +3395,7 @@ function renderEventLog(data) {
       ${evs.slice(0, 30).map(ev => `<div style="padding:7px 0; border-top:1px solid var(--border); font-size:12px;">
         <b>${ev.ticker}</b> <span class="mono" style="color:${ev.pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(ev.pct, 1)}</span> <span style="color:var(--text-faint);">· ${fmtDateIL(ev.date)} · ${ev.category_label}</span>
         <span style="float:left; font-size:11px;">${["5", "10", "20"].map(k => ev.outcome && ev.outcome[k] != null ? `${k}י׳ ${signedPct(ev.outcome[k], 1)}` : "").filter(Boolean).join(" · ") || `<span style="color:var(--text-faint);">ממתין לתוצאה</span>`}</span>
-        ${(ev.headlines || [])[0] ? `<div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${ev.headlines[0].title}</div>` : ""}
+        ${(ev.headlines || [])[0] ? `<div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${ev.headlines[0].title_he || ev.headlines[0].title}</div>` : ""}
       </div>`).join("")}
     </details>`;
 }

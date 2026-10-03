@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.17.3"
+BACKEND_VERSION = "5.17.4"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -5200,11 +5200,56 @@ def _finnhub_news(ticker):
 NEWS_SOURCES = (("google_news", _google_news), ("finnhub", _finnhub_news), ("yahoo_api", _yf_news), ("yahoo_rss", _yahoo_rss))  # Google first: it names the original publisher, so it wins de-duplication
 
 
-def fetch_headlines(ticker, limit=5, name=None, diag=None):
-    """v5.16.1: three free sources instead of one (the WDC alert on 2.10.2026
-    came back with no headlines although the Toshiba story was everywhere).
-    Merged newest-first, de-duplicated by title; each source failing alone
-    is fine. diag (dict) receives per-source counts / errors for debugging."""
+def _headline_key(title):
+    """De-duplication key: drops '(NASDAQ:WDC)'-style tags and a trailing
+    ' - Publisher', keeps letters/digits only (v5.17.4: the same Seeking
+    Alpha story came twice, once with the ticker tag and once without)."""
+    import re
+    t = re.sub(r"\([^)]*\)", " ", str(title))
+    t = re.sub(r"\s[-|–]\s[^-|–]{2,40}$", "", t)
+    return "".join(ch for ch in t.lower() if ch.isalnum())
+
+
+def _is_dup(key, seen):
+    for k in seen:
+        shorter, longer = (key, k) if len(key) <= len(k) else (k, key)
+        if len(shorter) >= 30 and longer.startswith(shorter[:max(30, len(shorter) - 2)]):
+            return True
+    return False
+
+
+def _pub_dt(n):
+    try:
+        return datetime.fromisoformat(str(n.get("published")).replace("Z", "+00:00")) if n.get("published") else None
+    except Exception:
+        return None
+
+
+def merge_headlines(items, ref_time=None, limit=5):
+    """Dedupe and order headlines by closeness to ref_time (the moment of the
+    move) - to explain a move, the stories around it matter, not the newest
+    opinion pieces published days later (v5.17.4, the WDC/Toshiba case)."""
+    ref = ref_time or datetime.now(timezone.utc)
+    window = timedelta(days=NEWS_MAX_AGE_DAYS)
+    kept, keys = [], []
+    for n in items:
+        d = _pub_dt(n)
+        if d is not None and abs(d - ref) > window:
+            continue
+        k = _headline_key(n["title"])
+        if not k or _is_dup(k, keys):
+            continue
+        keys.append(k)
+        kept.append(n)
+    far = timedelta(days=999)
+    kept.sort(key=lambda n: abs(_pub_dt(n) - ref) if _pub_dt(n) else far)
+    return kept[:limit]
+
+
+def fetch_headlines(ticker, limit=5, name=None, diag=None, ref_time=None):
+    """v5.16.1: three free sources (four with Finnhub) instead of one. Each
+    source failing alone is fine. diag (dict) receives per-source counts /
+    errors for debugging. v5.17.4: ordered by closeness to ref_time."""
     items = []
     for key, fn in NEWS_SOURCES:
         try:
@@ -5216,21 +5261,58 @@ def fetch_headlines(ticker, limit=5, name=None, diag=None):
             if diag is not None:
                 diag[key] = f"error: {type(e).__name__}"
             print(f"News source {key} failed for {ticker}: {type(e).__name__}")  # type only - messages can contain URLs
-    cutoff = datetime.now(timezone.utc) - timedelta(days=NEWS_MAX_AGE_DAYS)
-    fresh, seen = [], set()
-    for n in items:
-        try:
-            if n.get("published") and datetime.fromisoformat(str(n["published"]).replace("Z", "+00:00")) < cutoff:
-                continue
-        except Exception:
-            pass
-        k = "".join(ch for ch in n["title"].lower() if ch.isalnum())[:60]
-        if k in seen:
-            continue
-        seen.add(k)
-        fresh.append(n)
-    fresh.sort(key=lambda n: n.get("published") or "", reverse=True)
-    return fresh[:limit]
+    return merge_headlines(items, ref_time, limit)
+
+
+# ---------- v5.17.4: Hebrew translation of headlines (MyMemory, free official API) ----------
+TRANSLATION_CACHE_MAX = 600
+
+
+def translate_he(text, store=None):
+    """English -> Hebrew via api.mymemory.translated.net (no key; ~5,000
+    chars/day anonymous - plenty for a few headlines). Cached in the store.
+    Any failure / quota warning -> None, and the English title is shown."""
+    import html as _html
+    if not text or any("\u0590" <= ch <= "\u05ff" for ch in text):
+        return None
+    cache = (store or {}).setdefault("translation_cache", {}) if store is not None else {}
+    if text in cache:
+        return cache[text]
+    try:
+        r = requests.get("https://api.mymemory.translated.net/get",
+                         params={"q": text[:480], "langpair": "en|he"}, timeout=15)
+        r.raise_for_status()
+        j = r.json()
+        out = ((j.get("responseData") or {}).get("translatedText") or "").strip()
+        if int(j.get("responseStatus") or 0) != 200 or not out or out.upper().startswith("MYMEMORY WARNING") \
+                or not any("\u0590" <= ch <= "\u05ff" for ch in out):
+            return None
+        out = _html.unescape(out)[:300]
+    except Exception as e:
+        print(f"Translation failed: {type(e).__name__}")
+        return None
+    if store is not None:
+        cache[text] = out
+        if len(cache) > TRANSLATION_CACHE_MAX:
+            for k in list(cache)[: len(cache) - TRANSLATION_CACHE_MAX]:
+                cache.pop(k, None)
+    return out
+
+
+def translate_headlines(heads, store):
+    for h in heads:
+        if not h.get("title_he"):
+            he = translate_he(h["title"], store)
+            if he:
+                h["title_he"] = he
+    return heads
+
+
+def _headline_line(h):
+    pub = f" ({h['publisher']})" if h.get("publisher") else ""
+    if h.get("title_he"):
+        return f"• {h['title_he']}{pub}\n   {h['title']}"
+    return f"• {h['title']}{pub}"
 
 
 def _sec_headers():
@@ -5395,19 +5477,21 @@ def scan_unusual_moves(store, send=True):
                 continue
         ev["news_retries"] = ev.get("news_retries", 0) + 1
         diag = {}
-        heads = fetch_headlines(ev["ticker"], name=names.get(ev["ticker"]), diag=diag)
+        ref = datetime.fromisoformat(ev["detected_at"])
+        fresh = fetch_headlines(ev["ticker"], limit=8, name=names.get(ev["ticker"]), diag=diag, ref_time=ref)
+        heads = merge_headlines((ev.get("headlines") or []) + fresh, ref, limit=6)
         filings = ev.get("filings") or _filings_safe(ev["ticker"], diag)
         ev["news_sources"] = diag
         old_titles = {h.get("title") for h in (ev.get("headlines") or [])}
         if (heads and {h["title"] for h in heads[:3]} != old_titles) or (filings and not ev.get("filings")):
-            ev["headlines"] = heads[:3]
+            c, cl = classify_headlines(heads)        # classify on up to 6 stories, show the 3 closest to the move
+            ev["headlines"] = translate_headlines(heads[:3], store)
             ev["filings"] = filings
-            c, cl = classify_headlines(heads)
             ev["category"], ev["category_label"] = _category_with_filings(c, cl, filings)
             if send:
                 lines = [f"📰 עדכון ל-{ev['ticker']} ({ev['pct']:+.1f}%, {ev['date']})", f"סיבה משוערת: {ev['category_label']}"]
                 lines += [f"📄 דיווח רשמי ({f['form']}, {f['date']}): {', '.join(f['labels']) or 'ללא פירוט סעיפים'}" for f in filings]
-                lines += [f"• {h['title']}" + (f" ({h['publisher']})" if h.get("publisher") else "") for h in ev["headlines"]]
+                lines += [_headline_line(h) for h in ev["headlines"]]
                 try:
                     send_telegram_message("\n".join(lines))
                 except Exception as e:
@@ -5419,8 +5503,9 @@ def scan_unusual_moves(store, send=True):
         if pct is None or not np.isfinite(pct) or abs(pct) < MOVE_ALERT_PCT or (today, t) in already:
             continue
         diag = {}
-        heads = fetch_headlines(t, name=names.get(t), diag=diag)
+        heads = fetch_headlines(t, limit=6, name=names.get(t), diag=diag)
         cat, cat_label = classify_headlines(heads)
+        heads = translate_headlines(heads[:3], store)
         filings = _filings_safe(t, diag)
         cat, cat_label = _category_with_filings(cat, cat_label, filings)
         ev = {"date": today, "ticker": t, "pct": round(float(pct), 2), "price": _round_price(lp.get("price")),
@@ -5437,7 +5522,7 @@ def scan_unusual_moves(store, send=True):
             for f in ev.get("filings") or []:
                 lines.append(f"📄 דיווח רשמי ({f['form']}, {f['date']}): {', '.join(f['labels']) or 'ללא פירוט סעיפים'}")
             for h in ev["headlines"]:
-                lines.append(f"• {h['title']}" + (f" ({h['publisher']})" if h.get("publisher") else ""))
+                lines.append(_headline_line(h))
             if not ev["headlines"]:
                 lines.append("לא נמצאו כותרות מהימים האחרונים (Yahoo + Google News) - אנסה שוב בריצות הבאות")
             lines.append("מידע בלבד - לא משנה אף המלצה באפליקציה.")
