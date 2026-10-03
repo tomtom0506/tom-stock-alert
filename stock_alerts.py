@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.17.2"
+BACKEND_VERSION = "5.17.3"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -5233,8 +5233,15 @@ def fetch_headlines(ticker, limit=5, name=None, diag=None):
     return fresh[:limit]
 
 
-SEC_UA = {"User-Agent": "tom-stock-alert personal research (github.com/tomtom0506/tom-stock-alert)",
-          "Accept-Encoding": "gzip, deflate"}
+def _sec_headers():
+    """SEC requires a contact email in the User-Agent (anonymous requests get
+    403 - seen live on 3.10.2026). The address comes from the
+    SEC_CONTACT_EMAIL Actions secret so it never appears in this public repo
+    or its logs. No secret -> None, and EDGAR is skipped quietly."""
+    email = (os.environ.get("SEC_CONTACT_EMAIL") or "").strip()
+    if "@" not in email:
+        return None
+    return {"User-Agent": f"tom-stock-alert personal research {email}", "Accept-Encoding": "gzip, deflate"}
 SEC_8K_ITEMS = {
     "1.01": ("deal", "הסכם מהותי"), "1.02": ("deal", "סיום הסכם מהותי"), "1.03": ("legal", "פשיטת רגל"),
     "2.01": ("deal", "השלמת רכישה / מכירה"), "2.02": ("earnings", "תוצאות כספיות"),
@@ -5250,7 +5257,7 @@ _SEC_CIK = None
 def _sec_cik(ticker):
     global _SEC_CIK
     if _SEC_CIK is None:
-        r = requests.get("https://www.sec.gov/files/company_tickers.json", headers=SEC_UA, timeout=20)
+        r = requests.get("https://www.sec.gov/files/company_tickers.json", headers=_sec_headers(), timeout=20)
         r.raise_for_status()
         _SEC_CIK = {v["ticker"].upper().replace(".", "-"): int(v["cik_str"]) for v in r.json().values()}
     return _SEC_CIK.get(ticker.upper())
@@ -5260,12 +5267,12 @@ def fetch_sec_filings(ticker, days=NEWS_MAX_AGE_DAYS):
     """v5.17.0 - official company announcements: 8-K (US) / 6-K (foreign
     issuers) filed on SEC EDGAR in the last few days. Free, no key; SEC asks
     for an identifying User-Agent and <= 10 requests/second."""
-    if ticker.endswith(".TA"):
+    if ticker.endswith(".TA") or _sec_headers() is None:
         return []
     cik = _sec_cik(ticker)
     if not cik:
         return []
-    r = requests.get(f"https://data.sec.gov/submissions/CIK{cik:010d}.json", headers=SEC_UA, timeout=20)
+    r = requests.get(f"https://data.sec.gov/submissions/CIK{cik:010d}.json", headers=_sec_headers(), timeout=20)
     r.raise_for_status()
     rec = (r.json().get("filings") or {}).get("recent") or {}
     cutoff = (date.today() - timedelta(days=days)).isoformat()
@@ -5333,7 +5340,7 @@ def _filings_safe(ticker, diag):
         return f
     except Exception as e:
         diag["sec_edgar"] = f"error: {type(e).__name__}"
-        print(f"SEC EDGAR failed for {ticker}: {e}")
+        print(f"SEC EDGAR failed for {ticker}: {type(e).__name__}")  # type only - never request details (contact email)
         return []
 
 
@@ -5404,7 +5411,7 @@ def scan_unusual_moves(store, send=True):
                 try:
                     send_telegram_message("\n".join(lines))
                 except Exception as e:
-                    print(f"Move follow-up telegram failed: {e}")
+                    print(f"Move follow-up telegram failed: {type(e).__name__}")
     new = []
     for t, labels in lists.items():
         lp = prices.get(t) or {}
@@ -5437,7 +5444,7 @@ def scan_unusual_moves(store, send=True):
             try:
                 send_telegram_message("🚨 תנועה חריגה\n" + "\n".join(lines))
             except Exception as e:
-                print(f"Move alert telegram failed: {e}")
+                print(f"Move alert telegram failed: {type(e).__name__}")
     return new
 
 
@@ -5683,7 +5690,7 @@ def main():
         scan_unusual_moves(prediction_store)
         update_move_outcomes(prediction_store)
     except Exception as e:
-        print(f"Unusual-move scan failed: {type(e).__name__}: {e}")
+        print(f"Unusual-move scan failed: {type(e).__name__}")
 
     try:
         update_my_portfolio(prediction_store)
