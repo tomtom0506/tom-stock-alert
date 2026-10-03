@@ -34,8 +34,11 @@ jobs:
 
       - name: Override lookback years (if provided)
         if: ${{ github.event.inputs.lookback_years != '' }}
+        env:
+          LOOKBACK: ${{ github.event.inputs.lookback_years }}   # security: data, not shell code
         run: |
-          sed -i "s/^LOOKBACK_YEARS = .*/LOOKBACK_YEARS = ${{ github.event.inputs.lookback_years }}/" research/vectorbt_regime_momentum_research.py
+          [[ "$LOOKBACK" =~ ^[0-9]{1,2}$ ]] || { echo "lookback_years must be a number"; exit 1; }
+          sed -i "s/^LOOKBACK_YEARS = .*/LOOKBACK_YEARS = ${LOOKBACK}/" research/vectorbt_regime_momentum_research.py
 
       - name: Run research (offline, read-only against live data)
         run: python research/vectorbt_regime_momentum_research.py

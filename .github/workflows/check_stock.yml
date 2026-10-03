@@ -36,11 +36,14 @@ jobs:
         run: python check_stock.py "$CHECK_TICKER"
 
       - name: Commit result (if changed)
+        env:
+          CHECK_TICKER: ${{ inputs.ticker }}   # security: passed as data, never pasted into the shell script
         run: |
+          [[ "$CHECK_TICKER" =~ ^[A-Za-z0-9.^=-]{1,15}$ ]] || CHECK_TICKER="invalid"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add stock_check_result.json
-          git diff --staged --quiet || git commit -m "בדוק מניה: ${{ inputs.ticker }}"
+          git diff --staged --quiet || git commit -m "בדוק מניה: ${CHECK_TICKER}"
           git fetch origin main
           git merge -X ours --no-edit origin/main
           git push origin HEAD:main
