@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.16.0"
+BACKEND_VERSION = "5.17.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -5070,6 +5070,7 @@ NEWS_CATEGORIES = [
     ("legal", "משפט / רגולציה", ["lawsuit", "sues", "probe", "investigation", "sec ", "fda", "regulator", "antitrust", "recall", "ban", "tariff", "fine"]),
     ("deal", "מיזוג / רכישה", ["acquire", "acquisition", "merger", "buyout", "takeover", "deal", "spin-off", "stake", "bid"]),
     ("offering", "הנפקה / דילול", ["offering", "dilution", "convertible", "share sale", "secondary"]),
+    ("management", "שינוי בהנהלה", ["ceo", "cfo", "resigns", "steps down", "appoints", "names new", "chief executive"]),
     ("macro", "שוק / מאקרו", ["fed ", "federal reserve", "inflation", "rate cut", "rate hike", "jobs report", "wall street", "stock market"]),
 ]
 
@@ -5094,26 +5095,188 @@ def _parse_news_item(item):
     return {"title": str(title)[:200], "publisher": publisher, "url": url, "published": when}
 
 
-def fetch_headlines(ticker, limit=5):
+NEWS_UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"}
+
+
+def _yf_news(ticker):
+    raw = yf.Ticker(ticker).news or []
+    return [n for n in (_parse_news_item(it) for it in raw if isinstance(it, dict)) if n]
+
+
+def _rss_items(xml_text, source_label=None):
+    """Plain RSS 2.0 -> [{title, publisher, url, published}]."""
+    import xml.etree.ElementTree as ET
+    from email.utils import parsedate_to_datetime
+    out = []
     try:
-        raw = yf.Ticker(ticker).news or []
-    except Exception as e:
-        print(f"News fetch failed for {ticker}: {e}")
-        return []
-    out, cutoff = [], datetime.now(timezone.utc) - timedelta(days=NEWS_MAX_AGE_DAYS)
-    for it in raw:
-        n = _parse_news_item(it) if isinstance(it, dict) else None
-        if not n:
+        root = ET.fromstring(xml_text)
+    except ET.ParseError:
+        return out
+    for it in root.iter("item"):
+        title = (it.findtext("title") or "").strip()
+        if not title:
             continue
+        publisher = (it.findtext("source") or "").strip() or source_label
+        # Google News appends " - Publisher" to every title
+        if publisher and title.endswith(" - " + publisher):
+            title = title[: -len(" - " + publisher)]
+        when = None
         try:
-            if n["published"] and datetime.fromisoformat(str(n["published"]).replace("Z", "+00:00")) < cutoff:
+            when = parsedate_to_datetime(it.findtext("pubDate")).astimezone(timezone.utc).isoformat()
+        except Exception:
+            pass
+        out.append({"title": title[:200], "publisher": publisher, "url": (it.findtext("link") or "").strip() or None,
+                    "published": when})
+    return out
+
+
+def _yahoo_rss(ticker):
+    r = requests.get("https://feeds.finance.yahoo.com/rss/2.0/headline",
+                     params={"s": ticker, "region": "US", "lang": "en-US"}, headers=NEWS_UA, timeout=15)
+    r.raise_for_status()
+    return _rss_items(r.text, "Yahoo Finance")
+
+
+def _short_company_name(name):
+    """'Western Digital Corporation' -> 'Western Digital' (headlines rarely use the legal suffix)."""
+    if not name:
+        return None
+    words = str(name).replace(",", " ").replace(".", " ").split()
+    suffixes = {"inc", "incorporated", "corp", "corporation", "co", "company", "ltd", "limited", "plc",
+                "holdings", "holding", "group", "sa", "nv", "ag", "the", "class", "a", "b"}
+    while words and words[-1].lower() in suffixes:
+        words.pop()
+    return " ".join(words) or None
+
+
+def _google_news(ticker, name=None):
+    base = ticker.split(".")[0]
+    name = _short_company_name(name)
+    if ticker.endswith(".TA"):
+        q = f'"{name}"' if name else base
+        params = {"q": f"{q} when:3d", "hl": "he", "gl": "IL", "ceid": "IL:he"}
+    else:
+        q = f'"{name}" OR {base} stock' if name else f"{base} stock"
+        params = {"q": f"{q} when:3d", "hl": "en-US", "gl": "US", "ceid": "US:en"}
+    r = requests.get("https://news.google.com/rss/search", params=params, headers=NEWS_UA, timeout=15)
+    r.raise_for_status()
+    return _rss_items(r.text)
+
+
+def _finnhub_news(ticker):
+    """v5.17.0 - Finnhub company news (free key in the FINNHUB_API_KEY GitHub
+    secret; US tickers only on the free plan). No key -> silently skipped."""
+    key = os.environ.get("FINNHUB_API_KEY")
+    if not key or ticker.endswith(".TA"):
+        return []
+    today = date.today()
+    # key in a header, never in the URL: the repo (and so its Actions logs) is
+    # public, and an HTTP error message would otherwise print the full URL
+    r = requests.get("https://finnhub.io/api/v1/company-news",
+                     params={"symbol": ticker, "from": (today - timedelta(days=NEWS_MAX_AGE_DAYS)).isoformat(),
+                             "to": today.isoformat()},
+                     headers={"X-Finnhub-Token": key}, timeout=15)
+    r.raise_for_status()
+    out = []
+    for it in r.json() or []:
+        if not it.get("headline"):
+            continue
+        when = None
+        try:
+            when = datetime.fromtimestamp(int(it["datetime"]), tz=timezone.utc).isoformat()
+        except Exception:
+            pass
+        out.append({"title": str(it["headline"])[:200], "publisher": it.get("source"), "url": it.get("url"), "published": when})
+    out.sort(key=lambda n: n.get("published") or "", reverse=True)
+    return out[:15]
+
+
+NEWS_SOURCES = (("google_news", _google_news), ("finnhub", _finnhub_news), ("yahoo_api", _yf_news), ("yahoo_rss", _yahoo_rss))  # Google first: it names the original publisher, so it wins de-duplication
+
+
+def fetch_headlines(ticker, limit=5, name=None, diag=None):
+    """v5.16.1: three free sources instead of one (the WDC alert on 2.10.2026
+    came back with no headlines although the Toshiba story was everywhere).
+    Merged newest-first, de-duplicated by title; each source failing alone
+    is fine. diag (dict) receives per-source counts / errors for debugging."""
+    items = []
+    for key, fn in NEWS_SOURCES:
+        try:
+            got = fn(ticker, name) if key == "google_news" else fn(ticker)
+            items += got
+            if diag is not None:
+                diag[key] = len(got)
+        except Exception as e:
+            if diag is not None:
+                diag[key] = f"error: {type(e).__name__}"
+            print(f"News source {key} failed for {ticker}: {type(e).__name__}")  # type only - messages can contain URLs
+    cutoff = datetime.now(timezone.utc) - timedelta(days=NEWS_MAX_AGE_DAYS)
+    fresh, seen = [], set()
+    for n in items:
+        try:
+            if n.get("published") and datetime.fromisoformat(str(n["published"]).replace("Z", "+00:00")) < cutoff:
                 continue
         except Exception:
             pass
-        out.append(n)
-        if len(out) >= limit:
-            break
-    return out
+        k = "".join(ch for ch in n["title"].lower() if ch.isalnum())[:60]
+        if k in seen:
+            continue
+        seen.add(k)
+        fresh.append(n)
+    fresh.sort(key=lambda n: n.get("published") or "", reverse=True)
+    return fresh[:limit]
+
+
+SEC_UA = {"User-Agent": "tom-stock-alert personal research (github.com/tomtom0506/tom-stock-alert)",
+          "Accept-Encoding": "gzip, deflate"}
+SEC_8K_ITEMS = {
+    "1.01": ("deal", "הסכם מהותי"), "1.02": ("deal", "סיום הסכם מהותי"), "1.03": ("legal", "פשיטת רגל"),
+    "2.01": ("deal", "השלמת רכישה / מכירה"), "2.02": ("earnings", "תוצאות כספיות"),
+    "2.03": ("offering", "התחייבות פיננסית חדשה"), "2.05": ("earnings", "ארגון מחדש / קיצוצים"),
+    "2.06": ("earnings", "מחיקת ערך"), "3.01": ("legal", "בעיית רישום למסחר"), "3.02": ("offering", "מכירת מניות"),
+    "4.01": ("legal", "החלפת רואה חשבון"), "4.02": ("legal", "דוחות קודמים לא אמינים"),
+    "5.02": ("management", "שינוי בהנהלה"), "5.07": ("other", "הצבעת בעלי מניות"),
+    "7.01": ("other", "הודעה לציבור"), "8.01": ("other", "אירוע אחר"), "9.01": (None, None),
+}
+_SEC_CIK = None
+
+
+def _sec_cik(ticker):
+    global _SEC_CIK
+    if _SEC_CIK is None:
+        r = requests.get("https://www.sec.gov/files/company_tickers.json", headers=SEC_UA, timeout=20)
+        r.raise_for_status()
+        _SEC_CIK = {v["ticker"].upper().replace(".", "-"): int(v["cik_str"]) for v in r.json().values()}
+    return _SEC_CIK.get(ticker.upper())
+
+
+def fetch_sec_filings(ticker, days=NEWS_MAX_AGE_DAYS):
+    """v5.17.0 - official company announcements: 8-K (US) / 6-K (foreign
+    issuers) filed on SEC EDGAR in the last few days. Free, no key; SEC asks
+    for an identifying User-Agent and <= 10 requests/second."""
+    if ticker.endswith(".TA"):
+        return []
+    cik = _sec_cik(ticker)
+    if not cik:
+        return []
+    r = requests.get(f"https://data.sec.gov/submissions/CIK{cik:010d}.json", headers=SEC_UA, timeout=20)
+    r.raise_for_status()
+    rec = (r.json().get("filings") or {}).get("recent") or {}
+    cutoff = (date.today() - timedelta(days=days)).isoformat()
+    out = []
+    for i, form in enumerate(rec.get("form") or []):
+        if form not in ("8-K", "6-K", "8-K/A"):
+            continue
+        fdate = rec["filingDate"][i]
+        if fdate < cutoff:
+            continue
+        items = [x.strip() for x in str((rec.get("items") or [""] * (i + 1))[i] or "").split(",") if x.strip()]
+        labels = [SEC_8K_ITEMS.get(x, (None, None))[1] for x in items]
+        acc = rec["accessionNumber"][i].replace("-", "")
+        doc = rec["primaryDocument"][i]
+        out.append({"form": form, "date": fdate, "items": items,
+                    "labels": [l for l in labels if l], "url": f"https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/{doc}"})
+    return out[:3]
 
 
 def classify_headlines(headlines):
@@ -5157,6 +5320,30 @@ def _followed_lists(store):
     return lists
 
 
+def _filings_safe(ticker, diag):
+    try:
+        f = fetch_sec_filings(ticker)
+        diag["sec_edgar"] = len(f)
+        return f
+    except Exception as e:
+        diag["sec_edgar"] = f"error: {type(e).__name__}"
+        print(f"SEC EDGAR failed for {ticker}: {e}")
+        return []
+
+
+def _category_with_filings(cat, cat_label, filings):
+    """An official filing beats a keyword guess when the headlines were
+    inconclusive (none / other)."""
+    if cat not in ("none", "other"):
+        return cat, cat_label
+    for f in filings or []:
+        for it in f.get("items") or []:
+            k, lab = SEC_8K_ITEMS.get(it, (None, None))
+            if k and k != "other":
+                return k, lab
+    return cat, cat_label
+
+
 def _price_session_date():
     """Which US session today's live % change belongs to: the current one
     from the 09:30 New York open, otherwise the previous weekday's (so a
@@ -5177,17 +5364,47 @@ def scan_unusual_moves(store, send=True):
     already = {(e["date"], e["ticker"]) for e in log}
     lists = _followed_lists(store)
     sector = {e["ticker"]: e.get("sector") for e in store.get("history", []) if e.get("sector")}
+    names = {t: (c or {}).get("name") for t, c in (store.get("fundamentals_cache") or {}).items()}
+    names.update({p["ticker"]: p.get("company_name") for p in ((store.get("long_term_picks") or {}).get("picks") or []) if p.get("company_name")})
+    # v5.16.1: an event that came back without headlines is retried (up to 4
+    # times over the next runs); when headlines turn up, one follow-up alert
+    for ev in log[-50:]:
+        if ev.get("headlines") or ev.get("news_retries", 0) >= 4:
+            continue
+        if (datetime.now(timezone.utc) - datetime.fromisoformat(ev["detected_at"])).days > 2:
+            continue
+        ev["news_retries"] = ev.get("news_retries", 0) + 1
+        diag = {}
+        heads = fetch_headlines(ev["ticker"], name=names.get(ev["ticker"]), diag=diag)
+        filings = ev.get("filings") or _filings_safe(ev["ticker"], diag)
+        ev["news_sources"] = diag
+        if heads or (filings and not ev.get("filings")):
+            ev["headlines"] = heads[:3]
+            ev["filings"] = filings
+            c, cl = classify_headlines(heads)
+            ev["category"], ev["category_label"] = _category_with_filings(c, cl, filings)
+            if send:
+                lines = [f"📰 עדכון ל-{ev['ticker']} ({ev['pct']:+.1f}%, {ev['date']})", f"סיבה משוערת: {ev['category_label']}"]
+                lines += [f"📄 דיווח רשמי ({f['form']}, {f['date']}): {', '.join(f['labels']) or 'ללא פירוט סעיפים'}" for f in filings]
+                lines += [f"• {h['title']}" + (f" ({h['publisher']})" if h.get("publisher") else "") for h in ev["headlines"]]
+                try:
+                    send_telegram_message("\n".join(lines))
+                except Exception as e:
+                    print(f"Move follow-up telegram failed: {e}")
     new = []
     for t, labels in lists.items():
         lp = prices.get(t) or {}
         pct = lp.get("pct_change")
         if pct is None or not np.isfinite(pct) or abs(pct) < MOVE_ALERT_PCT or (today, t) in already:
             continue
-        heads = fetch_headlines(t)
+        diag = {}
+        heads = fetch_headlines(t, name=names.get(t), diag=diag)
         cat, cat_label = classify_headlines(heads)
+        filings = _filings_safe(t, diag)
+        cat, cat_label = _category_with_filings(cat, cat_label, filings)
         ev = {"date": today, "ticker": t, "pct": round(float(pct), 2), "price": _round_price(lp.get("price")),
               "lists": labels, "sector": sector.get(t), "category": cat, "category_label": cat_label,
-              "headlines": heads[:3], "detected_at": datetime.now(timezone.utc).isoformat(), "outcome": {}}
+              "headlines": heads[:3], "filings": filings, "news_sources": diag, "detected_at": datetime.now(timezone.utc).isoformat(), "outcome": {}}
         log.append(ev)
         new.append(ev)
     store["move_events"] = log[-MOVE_EVENTS_MAX:]
@@ -5196,10 +5413,12 @@ def scan_unusual_moves(store, send=True):
             arrow = "🔺" if ev["pct"] > 0 else "🔻"
             lines = [f"{arrow} {ev['ticker']} {ev['pct']:+.1f}% היום · {', '.join(ev['lists'])}",
                      f"📰 סיבה משוערת: {ev['category_label']}"]
+            for f in ev.get("filings") or []:
+                lines.append(f"📄 דיווח רשמי ({f['form']}, {f['date']}): {', '.join(f['labels']) or 'ללא פירוט סעיפים'}")
             for h in ev["headlines"]:
                 lines.append(f"• {h['title']}" + (f" ({h['publisher']})" if h.get("publisher") else ""))
             if not ev["headlines"]:
-                lines.append("לא נמצאו כותרות מהימים האחרונים ב-Yahoo")
+                lines.append("לא נמצאו כותרות מהימים האחרונים (Yahoo + Google News) - אנסה שוב בריצות הבאות")
             lines.append("מידע בלבד - לא משנה אף המלצה באפליקציה.")
             try:
                 send_telegram_message("🚨 תנועה חריגה\n" + "\n".join(lines))
