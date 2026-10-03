@@ -1020,12 +1020,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.8.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.8.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.8.1", date: "2026-10-03", items: [
+    "📰 כפתור '🔄 חפש חדשות שוב' בכרטיס התנועות החריגות: מחפש מחדש בכל מקורות החדשות את האירועים של הימים האחרונים, ושולח הודעת המשך רק אם נמצא משהו חדש. תוקן גם באג שבגללו החיפוש החוזר האוטומטי לא רץ בסופי שבוע וחגים (כך נשאר אירוע WDC מיום שישי בלי כותרות) - backend 5.17.2.",
+    "תוקן: שני סימוני המצב בטאב ההמלצות נראו זהים - עכשיו כל סימון מציין את שם האסטרטגיה (🔄 ירידה חדה / 🚀 קפיצת חדשות), וכך גם בטווח הארוך.",
+    "🗄️ גיבוי שבועי אוטומטי: כל יום ראשון בבוקר נוצרת נקודת שחזור קבועה של כל הריפו (backup-תאריך), במקום קובץ גיבוי בכל גרסה.",
+  ]},
   { version: "6.8.0", date: "2026-10-03", items: [
     "🔐 תיקוני אבטחה אחרי סקירה מלאה: כל מידע חיצוני (כותרות חדשות, שמות ותיאורי חברות, טיקרים, כל השדות בקבצי הנתונים) מוצג עכשיו כטקסט בלבד ולא כקוד, ולינקים מתקבלים רק אם הם http(s). זה סוגר פרצה שבה כותרת זדונית יכלה להריץ קוד באפליקציה ולקרוא את טוקן ה-GitHub מהדפדפן.",
     "🔐 מדיניות אבטחת תוכן (CSP): הדפדפן חוסם טעינת קוד ממקורות זרים ותקשורת לכל כתובת מלבד GitHub - שכבת הגנה שנייה אם יתגלה חור נוסף. בנוסף, האפליקציה לא שולחת כתובת הפניה (referrer) כשפותחים לינק חיצוני.",
@@ -1946,7 +1951,7 @@ document.getElementById("sortSelect").addEventListener("change", (e) => {
 
 let recomputePollTimer = null;
 
-async function triggerFullRecompute(statusElId) {
+async function triggerFullRecompute(statusElId, opts) {
   const statusEl = document.getElementById(statusElId);
   if (!owner || !repo || !token) {
     statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
@@ -1965,7 +1970,7 @@ async function triggerFullRecompute(statusElId) {
           Accept: "application/vnd.github.v3+json",
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ref: "main" }),
+        body: JSON.stringify(opts && opts.refreshNews ? { ref: "main", inputs: { refresh_news: "true" } } : { ref: "main" }),
       }
     );
     if (res.status === 204) {
@@ -2162,7 +2167,8 @@ function listStatusChip(key, opts) {
   const progress = (st.status === "validated" || st.status === "warning")
     ? ` · בזמן אמת: ${st.sessions || 0} ימי מסחר${ex}`
     : (st.status === "proven" ? ex : ` · ${st.sessions || 0}/${rules.proven_sessions} ימים${ex}`);
-  return `<span style="display:inline-block; font-size:11px; font-weight:700; color:${M[1]}; border:1px solid ${M[2]}; border-radius:999px; padding:2px 9px; margin:${(opts && opts.margin) || "0 0 8px"};">${M[0]}${progress}</span>`;
+  const name = opts && opts.withLabel && st.label ? `${st.label}: ` : "";
+  return `<span style="display:inline-block; font-size:11px; font-weight:700; color:${M[1]}; border:1px solid ${M[2]}; border-radius:999px; padding:2px 9px; margin:${(opts && opts.margin) || "0 0 8px"};">${name}${M[0]}${progress}</span>`;
 }
 
 function verdictTagHtml(verdict, fontSize) {
@@ -3074,7 +3080,7 @@ function renderRecommendations(data) {
       <div style="font-size:12px; color:var(--text-dim);">אף מניית S&amp;P 500 לא עונה היום על התנאים של שתי האסטרטגיות. זה תקין - האותות מגיעים בגלים, בעיקר אחרי ימים סוערים בשוק.</div>`;
   }
   const near = "";
-  parts.push(recCard("⚡ טווח קצר · אסטרטגיות שנבדקו על 26 שנה", `<div>${listStatusChip("book_A")} ${listStatusChip("book_B")}</div>` + bookTrack + shortBody + near + oldRecord + small(`${r.short_rules}${r.book_session ? ` · מחושב לפי סגירת ${fmtDateIL(r.book_session)}` : ""}`)));
+  parts.push(recCard("⚡ טווח קצר · אסטרטגיות שנבדקו על 26 שנה", `<div>${listStatusChip("book_A", { withLabel: true })} ${listStatusChip("book_B", { withLabel: true })}</div>` + bookTrack + shortBody + near + oldRecord + small(`${r.short_rules}${r.book_session ? ` · מחושב לפי סגירת ${fmtDateIL(r.book_session)}` : ""}`)));
 
   // 3. long term
   let longBody;
@@ -3103,7 +3109,7 @@ function renderRecommendations(data) {
       ${(r.long_watch || []).length ? `<div style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">👀 במעקב (איכותיות, מחכות לתזמון): ${r.long_watch.map(w => `<b>${w.ticker}</b>`).join(", ")}</div>` : ""}
       ${r.long_rules ? `<div style="font-size:10.5px; color:var(--text-faint); margin-top:6px; line-height:1.6;">${r.long_rules}</div>` : ""}`;
   }
-  parts.push(recCard("🏛 טווח ארוך (חודשים עד שנים)", `<div>${listStatusChip("long_enter")} ${listStatusChip("long_dip")}</div>` + longBody + small("הרשימה מתעדכנת פעם בחודש לפי איכות עסקית ודירוג אנליסטים. ציון האיכות לא נבדק היסטורית - נמדד מהיום.")));
+  parts.push(recCard("🏛 טווח ארוך (חודשים עד שנים)", `<div>${listStatusChip("long_enter", { withLabel: true })} ${listStatusChip("long_dip", { withLabel: true })}</div>` + longBody + small("הרשימה מתעדכנת פעם בחודש לפי איכות עסקית ודירוג אנליסטים. ציון האיכות לא נבדק היסטורית - נמדד מהיום.")));
 
   // 4. holdings warnings
   const w = r.warnings || [];
@@ -3319,6 +3325,14 @@ function moveHeadlinesOnly(ev) {
   return ev.headlines.map(h => `<div style="font-size:11.5px; margin-top:4px; line-height:1.5;">• ${safeUrl(h.url) ? `<a href="${safeUrl(h.url)}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
 }
 
+function bindRefreshNews() {
+  const b = document.getElementById("refreshNewsBtn");
+  if (b && !b.dataset.bound) {
+    b.dataset.bound = "1";
+    b.addEventListener("click", () => triggerFullRecompute("floatingRecomputeStatus", { refreshNews: true }));
+  }
+}
+
 function renderMovesCard(data) {
   const el = document.getElementById("homeMovesCard");
   if (!el) return;
@@ -3333,6 +3347,7 @@ function renderMovesCard(data) {
     <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px; border:1px solid #ff9a8a66;">
       <div style="font-size:13px; font-weight:800; margin-bottom:2px;">🚨 תנועות חריגות · ${fmtDateIL(last)}</div>
       <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">מניות מהרשימות שלך שזזו 7% ומעלה. מידע בלבד - לא משנה אף המלצה.</div>
+      <button type="button" id="refreshNewsBtn" class="top-toggle-btn" style="font-size:12px; padding:5px 12px; margin-bottom:6px;">🔄 חפש חדשות שוב</button>
       ${shown.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).map(ev => `
         <div style="padding:8px 0; border-top:1px solid var(--border);">
           <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -3439,6 +3454,7 @@ async function loadPredictions() {
       renderRecommendations(data);
       renderPortfolios(data);
       renderMovesCard(data);
+      bindRefreshNews();
       renderEventLog(data);
       renderPortfolioDailyTiles(data);
     } catch (e) { console.error("three-layer render failed", e); }

@@ -46,7 +46,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.17.1"
+BACKEND_VERSION = "5.17.2"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -5374,17 +5374,25 @@ def scan_unusual_moves(store, send=True):
     names.update({p["ticker"]: p.get("company_name") for p in ((store.get("long_term_picks") or {}).get("picks") or []) if p.get("company_name")})
     # v5.16.1: an event that came back without headlines is retried (up to 4
     # times over the next runs); when headlines turn up, one follow-up alert
+    # "🔄 חפש חדשות שוב" (workflow input refresh_news -> NEWS_REFRESH=true):
+    # re-search every event of the last 4 days, even ones that already have
+    # headlines or used up their automatic retries
+    force = os.environ.get("NEWS_REFRESH", "").lower() == "true"
     for ev in log[-50:]:
-        if ev.get("headlines") or ev.get("news_retries", 0) >= 4:
-            continue
-        if (datetime.now(timezone.utc) - datetime.fromisoformat(ev["detected_at"])).days > 2:
-            continue
+        age_days = (datetime.now(timezone.utc) - datetime.fromisoformat(ev["detected_at"])).days
+        if force:
+            if age_days > 4:
+                continue
+        else:
+            if ev.get("headlines") or ev.get("news_retries", 0) >= 4 or age_days > 2:
+                continue
         ev["news_retries"] = ev.get("news_retries", 0) + 1
         diag = {}
         heads = fetch_headlines(ev["ticker"], name=names.get(ev["ticker"]), diag=diag)
         filings = ev.get("filings") or _filings_safe(ev["ticker"], diag)
         ev["news_sources"] = diag
-        if heads or (filings and not ev.get("filings")):
+        old_titles = {h.get("title") for h in (ev.get("headlines") or [])}
+        if (heads and {h["title"] for h in heads[:3]} != old_titles) or (filings and not ev.get("filings")):
             ev["headlines"] = heads[:3]
             ev["filings"] = filings
             c, cl = classify_headlines(heads)
@@ -5590,6 +5598,15 @@ def main():
             update_my_portfolio(prediction_store)
         except Exception as e:
             print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
+        # v5.17.2: the news retry / "🔄 חפש חדשות שוב" must also work on weekends
+        # (the WDC event of Friday 2.10 never got its retry because every run
+        # since then took this early-return path). Detection itself is
+        # session-dated, so this can't re-alert Friday's move.
+        try:
+            scan_unusual_moves(prediction_store)
+            update_move_outcomes(prediction_store)
+        except Exception as e:
+            print(f"Unusual-move scan failed: {type(e).__name__}")
         print("Market hasn't traded today yet (weekend/holiday/pre-open) - "
               "skipping mover alerts, grading, and new predictions.")
         # explicit, timestamped signal the frontend's "🔄 עדכן ניתוח" button
