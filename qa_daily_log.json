@@ -118,5 +118,17 @@
     "hold_queue_count": 29,
     "verdict_buy_count": 10,
     "verdict_avoid_count": 0
+  },
+  {
+    "date": "2026-10-06",
+    "market_regime_bullish": true,
+    "sp500_pct_change": 0.66,
+    "ta125_pct_change": -0.19,
+    "strong_daily_accuracy": 60.0,
+    "data_suspect_count": 1,
+    "sell_queue_count": 32,
+    "hold_queue_count": 28,
+    "verdict_buy_count": 11,
+    "verdict_avoid_count": 0
   }
 ]
