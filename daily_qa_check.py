@@ -611,7 +611,7 @@ def main():
     today_str = date.today().isoformat()
 
     if not is_market_trading_day():
-        send_telegram_message("ℹ️ בדיקת QA יומית: אין מסחר היום (סופ״ש/חג ארה״ב) - לא בוצעה בדיקה.")
+        # v5.20.0: no message on quiet days (11.10.2026 - fewer messages)
         print("Not a trading day, QA check skipped.")
         return
 
@@ -659,7 +659,10 @@ def main():
         body += "\n\n🔎 חריגות נתונים (סוננו או סומנו לבדיקה):\n" + "\n".join(f"• {o}" for o in outliers)
 
     msg = header + (("\n" + body) if body else "")
-    send_telegram_message(msg)
+    # v5.20.0: Telegram only when something is actually wrong - a clean day
+    # (and auto-filtered data outliers, which are logged anyway) stays quiet
+    if issues:
+        send_telegram_message(msg)
     print(msg)
 
 

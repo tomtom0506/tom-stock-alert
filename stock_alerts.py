@@ -28,6 +28,7 @@ State (already-sent alerts) is kept in state.json so re-runs don't spam.
 
 import bisect
 import json
+import math
 import os
 import time
 from datetime import date, datetime, timedelta, timezone
@@ -47,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.19.0"
+BACKEND_VERSION = "5.20.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -90,7 +91,10 @@ def save_json(path, data):
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-def send_telegram_message(text, parse_mode=None):
+def send_telegram_message(text, parse_mode=None, kind=None):
+    if kind and kind in TELEGRAM_MUTED_KINDS:
+        print(f"Telegram ({kind}) muted - shown in the app only")
+        return
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         print("Missing Telegram credentials, skipping send. Message was:")
         print(text)
@@ -113,7 +117,7 @@ def send_telegram_message(text, parse_mode=None):
 TELEGRAM_MAX_CHARS = 3500  # keep well under Telegram's 4096-char hard limit
 
 
-def send_telegram_message_chunked(header, lines, parse_mode=None, sep="\n"):
+def send_telegram_message_chunked(header, lines, parse_mode=None, sep="\n", kind=None):
     """Sends `header` + `lines` (joined by `sep`) as one message, or as
     several numbered messages if it would exceed Telegram's length limit -
     otherwise a long list (e.g. 100+ US stocks) gets silently rejected
@@ -135,7 +139,7 @@ def send_telegram_message_chunked(header, lines, parse_mode=None, sep="\n"):
     total = len(chunks)
     for i, chunk_lines in enumerate(chunks, start=1):
         part_header = header if total == 1 else f"{header} (חלק {i}/{total})"
-        send_telegram_message(part_header + "\n\n" + sep.join(chunk_lines), parse_mode=parse_mode)
+        send_telegram_message(part_header + "\n\n" + sep.join(chunk_lines), parse_mode=parse_mode, kind=kind)
 
 
 # ---------- target-price watchlist alerts ----------
@@ -491,13 +495,13 @@ def run_market_wide_alerts(state, prediction_store):
     if us_movers:
         send_telegram_message_chunked(
             f"📈📉 תנודה חדה - שוק ארה\"ב (מעל {MOVE_THRESHOLD_PCT:.0f}%)", us_movers, sep="\n\n",
-        )
+        kind="market_movers")
 
     il_movers = get_il_movers(MOVE_THRESHOLD_PCT, today, state, prediction_store)
     if il_movers:
         send_telegram_message_chunked(
             f"📈📉 תנודה חדה - בורסת תל אביב (מעל {MOVE_THRESHOLD_PCT:.0f}%)", il_movers, sep="\n\n",
-        )
+        kind="market_movers")
 
 
 def is_israeli(ticker):
@@ -590,7 +594,7 @@ def send_starred_report(today_entries):
     if lines:
         send_telegram_message_chunked(
             "⭐ עדכון יומי - מניות במעקב", lines, parse_mode="Markdown", sep="\n\n",
-        )
+        kind="starred")
 
 
 # ---------- next-day prediction engine (with self-grading / learning) ----------
@@ -1344,7 +1348,20 @@ def build_prediction_universe():
 
 
 def load_prediction_store():
-    return load_json(PREDICTIONS_FILE, {"history": [], "accuracy": {}})
+    """Live file + every monthly archive (v5.20.0), merged back into one
+    history list so all-time numbers keep using everything."""
+    store = load_json(PREDICTIONS_FILE, {"history": [], "accuracy": {}})
+    store.setdefault("history", [])
+    try:
+        live_keys = {(e["date"], e["ticker"]) for e in store["history"]}
+        arch = []
+        for path in _archive_files():
+            arch += [e for e in json.loads(path.read_text(encoding="utf-8")) if (e["date"], e["ticker"]) not in live_keys]
+        if arch:
+            store["history"] = sorted(arch, key=lambda e: e["date"]) + store["history"]
+    except Exception as e:
+        print(f"Archive load failed ({type(e).__name__}: {e}) - continuing with the live file only")
+    return store
 
 
 def _pos_in_channel(e):
@@ -1435,7 +1452,7 @@ def send_factor_analysis_report(analysis):
             lines.append(f"• {f['label']}: {f['hit_rate']}% ({sign}{f['edge']} מהבסיס, n={f['n']})")
     lines.append("המלצה לעדכון משקלים בנוסחה תישלח בנפרד כשיצטבר מספיק היסטוריה (בדרך כלל כמה שבועות).")
 
-    send_telegram_message_chunked("🧪 ניתוח טריגרים יומי", lines, sep="\n")
+    send_telegram_message_chunked("🧪 ניתוח טריגרים יומי", lines, sep="\n", kind="factor_analysis")
 
 
 def recompute_accuracy(store):
@@ -1573,7 +1590,7 @@ def mark_stale_snapshot_days(store):
     bad = set()
     for a, b in zip(days, days[1:]):
         common = set(by[a]) & set(by[b])
-        if len(common) >= 50 and sum(1 for t in common if by[a][t] == by[b][t]) / len(common) >= STALE_SNAPSHOT_SHARE:
+        if len(common) >= 50 and sum(1 for t in common if round(by[a][t], 4) == round(by[b][t], 4)) / len(common) >= STALE_SNAPSHOT_SHARE:
             bad.add(b)   # b's entry price is really a's price, so b's graded move spans two sessions
     for e in store.get("history", []):
         if e["date"] in bad:
@@ -2334,7 +2351,7 @@ def manage_monthly_portfolio(store, today_entries):
             lines += [f"{h['ticker']}: מחיר כניסה {h['entry_price']}" for h in new_holdings]
         send_telegram_message_chunked(
             f"📅 תיק חודשי - סיכום מחזור (הבא ב-{mp['next_refresh_date']})", lines, sep="\n",
-        )
+        kind="monthly_portfolio")
         return
 
     # --- daily monitoring between checkpoints ---
@@ -2370,7 +2387,7 @@ def manage_monthly_portfolio(store, today_entries):
                     [f"{leading_signal}\nמחיר כניסה: {h['entry_price']} | מחיר נוכחי: {price} ({pct_from_entry:+.1f}%)\n"
                      f"התרעה מוקדמת בלבד - אין עדיין שבירה טכנית מלאה, רק היחלשות מומנטום. לא בהכרח למכור, אבל שווה לשים לב."],
                     sep="\n",
-                )
+                kind="monthly_portfolio")
 
         warning_reason = None
         if pct_from_entry <= MONTHLY_STOP_LOSS_PCT:
@@ -2387,7 +2404,7 @@ def manage_monthly_portfolio(store, today_entries):
                 [f"{warning_reason}\nמחיר כניסה: {h['entry_price']} | מחיר נוכחי: {price} ({pct_from_entry:+.1f}%)\n"
                  f"מחפש תחליף איכותי להחלפה מיידית..."],
                 sep="\n",
-            )
+            kind="monthly_portfolio")
 
     # --- immediate mid-cycle replacement for ANY currently-warned holding
     # (whether it just got warned above, or was warned on an earlier day
@@ -2436,7 +2453,7 @@ def manage_monthly_portfolio(store, today_entries):
                 [f"{h['ticker']} נסגרה ({return_txt})\n"
                  f"הוחלפה ב-{new_e['ticker']} (מחיר כניסה {new_e.get('price')})"],
                 sep="\n",
-            )
+            kind="monthly_portfolio")
         still_unmatched = len(warned_holdings) - len(replacements)
         if still_unmatched > 0:
             print(f"manage_monthly_portfolio: {still_unmatched} warned holding(s) still without a "
@@ -2856,7 +2873,7 @@ def calibrate_formula_blend(store):
     })
     blend["history"] = blend["history"][-24:]
 
-    send_telegram_message_chunked("⚙️ כיול חודשי אוטומטי - נוסחת ה-Top 10", [note], sep="\n")
+    send_telegram_message_chunked("⚙️ כיול חודשי אוטומטי - נוסחת ה-Top 10", [note], sep="\n", kind="calibration")
     return blend
 
 
@@ -3754,7 +3771,7 @@ def snapshot_looks_stale(store, today):
     pairs = [(e.get("price"), prev.get(e["ticker"])) for e in cur if prev.get(e["ticker"]) is not None and e.get("price") is not None]
     if len(pairs) < 50:
         return False, 0.0
-    share = sum(1 for a, b in pairs if a == b) / len(pairs)
+    share = sum(1 for a, b in pairs if round(a, 4) == round(b, 4)) / len(pairs)   # v5.20.0: saved prices are rounded to 4dp
     return share >= STALE_SNAPSHOT_SHARE, share
 
 
@@ -4114,11 +4131,11 @@ def run_predictions(store):
     if us_strong:
         send_telegram_message_chunked(
             f"🔮 חיזוי ליום המסחר הבא - שוק ארה\"ב\n{breadth_line}", us_strong, parse_mode="Markdown",
-        )
+        kind="daily_strong")
     if il_strong:
         send_telegram_message_chunked(
             f"🔮 חיזוי ליום המסחר הבא - בורסת ת\"א\n{breadth_line}", il_strong, parse_mode="Markdown",
-        )
+        kind="daily_strong")
 
     send_starred_report(today_entries)
 
@@ -5456,6 +5473,13 @@ def run_strategy_book(store, force=False):
             res["spy_same_window_pct"] = round((float(sw.iloc[-1]) / float(sw.iloc[0]) - 1) * 100, 2) if len(sw) > 1 else None
         out[key] = res
     store["strategy_book"] = out
+    # v5.20.0: the paper portfolio of ONLY the shown short picks, rebuilt on the
+    # same panels, and SPY closes for the long picks' S&P comparison
+    try:
+        store["spy_closes"] = {d.strftime("%Y-%m-%d"): round(float(v), 4) for d, v in spy.iloc[-300:].items()}
+        store["picks_short_sim"] = simulate_picks_short(store.get("picks_short_log") or {}, O, C, spy)
+    except Exception as e:
+        print(f"Short picks sim failed: {type(e).__name__}: {e}")
 
 
 # ===========================================================================
@@ -5896,7 +5920,7 @@ def scan_unusual_moves(store, send=True):
                 lines += [f"📄 דיווח רשמי ({f['form']}, {f['date']}): {', '.join(f['labels']) or 'ללא פירוט סעיפים'}" for f in filings]
                 lines += [_headline_line(h) for h in ev["headlines"]]
                 try:
-                    send_telegram_message("\n".join(lines))
+                    send_telegram_message("\n".join(lines), kind="unusual_moves")
                 except Exception as e:
                     print(f"Move follow-up telegram failed: {type(e).__name__}")
     new = []
@@ -5930,7 +5954,7 @@ def scan_unusual_moves(store, send=True):
                 lines.append("לא נמצאו כותרות מהימים האחרונים (Yahoo + Google News) - אנסה שוב בריצות הבאות")
             lines.append("מידע בלבד - לא משנה אף המלצה באפליקציה.")
             try:
-                send_telegram_message("🚨 תנועה חריגה\n" + "\n".join(lines))
+                send_telegram_message("🚨 תנועה חריגה\n" + "\n".join(lines), kind="unusual_moves")
             except Exception as e:
                 print(f"Move alert telegram failed: {type(e).__name__}")
     return new
@@ -6138,6 +6162,10 @@ def _held_tickers(store):
         add(h["ticker"], "תיק חודשי")
     for h in load_json(MY_PORTFOLIO_FILE, []) or []:
         add(h.get("ticker"), "התיק שלי")
+    for h in ((store.get("picks_long") or {}).get("holdings") or []):
+        add(h["ticker"], "המלצה לטווח ארוך")
+    for h in ((store.get("picks_short_sim") or {}).get("open") or []):
+        add(h["ticker"], "המלצה לטווח קצר")
     return held
 
 
@@ -6212,7 +6240,7 @@ def scan_holdings_news(store, send=True):
                 lines.append(f"   {ev['title']}")
         lines.append("מידע בלבד - לא משנה אף המלצה באפליקציה.")
         try:
-            send_telegram_message("\n".join(lines))
+            send_telegram_message("\n".join(lines), kind="holding_news")
         except Exception as e:
             print(f"Holdings news telegram failed: {type(e).__name__}")
     return new
@@ -6260,6 +6288,435 @@ def update_holding_news_outcomes(store):
                                    "total_events": len(store.get("holding_news_events", []))}
 
 
+
+# ===========================================================================
+# v5.20.0 - 📌 "what to buy now": 3 short-term + 3 long-term picks, sell
+# warnings, a paper portfolio of ONLY the shown picks per horizon, one daily
+# Telegram digest. Rules agreed with Tomer on 11.10.2026:
+#   * short = the research-validated A/B signals of the last completed
+#     session only (S&P 500), best 3 - fewer, or none, on quiet days. Never
+#     filled from Top10 (the 10.10 backtest found no predictive power there).
+#   * long = the top 3 of the 🏛 quality list that are buyable now (entry tag
+#     enter/dip and price above the 200-day average). They stay until a sell
+#     warning or until they drop out of the list at the monthly refresh.
+#   * sell (🔴): short - at the close of the planned exit session (the tested
+#     exit rule: 10 sessions for A, 60 for B). long - a break below the
+#     200-day average (by more than LONG_SELL_SMA_BUFFER_PCT) or dropping out
+#     of the quality list. A heavy headline is ⚠️ "check", not a sell - the
+#     keyword classifier is too noisy to act on by itself.
+#   * the two main-page boxes track ONLY these picks (equal weight, same
+#     costs as the other paper portfolios), from the day this version went
+#     live - there's no honest way to reconstruct which 3 would have been
+#     shown on past days.
+#   * 👍/👎: both boxes vs the S&P 500 over the same days, only once a box
+#     has PICKS_MIN_DAYS_FOR_VERDICT days; until then ⏳.
+# ===========================================================================
+PICKS_MAX = 3
+PICKS_FEE_PCT = 0.1                 # per side, same as the other paper portfolios
+PICKS_SLIPPAGE_PCT = 0.05
+LONG_SELL_SMA_BUFFER_PCT = 2.0      # below the 200-day average by more than this -> sell
+LONG_COOLDOWN_DAYS = 30             # a sold long pick can't come straight back
+PICKS_MIN_DAYS_FOR_VERDICT = 10
+TELEGRAM_MUTED_KINDS = {            # moved to the app only (11.10.2026: "פחות הודעות")
+    "market_movers", "starred", "factor_analysis", "monthly_portfolio", "calibration",
+    "daily_strong", "unusual_moves", "holding_news",
+}
+
+
+def _short_pick_rank(key, pnd):
+    """Same ordering as build_recommendations: A (sharp drop) before B, then
+    the bigger drop / the bigger volume surge first."""
+    r = pnd.get("rank") or 0
+    return (90 + min(max(r * 100 - 12, 0), 9)) if key == "A" else (85 + min(max(r - 3, 0), 4))
+
+
+def update_short_picks_log(store):
+    """Fixes today's short picks for the session the strategy book last
+    completed. Written once per session and never changed afterwards, so the
+    paper portfolio is driven by exactly what was shown."""
+    book = store.get("strategy_book") or {}
+    session = book.get("session")
+    if not session:
+        return
+    log = store.setdefault("picks_short_log", {})
+    if session in log:
+        return
+    held = {p["ticker"] for p in ((store.get("picks_short_sim") or {}).get("open") or [])}
+    cands = []
+    for key in ("A", "B"):
+        for pnd in ((book.get(key) or {}).get("pending") or []):
+            if pnd["ticker"] in held:
+                continue
+            cands.append((_short_pick_rank(key, pnd), key, pnd))
+    cands.sort(key=lambda x: -x[0])
+    picked, seen = [], set()
+    for _, key, pnd in cands:
+        if pnd["ticker"] in seen:
+            continue
+        seen.add(pnd["ticker"])
+        cfg = BOOK_STRATEGIES[key]
+        picked.append({
+            "ticker": pnd["ticker"], "strategy": key, "strategy_label": cfg["label"],
+            "close": pnd.get("close"), "hold": cfg["hold"],
+            "why": (f"ירדה {round((pnd.get('rank') or 0) * 100, 1)}% ב-5 ימים, במגמה עולה" if key == "A"
+                    else f"קפיצת פתיחה בווליום פי {round(pnd.get('rank') or 0, 1)}"),
+        })
+        if len(picked) >= PICKS_MAX:
+            break
+    log[session] = picked
+    # keep ~1 year of signal days
+    for d in sorted(log)[:-260]:
+        log.pop(d, None)
+
+
+def simulate_picks_short(log, O, C, spy=None):
+    """Paper portfolio of ONLY the shown short picks, rebuilt from the log on
+    the strategy book's panels: buy at the open after the signal session
+    (+slippage, fee), hold the strategy's sessions, sell at that close
+    (-slippage, fee). Equal weight across whatever is held each day (daily
+    rebalanced - an approximation, stated in the app)."""
+    idx = C.index
+    pos_of = {d.strftime("%Y-%m-%d"): i for i, d in enumerate(idx)}
+    Ov, Cv, cols = O.values, C.values, {t: j for j, t in enumerate(C.columns)}
+    positions = []
+    for sig_date in sorted(log):
+        i = pos_of.get(sig_date)
+        if i is None:
+            continue
+        busy = {(p["ticker"]) for p in positions if p["exit_i"] >= i + 1}
+        for pk in log[sig_date]:
+            j = cols.get(pk["ticker"])
+            if j is None or pk["ticker"] in busy:
+                continue
+            positions.append({"ticker": pk["ticker"], "strategy": pk["strategy"], "j": j,
+                              "signal_date": sig_date, "entry_i": i + 1, "exit_i": i + pk["hold"]})
+    last = len(idx) - 1
+    fee, slip = PICKS_FEE_PCT / 100, PICKS_SLIPPAGE_PCT / 100
+    started = [p for p in positions if p["entry_i"] <= last]
+    out = {"start_value": 100000, "value": 100000.0, "daily_log": [], "closed": [], "open": [],
+           "pending_entry": [p["ticker"] for p in positions if p["entry_i"] > last]}
+    if not started:
+        out["start_date"] = None
+        return out
+    k0 = min(p["entry_i"] for p in started)
+    value = 100000.0
+    for k in range(k0, last + 1):
+        rets = []
+        for p in started:
+            if not (p["entry_i"] <= k <= p["exit_i"]):
+                continue
+            j = p["j"]
+            if k == p["entry_i"]:
+                if not (np.isfinite(Ov[k, j]) and Ov[k, j] > 0 and np.isfinite(Cv[k, j])):
+                    continue
+                r = Cv[k, j] / (Ov[k, j] * (1 + slip)) * (1 - fee) - 1
+            else:
+                if not (np.isfinite(Cv[k, j]) and np.isfinite(Cv[k - 1, j]) and Cv[k - 1, j] > 0):
+                    continue
+                r = Cv[k, j] / Cv[k - 1, j] - 1
+            if k == p["exit_i"]:
+                r = (1 + r) * (1 - slip) * (1 - fee) - 1
+            rets.append(float(r))
+        day_r = sum(rets) / len(rets) if rets else 0.0
+        value *= 1 + day_r
+        out["daily_log"].append({"date": idx[k].strftime("%Y-%m-%d"), "return_pct": round(day_r * 100, 3),
+                                 "value": round(value, 2), "n": len(rets)})
+    for p in started:
+        j, e = p["j"], p["entry_i"]
+        if not (np.isfinite(Ov[e, j]) and Ov[e, j] > 0):
+            continue
+        entry_px = Ov[e, j] * (1 + slip)
+        if p["exit_i"] <= last:
+            px = Cv[p["exit_i"], j] * (1 - slip)
+            pnl = (px * (1 - fee)) / (entry_px / (1 - fee)) - 1
+            out["closed"].append({"ticker": p["ticker"], "strategy": p["strategy"], "entry_date": idx[e].strftime("%Y-%m-%d"),
+                                  "exit_date": idx[p["exit_i"]].strftime("%Y-%m-%d"), "pnl_pct": round(pnl * 100, 2)})
+        else:
+            px = Cv[last, j]
+            out["open"].append({"ticker": p["ticker"], "strategy": p["strategy"],
+                                "strategy_label": BOOK_STRATEGIES[p["strategy"]]["label"],
+                                "entry_date": idx[e].strftime("%Y-%m-%d"), "entry": round(float(entry_px), 2),
+                                "last": round(float(px), 2) if np.isfinite(px) else None,
+                                "pnl_pct": round((px / entry_px - 1) * 100, 2) if np.isfinite(px) else None,
+                                "sessions_left": int(p["exit_i"] - last),
+                                "exit_estimate": _add_sessions(idx[last].strftime("%Y-%m-%d"), int(p["exit_i"] - last))})
+    out["value"] = round(value, 2)
+    out["start_date"] = idx[k0].strftime("%Y-%m-%d")
+    if spy is not None and len(spy):
+        s = spy[spy.index >= idx[k0 - 1]] if k0 >= 1 else spy[spy.index >= idx[k0]]
+        if len(s) > 1:
+            out["spy_same_window_pct"] = round((float(s.iloc[-1]) / float(s.iloc[0]) - 1) * 100, 2)
+    return out
+
+
+def update_long_picks(store, today_entries):
+    """Long-term picks + their paper portfolio, once per snapshot day."""
+    today = date.today().isoformat()
+    if not today_entries:
+        return []
+    lp = store.setdefault("picks_long", {"start_value": 100000, "value": 100000.0, "start_date": None,
+                                         "last_date": None, "holdings": [], "closed": [], "daily_log": [],
+                                         "cooldown": {}, "news_flagged": []})
+    if lp.get("last_date") == today:
+        return []
+    by = {e["ticker"]: e for e in today_entries}
+    lt_picks = (store.get("long_term_picks") or {}).get("picks") or []
+    lt_by = {p["ticker"]: p for p in lt_picks}
+    fee = PICKS_FEE_PCT / 100
+    warnings = []
+
+    # 1. mark to market (snapshot price = last completed session's close)
+    rets = []
+    for h in lp["holdings"]:
+        p = (by.get(h["ticker"]) or {}).get("price")
+        if p and h.get("last_price"):
+            rets.append(p / h["last_price"] - 1)
+            h["last_price"] = float(p)
+    # 2. sell rules
+    keep = []
+    for h in lp["holdings"]:
+        e = by.get(h["ticker"]) or {}
+        p, sma200 = e.get("price"), e.get("sma200")
+        reason = None
+        if p and sma200 and p < sma200 * (1 - LONG_SELL_SMA_BUFFER_PCT / 100):
+            reason = f"המחיר ({_round_price(p)}) שבר כלפי מטה את ממוצע 200 הימים ({_round_price(sma200)})"
+        elif h["ticker"] not in lt_by:
+            reason = "יצאה מרשימת 10 החברות האיכותיות ברענון החודשי"
+        if reason:
+            px = h.get("last_price") or h["entry_price"]
+            pnl = (px * (1 - fee)) / (h["entry_price"] / (1 - fee)) - 1
+            rets.append(-fee)          # exit fee, booked on the exit day
+            lp["closed"].append({"ticker": h["ticker"], "entry_date": h["entry_date"], "exit_date": today,
+                                 "pnl_pct": round(pnl * 100, 2), "reason": reason})
+            lp["cooldown"][h["ticker"]] = today
+            warnings.append({"level": "sell", "horizon": "long", "ticker": h["ticker"], "reason": reason,
+                             "pnl_pct": round(pnl * 100, 2)})
+        else:
+            keep.append(h)
+    lp["holdings"] = keep
+    # heavy headline on a held long pick -> ⚠️ check (not a sell)
+    flagged = set(lp.get("news_flagged") or [])
+    for ev in store.get("holding_news_events") or []:
+        h = next((x for x in lp["holdings"] if x["ticker"] == ev.get("ticker")), None)
+        if not h or ev.get("kind") != "headline" or (ev.get("date") or "") < h["entry_date"]:
+            continue
+        key = f"{ev['ticker']}|{ev.get('date')}|{ev.get('title', '')[:60]}"
+        if key in flagged:
+            continue
+        flagged.add(key)
+        warnings.append({"level": "check", "horizon": "long", "ticker": ev["ticker"],
+                         "reason": f"כותרת כבדה ({ev.get('category_label')}): {ev.get('text') or ev.get('title')}"})
+    lp["news_flagged"] = sorted(flagged)[-300:]
+    # 3. fill up to 3: buyable now, best long-term score first
+    cutoff = (date.today() - timedelta(days=LONG_COOLDOWN_DAYS)).isoformat()
+    held = {h["ticker"] for h in lp["holdings"]}
+    cands = []
+    for p in lt_picks:
+        e = by.get(p["ticker"]) or {}
+        if p["ticker"] in held or (lp["cooldown"].get(p["ticker"]) or "") > cutoff:
+            continue
+        if p.get("entry_tag") not in ("enter", "dip") or not e.get("price") or not e.get("sma200"):
+            continue
+        if e["price"] < e["sma200"]:
+            continue
+        cands.append((p.get("long_term_score") or 0, p, e))
+    cands.sort(key=lambda x: -x[0])
+    for _, p, e in cands:
+        if len(lp["holdings"]) >= PICKS_MAX:
+            break
+        lp["holdings"].append({"ticker": p["ticker"], "company_name": p.get("company_name"), "sector": p.get("sector"),
+                               "entry_date": today, "entry_price": float(e["price"]), "last_price": float(e["price"]),
+                               "long_term_score": p.get("long_term_score")})
+        rets.append(-fee)              # entry fee, booked on the entry day
+        if lp["start_date"] is None:
+            lp["start_date"] = today
+    # 4. log the day
+    if lp["start_date"]:
+        n = max(len(lp["holdings"]) + sum(1 for w in warnings if w["level"] == "sell"), 1)
+        day_r = sum(rets) / n if rets else 0.0
+        lp["value"] = round(lp["value"] * (1 + day_r), 2)
+        lp["daily_log"].append({"date": today, "return_pct": round(day_r * 100, 3), "value": lp["value"],
+                                "n": len(lp["holdings"])})
+        lp["daily_log"] = lp["daily_log"][-400:]
+    lp["closed"] = lp["closed"][-200:]
+    lp["last_date"] = today
+    return warnings
+
+
+def _spy_change_since(store, start_date):
+    closes = store.get("spy_closes") or {}
+    if not closes or not start_date:
+        return None
+    ds = sorted(closes)
+    before = [d for d in ds if d < start_date]
+    base = closes[before[-1]] if before else closes[ds[0]]
+    return round((closes[ds[-1]] / base - 1) * 100, 2) if base else None
+
+
+def _box(sim, store, closed_key="closed"):
+    log = (sim or {}).get("daily_log") or []
+    if not log:
+        return {"days": 0, "cum_pct": None, "daily_pct": None, "wins": 0, "closed": 0, "start_date": None}
+    closed = (sim or {}).get(closed_key) or []
+    cum = round(((sim.get("value") or 100000) / 100000 - 1) * 100, 2)
+    spy = sim.get("spy_same_window_pct")
+    if spy is None:
+        spy = _spy_change_since(store, sim.get("start_date"))
+    return {"days": len(log), "cum_pct": cum, "daily_pct": round(log[-1]["return_pct"], 2), "daily_date": log[-1]["date"],
+            "wins": sum(1 for c in closed if c["pnl_pct"] > 0), "closed": len(closed),
+            "start_date": sim.get("start_date"), "spy_pct": spy,
+            "vs_spy_pct": round(cum - spy, 2) if spy is not None else None}
+
+
+def build_picks_view(store):
+    """Everything the main page and the digest need, in one place."""
+    book = store.get("strategy_book") or {}
+    session = book.get("session")
+    short_sim = store.get("picks_short_sim") or {}
+    lp = store.get("picks_long") or {}
+    buys = (store.get("picks_short_log") or {}).get(session, []) if session else []
+    sells_due = [p for p in short_sim.get("open") or [] if p["sessions_left"] <= 1]
+    boxes = {"short": _box(short_sim, store), "long": _box(lp, store)}
+    elig = [b for b in boxes.values() if b["days"] >= PICKS_MIN_DAYS_FOR_VERDICT and b["vs_spy_pct"] is not None]
+    if not elig:
+        thumbs, why = "wait", f"עוד מוקדם לשפוט - צריך לפחות {PICKS_MIN_DAYS_FOR_VERDICT} ימי מעקב"
+    else:
+        ex = sum(b["vs_spy_pct"] for b in elig) / len(elig)
+        thumbs = "up" if ex > 0 else "down"
+        why = f"ההמלצות {'מקדימות' if ex > 0 else 'מפגרות אחרי'} את ה-S&P 500 ב-{abs(ex):.2f}% באותם ימים"
+    store["picks"] = {
+        "updated_at": datetime.now(timezone.utc).isoformat(), "session": session,
+        "short_buy": buys, "short_open": short_sim.get("open") or [], "short_sell_due": sells_due,
+        "short_pending_entry": short_sim.get("pending_entry") or [],
+        "long": lp.get("holdings") or [], "long_closed_recent": (lp.get("closed") or [])[-5:],
+        "warnings": (store.get("picks", {}).get("warnings") or [])[-20:],
+        "boxes": boxes, "thumbs": thumbs, "thumbs_reason": why,
+    }
+    return store["picks"]
+
+
+def send_picks_digest(store):
+    """One message per completed US session (after the strategy book run)."""
+    pk = store.get("picks") or {}
+    session = pk.get("session")
+    if not session or (store.get("picks_digest") or {}).get("session") == session:
+        return
+    L = [f"📌 המלצות - אחרי המסחר של {session}"]
+    L.append("🚀 טווח קצר - לקנות בפתיחה הבאה:")
+    L += [f"• {p['ticker']} ({p['strategy_label']}): {p['why']} · מחיר {p['close']} · להחזיק {p['hold']} ימי מסחר"
+          for p in pk.get("short_buy") or []] or ["• אין אות היום"]
+    if pk.get("short_sell_due"):
+        L.append("🔴 טווח קצר - למכור בסגירה של יום המסחר הבא:")
+        L += [f"• {p['ticker']} ({p['pnl_pct']:+.1f}% עד עכשיו)" for p in pk["short_sell_due"] if p.get("pnl_pct") is not None]
+    L.append("🏛 טווח ארוך (🧪 עוד לא מוכח):")
+    L += [f"• {h['ticker']} - נכנסה {fmt_date_il(h['entry_date'])} · {((h['last_price'] / h['entry_price'] - 1) * 100):+.1f}%"
+          for h in pk.get("long") or []] or ["• אין כרגע מניה שעומדת בתנאים"]
+    for k, lab in (("short", "קצר"), ("long", "ארוך")):
+        b = (pk.get("boxes") or {}).get(k) or {}
+        if b.get("cum_pct") is not None:
+            L.append(f"📊 3 ההמלצות ל{lab}: מצטבר {b['cum_pct']:+.2f}% · היום {b['daily_pct']:+.2f}%")
+    L.append({"up": "👍", "down": "👎", "wait": "⏳"}[pk.get("thumbs", "wait")] + " " + (pk.get("thumbs_reason") or ""))
+    L.append("מידע בלבד, לא ייעוץ השקעות.")
+    send_telegram_message("\n".join(L))
+    store["picks_digest"] = {"session": session, "sent_at": datetime.now(timezone.utc).isoformat()}
+
+
+def fmt_date_il(d):
+    try:
+        y, m, dd = d.split("-")
+        return f"{dd}.{m}"
+    except Exception:
+        return d
+
+
+def run_picks(store, today_entries):
+    """Called once per run at the end of main()."""
+    try:
+        update_short_picks_log(store)
+    except Exception as e:
+        print(f"Short picks failed: {type(e).__name__}: {e}")
+    warnings = []
+    try:
+        warnings = update_long_picks(store, today_entries)
+    except Exception as e:
+        print(f"Long picks failed: {type(e).__name__}: {e}")
+    if warnings:
+        pk = store.setdefault("picks", {})
+        pk["warnings"] = ((pk.get("warnings") or []) + [dict(w, date=date.today().isoformat()) for w in warnings])[-20:]
+        for w in warnings:
+            if w["level"] != "sell":
+                continue            # ⚠️ headline checks: card only - the classifier is too noisy for a push
+            head = "🔴 אזהרת מכירה"
+            extra = f" ({w['pnl_pct']:+.1f}% מהכניסה)" if w.get("pnl_pct") is not None else ""
+            send_telegram_message(f"{head} - {w['ticker']} (טווח ארוך){extra}\n{w['reason']}\nמידע בלבד, לא ייעוץ השקעות.")
+    build_picks_view(store)
+    try:
+        send_picks_digest(store)
+    except Exception as e:
+        print(f"Picks digest failed: {type(e).__name__}: {e}")
+
+
+# ===========================================================================
+# v5.20.0 - predictions.json size: history older than the current window is
+# moved to immutable monthly files in archive/ (merged back in on load, so
+# every all-time number is still computed from everything), floats in
+# history are rounded to 4 decimals and the file is written compact. GitHub
+# hard-blocks files over 100MB; at ~1.4MB/day the old file would have hit it
+# in about a month.
+# ===========================================================================
+ARCHIVE_DIR = BASE_DIR / "archive"
+LIVE_HISTORY_DAYS = 14            # live file keeps the month containing today-14d and later (14-45 days, ~15-45MB)
+
+
+def _round_floats(o):
+    if isinstance(o, float):
+        return round(o, 4) if math.isfinite(o) else None
+    if isinstance(o, dict):
+        return {k: _round_floats(v) for k, v in o.items()}
+    if isinstance(o, list):
+        return [_round_floats(v) for v in o]
+    return o
+
+
+def _archive_files():
+    return sorted(ARCHIVE_DIR.glob("predictions_history_*.json")) if ARCHIVE_DIR.exists() else []
+
+
+def save_prediction_store(store, archive=True):
+    """Splits history into the live file + monthly archives. Archive files are
+    MERGED (never overwritten with less), so saving a store that was loaded
+    without its archive can't lose anything. archive=False (scripts whose
+    workflow only commits predictions.json, e.g. tomorrow_forecast) keeps
+    every history row in the live file and touches no archive file."""
+    cutoff_month = (date.today() - timedelta(days=LIVE_HISTORY_DAYS)).strftime("%Y-%m") if archive else "0000-00"
+    hist = store.get("history") or []
+    old = {}
+    for e in hist:
+        if e["date"][:7] < cutoff_month:
+            old.setdefault(e["date"][:7], []).append(e)
+    for month, entries in old.items():
+        path = ARCHIVE_DIR / f"predictions_history_{month}.json"
+        merged = {}
+        if path.exists():
+            for e in json.loads(path.read_text(encoding="utf-8")):
+                merged[(e["date"], e["ticker"])] = e
+        for e in entries:
+            merged[(e["date"], e["ticker"])] = _round_floats(e)
+        rows = sorted(merged.values(), key=lambda e: (e["date"], e["ticker"]))
+        text = json.dumps(rows, ensure_ascii=False, separators=(",", ":"))
+        if not path.exists() or path.read_text(encoding="utf-8") != text:
+            ARCHIVE_DIR.mkdir(exist_ok=True)
+            path.write_text(text, encoding="utf-8")
+    live = [_round_floats(e) for e in hist if e["date"][:7] >= cutoff_month]
+    out = {k: v for k, v in store.items() if k != "history" and not k.startswith("_")}
+    months = sorted({p.stem.replace("predictions_history_", "") for p in _archive_files()})
+    out["history_archive"] = {"months": months, "live_from": f"{cutoff_month}-01",
+                              "note": "older history is in archive/predictions_history_YYYY-MM.json"}
+    out = {"history": live, **out}
+    with open(PREDICTIONS_FILE, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+
+
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
@@ -6301,7 +6758,7 @@ def main():
             "traded_today": False,
             "backend_version": BACKEND_VERSION,
         }
-        save_json(PREDICTIONS_FILE, prediction_store)
+        save_prediction_store(prediction_store)
         save_json(STATE_FILE, state)
         return
 
@@ -6408,12 +6865,17 @@ def main():
     except Exception as e:
         print(f"Portfolios failed: {type(e).__name__}: {e}")
 
+    try:
+        run_picks(prediction_store, [e for e in prediction_store["history"] if e["date"] == today_str])
+    except Exception as e:
+        print(f"Picks failed: {type(e).__name__}: {e}")
+
     prediction_store["last_run_status"] = {
         "checked_at": datetime.now(timezone.utc).isoformat(),
         "traded_today": True,
         "backend_version": BACKEND_VERSION,
     }
-    save_json(PREDICTIONS_FILE, prediction_store)
+    save_prediction_store(prediction_store)
     save_json(STATE_FILE, state)
 
 

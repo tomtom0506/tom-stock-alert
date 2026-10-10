@@ -14,7 +14,7 @@ so this can run as often as needed without affecting accuracy tracking.
 import json
 
 from stock_alerts import (
-    PREDICTIONS_FILE, load_json, save_json, run_tomorrow_forecast,
+    PREDICTIONS_FILE, load_json, run_tomorrow_forecast, save_prediction_store,
 )
 
 
@@ -22,7 +22,7 @@ def main():
     store = load_json(PREDICTIONS_FILE, {})
     store.setdefault("history", [])
     result = run_tomorrow_forecast(store)
-    save_json(PREDICTIONS_FILE, store)
+    save_prediction_store(store, archive=False)   # v5.20.0: compact file; archiving is left to the main run
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
 
 
