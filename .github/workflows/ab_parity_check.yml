@@ -1,0 +1,37 @@
+name: 🔁 בדיקת התאמה A/B - קוד חי מול מחקר
+
+# הפעלה ידנית בלבד. לא נוגע בשום קובץ של האפליקציה החיה -
+# מוריד היסטוריה, מריץ את הבדיקה, ושומר את התוצאות כ-artifact להורדה.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy yfinance requests
+
+      - name: Run
+        run: python research/ab_parity_check.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v7
+        with:
+          name: ab-parity-results
+          path: research/output_ab_parity/
+          retention-days: 30
