@@ -26,6 +26,7 @@ rather than faked.
 State (already-sent alerts) is kept in state.json so re-runs don't spam.
 """
 
+import bisect
 import json
 import os
 import time
@@ -46,7 +47,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.18.0"
+BACKEND_VERSION = "5.19.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -1381,7 +1382,7 @@ MIN_FACTOR_SAMPLE = 20  # ignore a trigger's stats until it has enough graded oc
 
 
 def analyze_factor_performance(store):
-    graded = [e for e in store["history"] if e.get("graded") and not e.get("stale_snapshot")]  # v5.14.1: copied-snapshot days excluded
+    graded = [e for e in store["history"] if is_clean_graded(e)]  # v5.19.0: + corporate-action/bad-snapshot rows (v5.14.1: copied-snapshot days)
     baseline = round(sum(1 for e in graded if e["correct"]) / len(graded) * 100, 1) if graded else None
 
     results = []
@@ -1438,7 +1439,7 @@ def send_factor_analysis_report(analysis):
 
 
 def recompute_accuracy(store):
-    graded = [e for e in store["history"] if e.get("graded") and not e.get("stale_snapshot")]  # v5.14.1: copied-snapshot days excluded
+    graded = [e for e in store["history"] if is_clean_graded(e)]  # v5.19.0: + corporate-action/bad-snapshot rows (v5.14.1: copied-snapshot days)
     strong_graded = [e for e in graded if e.get("strong")]
     top10_graded = [e for e in graded if e.get("top10")]
     # "up only" = exactly the population the ₪100,000 portfolio simulation
@@ -1581,6 +1582,400 @@ def mark_stale_snapshot_days(store):
     return sorted(bad)
 
 
+# ===========================================================================
+# v5.19.0 - data cleaning + extended measurement (audit of 10.10.2026).
+#
+# 1. ENTRY MISMATCH (excludes): when a ticker's price history is downloaded
+#    at grading time, the close of the session the entry was taken on must
+#    match the stored entry price. If it doesn't (by more than
+#    ENTRY_MISMATCH_PCT), Yahoo has since rewritten that history - a split,
+#    spin-off or other corporate action (CTVA, LQDA, KOD in Sept/Oct 2026) -
+#    or the snapshot itself was wrong. Either way the graded move is not a
+#    real trading result: the entry is marked grade_suspect and left out of
+#    every accuracy figure, simulation, benchmark and IC calculation.
+# 2. BIG MOVE (flag only): a graded move of BIG_MOVE_FLAG_PCT or more in
+#    either direction gets big_move=True and is listed in the daily QA
+#    message - but it stays in the numbers, because real 40%+ days do
+#    happen (biotech trial results, takeovers). Excluding them would make
+#    the results look better than they were.
+# 3. FORWARD RETURNS: every snapshot entry also gets its return after 5 and
+#    10 trading sessions (fwd_5d_pct / fwd_10d_pct), measured from the
+#    ticker's own (split-adjusted) closes, and build_forward_eval turns them
+#    into a daily rank correlation (IC) between the score and the result over
+#    the whole universe (~750 names a day instead of 10), plus Top10-vs-
+#    universe and top-vs-bottom decile spreads. Information only - nothing
+#    here changes a recommendation.
+# ===========================================================================
+ENTRY_MISMATCH_PCT = 10.0       # entry price vs the adjusted close of its own session
+BIG_MOVE_FLAG_PCT = 40.0        # soft flag only - see above
+FWD_HORIZONS = (5, 10)          # trading sessions
+FWD_LOOKBACK_DAYS = 35          # calendar days of entries still waiting for forward returns
+FORWARD_EVAL_MIN_N = 50         # minimum names on a day for its IC to count
+FORWARD_EVAL_MAX_DAYS = 120     # days kept in store["forward_eval"]["days"]
+DATA_CLEAN_VERSION = 1          # bump to re-run the one-time cleanup/rebuild below
+SIM_FLAG_KEYS = [
+    ("top10", "portfolio_sim"),
+    ("top10_experimental", "portfolio_sim_experimental"),
+    ("top10_leading", "portfolio_sim_leading"),
+    ("top10_original", "portfolio_sim_original"),
+    ("top10_fast_rs", "portfolio_sim_fast_rs"),
+    ("top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol"),
+    ("top10_analyst_momentum", "portfolio_sim_analyst_momentum"),
+    ("rec_short", "portfolio_sim_recommendations"),
+    ("rec_long_enter", "portfolio_sim_long_enter"),
+    ("rec_long_dip", "portfolio_sim_long_dip"),
+    ("rec_long_value", "portfolio_sim_long_value"),
+]
+
+
+def is_clean_graded(e):
+    """Single definition of "this graded result may be counted": graded,
+    not taken on a copied (stale) snapshot day, not a corporate-action /
+    bad-snapshot artifact. Used by accuracy, trigger analysis, every
+    flag-driven simulation, the equal-weight benchmark and the IC."""
+    return bool(e.get("graded")) and not e.get("stale_snapshot") and not e.get("grade_suspect")
+
+
+def _date_closes(closes):
+    """Close series indexed by plain python dates (tz and time dropped)."""
+    s = closes.dropna()
+    if s.empty:
+        return s
+    idx = pd.to_datetime(s.index)
+    if getattr(idx, "tz", None) is not None:
+        idx = idx.tz_localize(None)
+    s = pd.Series(s.values, index=[d.date() for d in idx])
+    return s[~s.index.duplicated(keep="last")].sort_index()
+
+
+def _entry_session_pos(series, entry):
+    """Position in `series` of the session whose close the entry price was
+    taken from, and whether it matches. The snapshot is taken after 00:00
+    UTC, so an entry dated D normally holds the close of the last session
+    BEFORE D; if Yahoo was late it can also be D's own bar. Both are tried.
+    Returns (pos, mismatch_pct): pos None = no usable bar; mismatch_pct
+    None = matched within ENTRY_MISMATCH_PCT, else the smallest gap found."""
+    price = entry.get("price")
+    if not price or series is None or series.empty:
+        return None, None
+    try:
+        d = date.fromisoformat(entry["date"])
+    except Exception:
+        return None, None
+    dates = list(series.index)
+    best = None
+    for target in (d - timedelta(days=1), d):
+        pos = bisect.bisect_right(dates, target) - 1
+        if pos < 0:
+            continue
+        if (target - dates[pos]).days > 5:      # no bar near that date at all
+            continue
+        gap = abs(float(series.iloc[pos]) / price - 1) * 100
+        if gap <= ENTRY_MISMATCH_PCT:
+            return pos, None
+        if best is None or gap < best[1]:
+            best = (pos, gap)
+    if best is None:
+        return None, None
+    return best[0], round(best[1], 1)
+
+
+def _graded_session_pos(series, entry):
+    """Position of the session the stored actual_price came from: the last
+    bar on/before graded_date (a grade is final at the end of that UTC
+    day, i.e. after that day's US close)."""
+    gd = entry.get("graded_date")
+    if not gd:
+        return None
+    try:
+        g = date.fromisoformat(gd)
+    except Exception:
+        return None
+    pos = bisect.bisect_right(list(series.index), g) - 1
+    return pos if pos >= 0 else None
+
+
+def apply_entry_check(entry, series):
+    """Sets/clears grade_suspect on one entry from its downloaded closes.
+    Returns the entry's session position for forward returns (None if the
+    entry is suspect or no bar was found).
+
+    A mismatch alone is not enough: after a split or spin-off Yahoo rescales
+    the WHOLE earlier history, so every older entry stops matching even
+    though its own one-day grade was right (entry and result were both in
+    the old price units). The entry is suspect only when its graded move
+    disagrees with the move the series itself shows over the same sessions
+    - i.e. the grade spans the event (or one of the prices was wrong)."""
+    pos, gap = _entry_session_pos(series, entry)
+    if pos is None:
+        return None
+    if gap is not None and entry.get("actual_pct_change") is not None:
+        gpos = _graded_session_pos(series, entry)
+        consistent = True        # can't verify (rows graded before graded_date was recorded) -> benefit of the doubt
+        if gpos is not None and gpos >= pos and float(series.iloc[pos]) > 0:
+            series_pct = (float(series.iloc[gpos]) / float(series.iloc[pos]) - 1) * 100
+            consistent = abs(series_pct - entry["actual_pct_change"]) <= ENTRY_MISMATCH_PCT
+        if not consistent:
+            entry["grade_suspect"] = True
+            entry["grade_suspect_reason"] = (
+                f"מחיר הכניסה ({_round_price(entry['price'])}) לא תואם את מחיר הסגירה בפועל של אותו יום "
+                f"(פער {gap:.0f}%) והתזוזה שנמדדה לא תואמת את התזוזה האמיתית - כנראה פיצול/פעולה "
+                f"קונצרנית או נתון שגוי. לא נספר בממוצעים."
+            )
+            return None
+    entry.pop("grade_suspect", None)
+    entry.pop("grade_suspect_reason", None)
+    return pos
+
+
+def fill_forward_returns(entry, series, pos):
+    """fwd_<h>d_pct from the ticker's own adjusted closes. The latest bar is
+    never used (it can be a session still in progress), so a horizon is
+    filled one run after it completes."""
+    if pos is None:
+        return False
+    base = float(series.iloc[pos])
+    if base <= 0:
+        return False
+    changed = False
+    last_complete = len(series) - 2
+    for h in FWD_HORIZONS:
+        key = f"fwd_{h}d_pct"
+        if entry.get(key) is not None:
+            continue
+        if pos + h <= last_complete:
+            entry[key] = round((float(series.iloc[pos + h]) / base - 1) * 100, 2)
+            changed = True
+    return changed
+
+
+def download_close_series(tickers, period):
+    """{ticker: date-indexed close Series}, batched like the main engine."""
+    out = {}
+    tickers = sorted(set(tickers))
+    for i in range(0, len(tickers), BATCH_SIZE):
+        batch = tickers[i:i + BATCH_SIZE]
+        try:
+            data = yf.download(
+                tickers=" ".join(batch), period=period, group_by="ticker",
+                threads=True, progress=False, auto_adjust=True,
+            )
+        except Exception as e:
+            print(f"Close-series batch download error: {e}")
+            continue
+        for symbol in batch:
+            try:
+                closes = data[symbol]["Close"] if len(batch) > 1 else _flatten_close_series(data["Close"])
+                s = _date_closes(closes)
+                if len(s):
+                    out[symbol] = s
+            except Exception:
+                continue
+        time.sleep(1)
+    return out
+
+
+def _spearman(xs, ys):
+    if len(xs) < 3:
+        return None
+    a = pd.Series(xs).rank()
+    b = pd.Series(ys).rank()
+    if a.std() == 0 or b.std() == 0:
+        return None
+    return float(a.corr(b))
+
+
+def _tstat(vals):
+    vals = [v for v in vals if v is not None]
+    n = len(vals)
+    if n < 3:
+        return None
+    m = sum(vals) / n
+    sd = (sum((v - m) ** 2 for v in vals) / (n - 1)) ** 0.5
+    return round(m / (sd / n ** 0.5), 2) if sd > 0 else None
+
+
+def build_forward_eval(store):
+    """Daily IC (Spearman of score vs result) over the whole clean universe
+    for 1/5/10 sessions, plus Top10 and decile spreads. The summary's t-stat
+    uses NON-overlapping days only (every h-th day for an h-session
+    horizon) - overlapping 5/10-day windows share most of their days, so a
+    t-stat over all of them looks far stronger than it is (the audit's
+    caveat). Rebuilt every run from history, cheap."""
+    today = date.today().isoformat()
+    by_date = {}
+    for e in store.get("history", []):
+        if e.get("data_suspect") or e.get("stale_snapshot") or e.get("grade_suspect"):
+            continue
+        if e.get("score") is None:
+            continue
+        by_date.setdefault(e["date"], []).append(e)
+
+    def ret(e, h):
+        if h == 1:
+            if not e.get("graded") or e.get("graded_date") == today:
+                return None             # still live - final tomorrow
+            return e.get("actual_pct_change")
+        return e.get(f"fwd_{h}d_pct")
+
+    days = []
+    for d in sorted(by_date)[-FORWARD_EVAL_MAX_DAYS:]:
+        entries = by_date[d]
+        row = {"date": d, "n": len(entries)}
+        for h in (1,) + FWD_HORIZONS:
+            pairs = [(e["score"], ret(e, h), bool(e.get("top10"))) for e in entries]
+            pairs = [p for p in pairs if p[1] is not None]
+            if len(pairs) < FORWARD_EVAL_MIN_N:
+                continue
+            scores = [p[0] for p in pairs]
+            rets = [p[1] for p in pairs]
+            ic = _spearman(scores, rets)
+            univ = sum(rets) / len(rets)
+            top = [p[1] for p in pairs if p[2]]
+            ranked = sorted(pairs, key=lambda p: p[0], reverse=True)
+            k = max(len(ranked) // 10, 1)
+            spread = sum(p[1] for p in ranked[:k]) / k - sum(p[1] for p in ranked[-k:]) / k
+            row[f"h{h}"] = {
+                "n": len(pairs),
+                "ic": round(ic, 4) if ic is not None else None,
+                "univ_avg_pct": round(univ, 3),
+                "top10_avg_pct": round(sum(top) / len(top), 3) if top else None,
+                "top10_excess_pct": round(sum(top) / len(top) - univ, 3) if top else None,
+                "decile_spread_pct": round(spread, 3),
+            }
+        if any(f"h{h}" in row for h in (1,) + FWD_HORIZONS):
+            days.append(row)
+
+    summary = {}
+    for h in (1,) + FWD_HORIZONS:
+        rows = [r for r in days if r.get(f"h{h}") and r[f"h{h}"]["ic"] is not None]
+        if not rows:
+            continue
+        ics = [r[f"h{h}"]["ic"] for r in rows]
+        exc = [r[f"h{h}"]["top10_excess_pct"] for r in rows if r[f"h{h}"]["top10_excess_pct"] is not None]
+        spr = [r[f"h{h}"]["decile_spread_pct"] for r in rows]
+        indep = [r[f"h{h}"]["ic"] for r in rows[::-1][::h]]          # newest backwards, every h-th day
+        indep_exc = [r[f"h{h}"]["top10_excess_pct"] for r in rows[::-1][::h]
+                     if r[f"h{h}"]["top10_excess_pct"] is not None]
+        summary[f"h{h}"] = {
+            "days": len(rows),
+            "mean_ic": round(sum(ics) / len(ics), 4),
+            "positive_days": sum(1 for v in ics if v > 0),
+            "independent_days": len(indep),
+            "t_independent": _tstat(indep),
+            "mean_top10_excess_pct": round(sum(exc) / len(exc), 3) if exc else None,
+            "t_top10_excess_independent": _tstat(indep_exc),
+            "mean_decile_spread_pct": round(sum(spr) / len(spr), 3),
+            "latest_date": rows[-1]["date"],
+            "latest_ic": rows[-1][f"h{h}"]["ic"],
+        }
+    store["forward_eval"] = {
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "score_field": "score",
+        "horizons": [1] + list(FWD_HORIZONS),
+        "decision_rule": "IC > 0.03, t > 2 on non-overlapping windows, excess above costs",
+        "summary": summary,
+        "days": days,
+    }
+    return store["forward_eval"]
+
+
+def update_forward_returns(store, series_by_ticker):
+    """Entry check + forward returns for recent entries whose ticker was
+    downloaded this run. Returns True if anything changed."""
+    cutoff = (date.today() - timedelta(days=FWD_LOOKBACK_DAYS)).isoformat()
+    changed = False
+    for e in store.get("history", []):
+        if e["date"] < cutoff or e.get("stale_snapshot"):
+            continue
+        if all(e.get(f"fwd_{h}d_pct") is not None for h in FWD_HORIZONS):
+            continue
+        s = series_by_ticker.get(e["ticker"])
+        if s is None:
+            continue
+        before = e.get("grade_suspect")
+        pos = apply_entry_check(e, s)
+        changed |= before != e.get("grade_suspect")
+        changed |= fill_forward_returns(e, s, pos)
+    return changed
+
+
+def reset_flag_sims_for_rebuild(store):
+    """Restart every flag-driven simulation from its ORIGINAL first day, so
+    the next update_portfolio_simulation pass recomputes it with the clean
+    filter (is_clean_graded). Start dates stay as they were, so each sim
+    still answers "since when" the same way."""
+    for _, sim_key in SIM_FLAG_KEYS:
+        old = store.get(sim_key)
+        if not old:
+            continue
+        log = old.get("daily_log") or []
+        store[sim_key] = {
+            "start_value": old.get("start_value", 100000),
+            "currency": "USD",
+            "value": float(old.get("start_value", 100000)),
+            "last_processed_date": None,
+            "daily_log": [],
+            "start_date_floor": old.get("start_date_floor") or (log[0]["date"] if log else None),
+            "rebuilt_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+
+def run_data_cleanup_once(store):
+    """One-time pass (per DATA_CLEAN_VERSION) over the history recorded
+    BEFORE the entry check existed: downloads ~6 months of closes for every
+    ticker that was ever in a tracked list or had a 40%+ graded move, runs
+    the same entry check on all of that ticker's graded entries, then
+    restarts the flag-driven sims so they are recomputed without the bad
+    rows (and without copied-snapshot days, which the sims never skipped
+    before). If the download fails, nothing is marked done and the next
+    run tries again."""
+    done = store.get("data_clean") or {}
+    if done.get("version") == DATA_CLEAN_VERSION:
+        return False
+    flags = [k for k, _ in SIM_FLAG_KEYS]
+    hist = store.get("history", [])
+    tickers = {
+        e["ticker"] for e in hist
+        if e.get("graded") and (any(e.get(f) for f in flags)
+                                or abs(e.get("actual_pct_change") or 0) >= BIG_MOVE_FLAG_PCT)
+    }
+    if not tickers:
+        return False
+    series = download_close_series(tickers, "6mo")
+    if len(series) < len(tickers) * 0.8:
+        print(f"Data cleanup: only {len(series)}/{len(tickers)} series downloaded - will retry next run")
+        return False
+    suspects = []
+    for e in hist:
+        if not e.get("graded") or e["ticker"] not in series:
+            continue
+        s = series[e["ticker"]]
+        pos = apply_entry_check(e, s)
+        if e.get("grade_suspect"):
+            suspects.append((e["date"], e["ticker"]))
+        else:
+            fill_forward_returns(e, s, pos)
+        if abs(e.get("actual_pct_change") or 0) >= BIG_MOVE_FLAG_PCT:
+            e["big_move"] = True
+    reset_flag_sims_for_rebuild(store)
+    store["data_clean"] = {
+        "version": DATA_CLEAN_VERSION, "done_at": datetime.now(timezone.utc).isoformat(),
+        "tickers_checked": len(series), "suspect_entries": len(suspects),
+        "suspects": [{"date": d, "ticker": t} for d, t in sorted(suspects)][-200:],
+    }
+    print(f"Data cleanup v{DATA_CLEAN_VERSION}: {len(suspects)} suspect entries across {len(series)} tickers; sims reset")
+    try:
+        send_telegram_message(
+            f"🧹 ניקוי נתונים חד-פעמי (backend {BACKEND_VERSION}): נבדקו {len(series)} מניות, "
+            f"{len(suspects)} רשומות סומנו כחשודות (פיצול/פעולה קונצרנית/נתון שגוי) והוצאו מהממוצעים. "
+            f"הסימולציות חושבו מחדש מאותו תאריך התחלה, בלי הרשומות האלה ובלי ימי snapshot מועתקים."
+        )
+    except Exception:
+        pass
+    return True
+
+
 def grade_pending_predictions(store):
     """Check yesterday-or-earlier predictions against the actual price now,
     mark them correct/incorrect, so we can measure and improve the formula.
@@ -1603,37 +1998,35 @@ def grade_pending_predictions(store):
     if not pending:
         return False
 
-    tickers = sorted({e["ticker"] for e in pending})
-    print(f"Grading {len(pending)} pending/live predictions across {len(tickers)} tickers...")
-
-    current_price_by_ticker = {}
-    for i in range(0, len(tickers), BATCH_SIZE):
-        batch = tickers[i:i + BATCH_SIZE]
-        try:
-            data = yf.download(
-                tickers=" ".join(batch), period="5d", group_by="ticker",
-                threads=True, progress=False, auto_adjust=True,
-            )
-        except Exception as e:
-            print(f"Grading batch download error: {e}")
-            continue
-        for symbol in batch:
-            try:
-                closes = data[symbol]["Close"] if len(batch) > 1 else _flatten_close_series(data["Close"])
-                closes = closes.dropna()
-                if len(closes):
-                    current_price_by_ticker[symbol] = float(closes.iloc[-1])
-            except Exception:
-                continue
-        time.sleep(1)
-
-    print(f"Got current prices for {len(current_price_by_ticker)}/{len(tickers)} tickers")
+    # v5.19.0: one download serves three jobs - grading (latest close),
+    # the entry check (close of the entry's own session) and the 5/10-session
+    # forward returns - so it covers ~1 month instead of 5 days, and also the
+    # tickers of recent entries still waiting for a forward return.
+    # The extra forward-return tickers (names that have since left the daily
+    # universe) are only added on the first run of each day - the 15-minute
+    # reruns don't need them, horizons only advance once per session.
+    fwd_tickers = set()
+    fwd_due = store.get("fwd_fetched_on") != today
+    if fwd_due:
+        fwd_cutoff = (date.today() - timedelta(days=FWD_LOOKBACK_DAYS)).isoformat()
+        fwd_tickers = {
+            e["ticker"] for e in store["history"]
+            if e["date"] >= fwd_cutoff and not e.get("stale_snapshot")
+            and any(e.get(f"fwd_{h}d_pct") is None for h in FWD_HORIZONS)
+        }
+    tickers = sorted({e["ticker"] for e in pending} | fwd_tickers)
+    print(f"Grading {len(pending)} pending/live predictions; downloading {len(tickers)} tickers...")
+    series_by_ticker = download_close_series(tickers, "1mo")
+    print(f"Got price series for {len(series_by_ticker)}/{len(tickers)} tickers")
+    if fwd_due and len(series_by_ticker) >= len(tickers) * 0.8:
+        store["fwd_fetched_on"] = today
 
     changed = False
     for entry in pending:
-        current_price = current_price_by_ticker.get(entry["ticker"])
-        if current_price is None or not entry.get("price"):
+        s = series_by_ticker.get(entry["ticker"])
+        if s is None or not len(s) or not entry.get("price"):
             continue
+        current_price = float(s.iloc[-1])
         actual_pct = (current_price - entry["price"]) / entry["price"] * 100
         actual_direction = "up" if actual_pct >= 0 else "down"
         entry["actual_price"] = round(current_price, 4)
@@ -1642,7 +2035,16 @@ def grade_pending_predictions(store):
         entry["correct"] = actual_direction == entry["predicted"]
         entry["graded"] = True
         entry["graded_date"] = today
+        apply_entry_check(entry, s)
+        if abs(actual_pct) >= BIG_MOVE_FLAG_PCT:
+            entry["big_move"] = True
+        else:
+            entry.pop("big_move", None)
         changed = True
+    try:
+        changed |= update_forward_returns(store, series_by_ticker)
+    except Exception as e:
+        print(f"Forward returns failed, continuing without them: {type(e).__name__}: {e}")
     if changed:
         recompute_accuracy(store)
     return changed
@@ -2066,7 +2468,8 @@ def update_portfolio_simulation(store, flag_key="top10", sim_key="portfolio_sim"
 
     graded_top10 = [
         e for e in store["history"]
-        if e.get(flag_key) and e.get("graded") and e.get("predicted") == "up"
+        if e.get(flag_key) and is_clean_graded(e) and e.get("predicted") == "up"
+        and (not sim.get("start_date_floor") or e["date"] >= sim["start_date_floor"])
     ]
     if not graded_top10:
         return
@@ -3931,7 +4334,7 @@ def build_equal_weight_benchmark(store):
     sums, counts = {}, {}
     for e in store.get("history", []):
         d = e.get("date")
-        if d not in dates or not e.get("graded") or e.get("data_suspect"):
+        if d not in dates or not is_clean_graded(e) or e.get("data_suspect"):
             continue
         r = e.get("actual_pct_change")
         if r is None or abs(r) > EW_BENCHMARK_MAX_ABS_PCT:
@@ -5912,17 +6315,16 @@ def main():
         except Exception as e:
             print(f"Stale-day marking failed: {e}")
         grade_pending_predictions(prediction_store)
-        update_portfolio_simulation(prediction_store)
-        update_portfolio_simulation(prediction_store, "top10_experimental", "portfolio_sim_experimental")
-        update_portfolio_simulation(prediction_store, "top10_leading", "portfolio_sim_leading")
-        update_portfolio_simulation(prediction_store, "top10_original", "portfolio_sim_original")
-        update_portfolio_simulation(prediction_store, "top10_fast_rs", "portfolio_sim_fast_rs")
-        update_portfolio_simulation(prediction_store, "top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol")
-        update_portfolio_simulation(prediction_store, "top10_analyst_momentum", "portfolio_sim_analyst_momentum")
-        update_portfolio_simulation(prediction_store, "rec_short", "portfolio_sim_recommendations")
-        update_portfolio_simulation(prediction_store, "rec_long_enter", "portfolio_sim_long_enter")
-        update_portfolio_simulation(prediction_store, "rec_long_dip", "portfolio_sim_long_dip")
-        update_portfolio_simulation(prediction_store, "rec_long_value", "portfolio_sim_long_value")
+        try:
+            run_data_cleanup_once(prediction_store)   # v5.19.0, one time per DATA_CLEAN_VERSION
+        except Exception as e:
+            print(f"Data cleanup failed, will retry next run: {type(e).__name__}: {e}")
+        for flag_key, sim_key in SIM_FLAG_KEYS:
+            update_portfolio_simulation(prediction_store, flag_key, sim_key)
+        try:
+            build_forward_eval(prediction_store)
+        except Exception as e:
+            print(f"Forward evaluation failed, continuing without it: {type(e).__name__}: {e}")
         calibrate_formula_blend(prediction_store)
         build_formula_comparison(prediction_store)
 

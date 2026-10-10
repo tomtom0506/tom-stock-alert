@@ -309,6 +309,44 @@ def check_data_suspect_flags(store, today_str, outliers_section):
     save_json(QA_OUTLIERS_LOG, log)
 
 
+def check_grading_flags(store, today_str, outliers_section, info):
+    """v5.19.0: results graded in the last 2 days that the backend flagged.
+    grade_suspect = entry price didn't match the real close of its session
+    (split/corporate action/bad snapshot) - already excluded from every
+    average. big_move = a 40%+ move - flag only, still counted (could be
+    real news), listed here so it gets a human look. Both go to the
+    cumulative outliers log. Also one info line with the latest IC."""
+    since = (date.fromisoformat(today_str) - timedelta(days=2)).isoformat()
+    recent = [e for e in store.get("history", [])
+              if (e.get("graded_date") or "") >= since and (e.get("grade_suspect") or e.get("big_move"))]
+    log = load_json(QA_OUTLIERS_LOG, [])
+    existing = {(r.get("date"), r.get("ticker"), r.get("kind")) for r in log}
+    for e in sorted(recent, key=lambda x: (x["date"], x["ticker"])):
+        pct = e.get("actual_pct_change")
+        if e.get("grade_suspect"):
+            kind, text = "grade_suspect", f"{e['ticker']} ({e['date']}): {e.get('grade_suspect_reason') or 'מחיר כניסה לא תואם'}"
+        else:
+            kind, text = "big_move", (f"{e['ticker']} ({e['date']}): תזוזה של {pct:+.1f}% - נשאר בחישובים, "
+                                      f"כדאי לוודא שזו תנועה אמיתית ולא פעולה קונצרנית")
+        outliers_section.append(text)
+        key = (e["date"], e["ticker"], kind)
+        if key not in existing:
+            log.append({"date": e["date"], "ticker": e["ticker"], "kind": kind,
+                        "pct": pct, "reason": e.get("grade_suspect_reason")})
+            existing.add(key)
+    save_json(QA_OUTLIERS_LOG, log)
+
+    summ = ((store.get("forward_eval") or {}).get("summary") or {})
+    parts = []
+    for h, label in (("h1", "יום"), ("h5", "5 ימים"), ("h10", "10 ימים")):
+        v = summ.get(h)
+        if v:
+            t = v.get("t_independent")
+            parts.append(f"{label}: {v['mean_ic']:+.3f}" + (f" (t={t})" if t is not None else ""))
+    if parts:
+        info.append("IC ממוצע (ציון מול תוצאה, כל היקום): " + " · ".join(parts))
+
+
 # ---------------------------------------------------------------------------
 # v5.8.0 - LOGIC checks. Everything above verifies the data is well-formed;
 # none of it could notice a feature whose condition can never fire (the
@@ -593,6 +631,7 @@ def main():
     check_stagnation(prices_data, today_str, issues, info, prices_payload.get("updated_at"))
     check_accuracy_streak(store, issues)
     check_data_suspect_flags(store, today_str, outliers)
+    check_grading_flags(store, today_str, outliers, info)
 
     check_snapshot_freshness(store, issues, info)
     check_direction_consistency(store, today_str, issues)
@@ -617,7 +656,7 @@ def main():
         body = "\n".join(f"• {i}" for i in info)
 
     if outliers:
-        body += "\n\n🔎 חריגות נתונים שסוננו אוטומטית:\n" + "\n".join(f"• {o}" for o in outliers)
+        body += "\n\n🔎 חריגות נתונים (סוננו או סומנו לבדיקה):\n" + "\n".join(f"• {o}" for o in outliers)
 
     msg = header + (("\n" + body) if body else "")
     send_telegram_message(msg)

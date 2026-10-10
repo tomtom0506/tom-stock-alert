@@ -630,6 +630,12 @@
     <div id="eventLogBody"></div>
   </div>
 
+  <div id="forwardEvalSection" data-tab="simulation" data-subtab="performance">
+    <div class="section-title">📐 האם הציון מנבא? מדידה על כל היקום</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">IC = מתאם דירוג בין הציון של כל מניה לבין מה שקרה לה בפועל, על כל המניות שנסרקו (כ-750 ביום) ולא רק על 10. ‏0 = אין קשר, חיובי = מניות עם ציון גבוה עלו יותר. ה-t מחושב רק על ימים שלא חופפים, כדי לא להגזים במובהקות.</div>
+    <div id="forwardEvalBody"></div>
+  </div>
+
   <div id="strategiesSection" data-tab="simulation" data-subtab="performance">
     <div class="section-title">⚖️ השוואת אסטרטגיות מול benchmark</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">כל אסטרטגיה מתחילה ב-$100,000 בתאריך שמוצג לידה - לא כולן התחילו באותו יום, אז משווים כל שורה לתאריך שלה. ללא עמלות וללא המרות מטבע.</div>
@@ -1026,12 +1032,19 @@
 </div>
 
 <script>
-const APP_VERSION = "6.9.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.10.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.10.0", date: "2026-10-10", items: [
+    "🧹 ניקוי נתונים (backend 5.19.0): כשמחיר הכניסה של מניה לא תואם את מחיר הסגירה האמיתי של אותו יום, והתזוזה שנמדדה לא תואמת את התזוזה האמיתית - זו פעולה קונצרנית (פיצול, ספין-אוף) או נתון שגוי, ולא תוצאת מסחר. רשומות כאלה (כמו CTVA ב-84%- שלושה ימים ברצף) מסומנות ומוצאות מאחוזי ההצלחה, מניתוח הטריגרים, מכל סימולציות ה-Top10 וההמלצות ומה-benchmark.",
+    "⚠️ תזוזה של 40% ומעלה בכל כיוון מסומנת ומופיעה בהודעת ה-QA היומית לבדיקה ידנית - אבל נשארת בחישובים, כי תזוזות אמיתיות כאלה קורות (ניסוי ביוטק, הצעת רכש), והוצאה שלהן הייתה מייפה את התוצאות.",
+    "🔁 חישוב מחדש חד-פעמי: כל סימולציות ה-Top10 וההמלצות חושבו מחדש מאותו תאריך התחלה, בלי הרשומות החשודות ובלי ימים שבהם ה-snapshot היה העתק של היום הקודם (עד עכשיו הם הוצאו רק מאחוזי ההצלחה, לא מהסימולציות - והתזוזה של יום אחד נספרה פעמיים). חלק מהתשואות ישתנו, בשני הכיוונים. כל הסימולציות מסומנות עכשיו בדולרים.",
+    "📐 מדידה מורחבת (סימולציה ← ביצועים): לכל מניה ביקום נמדדת גם התשואה אחרי 5 ו-10 ימי מסחר, ומחושב IC - מתאם בין הציון לתוצאה על כל ~750 המניות ביום, ולא רק על 10. המובהקות מחושבת רק על ימים שלא חופפים, וסף ההחלטה נקבע מראש. מידע בלבד - לא משנה אף המלצה.",
+    "🔬 שני כלי בדיקה אופליין (research/, הפעלה ידנית בלבד): בדיקת התאמה בין האותות והעסקאות של אסטרטגיות A/B בקוד החי לבין הכללים שנבדקו במחקר, ובדק היסטורי של ציון ה-Top10 על כ-10 שנים באופקים של 1/5/10/20 ימים. לא נוגעים באפליקציה החיה.",
+  ]},
   { version: "6.9.0", date: "2026-10-03", items: [
     "🔔 התראות מקדימות למניות שמוחזקות בתיקים (התיק החי, תיקי האסטרטגיה, התיק החודשי, התיק שלי) - גם בלי תנועת מחיר: 📅 דוח כספי בעוד 1-2 ימים, 📄 דיווח רשמי מהותי חדש ב-SEC (תוצאות, החלפת מנכ\"ל, הסכם מהותי, מחיקת ערך ועוד), ⚠️ כותרת כבדה (הורדת דירוג, הורדת תחזית, חקירה, הנפקה, עזיבת מנכ\"ל, ריקול, מצוקה פיננסית) - מתורגמת לעברית. הודעת טלגרם אחת לכל ריצה עם כל מה שחדש, וכרטיס בטאב 'היום' (backend 5.18.0).",
     "📚 יומן עדכונים למניות בתיקים (סימולציה ← ביצועים): כל עדכון נרשם עם מה שקרה למניה 5, 10 ו-20 ימי מסחר אחר כך, וממוצעים לפי סוג - כדי לבדוק עם הזמן אילו סוגי חדשות באמת מקדימים ירידה. מידע בלבד - לא משנה אף המלצה.",
@@ -2966,6 +2979,45 @@ function renderLongTerm(data) {
   }).join("");
 }
 
+// ---------- v6.10.0: extended measurement (IC on the whole universe, 1/5/10 sessions) ----------
+function renderForwardEval(data) {
+  const el = document.getElementById("forwardEvalBody");
+  if (!el) return;
+  const fe = data.forward_eval || {};
+  const sm = fe.summary || {};
+  const hs = [["h1", "יום אחד"], ["h5", "5 ימי מסחר"], ["h10", "10 ימי מסחר"]].filter(([k]) => sm[k]);
+  if (!hs.length) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">יחושב בריצה הבאה</div>`; return; }
+  const col = v => v == null ? "var(--text-faint)" : (v > 0 ? "var(--up)" : (v < 0 ? "var(--down)" : "var(--text-dim)"));
+  const passes = v => v && v.mean_ic > 0.03 && v.t_independent != null && v.t_independent > 2;
+  const tiles = hs.map(([k, label]) => {
+    const v = sm[k];
+    return `<div class="index-tile">
+      <div class="index-label">IC · ${label}</div>
+      <div class="index-value mono" style="color:${col(v.mean_ic)};">${v.mean_ic >= 0 ? "+" : ""}${Number(v.mean_ic).toFixed(3)}</div>
+      <div class="index-pct" style="color:var(--text-faint);">${passes(v) ? "✅ עובר את הסף" : "🧪 עוד לא מוכח"}</div>
+    </div>`;
+  }).join("");
+  const rows = hs.map(([k, label]) => {
+    const v = sm[k];
+    const t = v.t_independent != null ? `t=${v.t_independent}` : "t: מעט מדי ימים";
+    return `<div style="padding:8px 0; border-bottom:1px solid var(--border);">
+      <div style="font-size:13px; font-weight:700;">${label}</div>
+      <div style="font-size:11.5px; color:var(--text-dim); line-height:1.7;">
+        ${v.positive_days}/${v.days} ימים עם IC חיובי · ${t} (${v.independent_days} ימים בלתי תלויים)<br>
+        Top10 מול היקום: <span class="mono" style="color:${col(v.mean_top10_excess_pct)};">${signedPct(v.mean_top10_excess_pct, 2)}</span>
+        · עשירון עליון מול תחתון: <span class="mono" style="color:${col(v.mean_decile_spread_pct)};">${signedPct(v.mean_decile_spread_pct, 2)}</span>
+      </div>
+    </div>`;
+  }).join("");
+  const dc = data.data_clean || {};
+  const cleanNote = dc.version ? `<div style="font-size:11px; color:var(--text-faint); margin-top:8px;">🧹 ${dc.suspect_entries} רשומות עם מחיר כניסה שגוי (פיצול/פעולה קונצרנית) הוצאו מכל הממוצעים והסימולציות · נבדק ${fmtDateIL((dc.done_at || "").slice(0, 10))}</div>` : "";
+  el.innerHTML = `
+    <div class="indices-row" style="grid-template-columns: repeat(${hs.length}, 1fr); margin-bottom:10px;">${tiles}</div>
+    ${rows}
+    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-top:8px;">סף ההחלטה שנקבע מראש: IC מעל 0.03 עם t מעל 2 בימים שלא חופפים, ותשואה עודפת שגבוהה מהעמלות. מידע בלבד - לא משנה אף המלצה.</div>
+    ${cleanNote}`;
+}
+
 function renderStrategies(data) {
   const el = document.getElementById("strategiesTable");
   if (!el) return;
@@ -3518,6 +3570,7 @@ async function loadPredictions() {
       renderLayersCard(data);
       renderLongTerm(data);
       renderStrategies(data);
+      renderForwardEval(data);
       renderRecommendations(data);
       renderPortfolios(data);
       renderMovesCard(data);
