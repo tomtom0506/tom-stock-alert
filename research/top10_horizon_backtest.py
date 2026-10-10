@@ -83,7 +83,13 @@ def download(tickers):
             continue
         for t in part:
             try:
-                df = data[t] if len(part) > 1 else data
+                # newer yfinance returns (ticker, field) columns even for ONE
+                # ticker with group_by="ticker" - handle both shapes
+                if isinstance(data.columns, pd.MultiIndex):
+                    lvl0 = data.columns.get_level_values(0)
+                    df = data[t] if t in lvl0 else data.xs(t, axis=1, level=1)
+                else:
+                    df = data
                 df = df[["Open", "High", "Low", "Close", "Volume"]].dropna(subset=["Close"])
                 df.index = df.index.tz_localize(None) if getattr(df.index, "tz", None) is not None else df.index
                 if len(df) > WINDOW + 30:
@@ -174,7 +180,8 @@ def main():
     log(f"universe {len(universe)}, downloading {YEARS}...")
     frames = download(sorted(set(universe)))
     spy_df = download(["SPY"]).get("SPY")
-    if spy_df is None or not frames:
+    log(f"downloaded {len(frames)} tickers, SPY {'ok' if spy_df is not None else 'MISSING'}")
+    if spy_df is None or len(frames) < 100:
         log("download failed - abort")
         sys.exit(1)
     spy = spy_df["Close"]
