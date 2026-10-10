@@ -50,6 +50,32 @@ def log(m):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {m}", flush=True)
 
 
+JUMP_LIMIT = 0.5      # a >50% close-to-close (or open-vs-previous-close) move = unadjusted split / bad data
+
+
+def clean_frames(frames):
+    """Run 1 (11.10.2026) was unusable: Yahoo's TASE history has unadjusted
+    splits (ROBO.TA shows +9603% in one day - already in qa_outliers_log), and
+    one such day blows up the equal-weight benchmark, so every trade's
+    "excess" became nonsense (-4305% average). Each ticker keeps only the
+    history AFTER its last impossible jump; if less than ~2 years remain it's
+    dropped. Every cut is listed in the report."""
+    out, cut = {}, {}
+    for t, df in frames.items():
+        c = df["Close"]
+        r = c.pct_change().abs()
+        g = (df["Open"] / c.shift(1) - 1).abs()
+        bad = df.index[(r > JUMP_LIMIT) | (g > JUMP_LIMIT)]
+        if len(bad):
+            df = df[df.index > bad[-1]]
+            cut[t] = f"{len(bad)} jumps, last {bad[-1].date()}, kept {len(df)} rows"
+        if len(df) >= 500:
+            out[t] = df
+        elif t in cut:
+            cut[t] += " -> dropped"
+    return out, cut
+
+
 def verdict(base, neighborhood, stress2):
     if not base.get("n"):
         return "FAIL", "אין עסקאות"
@@ -71,6 +97,9 @@ def main():
     universe = sorted(set(json.loads(TA_FILE.read_text(encoding="utf-8"))))
     log(f"TASE universe: {len(universe)} tickers + {INDEX}")
     frames = S2.download_chunked(universe + [INDEX])
+    frames, cut = clean_frames(frames)
+    if cut:
+        log(f"data cleaning: {cut}")
     loaded = [t for t in universe if t in frames]
     log(f"loaded {len(loaded)}/{len(universe)}; index {'ok' if INDEX in frames else 'MISSING'}")
     if len(loaded) < 20:
@@ -106,7 +135,7 @@ def main():
     vA, why_A = verdict(baseA, rA, stressA)
     vB, why_B = verdict(baseB, rB, stressB)
 
-    meta = {"generated_at": datetime.now(timezone.utc).isoformat(), "tickers": len(loaded),
+    meta = {"generated_at": datetime.now(timezone.utc).isoformat(), "tickers": len(loaded), "cleaned": cut,
             "first": str(lab.idx[0].date()), "last": str(lab.idx[-1].date()), "cost_per_side_pct": COST * 100,
             "runtime_sec": round(time.time() - t0, 1), "missing": sorted(set(universe) - set(loaded))}
     out = {"meta": meta, "A": {"verdict": vA, "why": why_A, "base": baseA, "robustness": rA, "cost_x2": stressA, "neighborhood": A},
@@ -129,6 +158,8 @@ def main():
           "- רשימת המניות של האפליקציה (~57), לא כל ת\"א 125 - ופחות מניות = פחות עסקאות, אז 'לא עובר' יכול לנבוע גם מחוסר ראיות.",
           "- הטיית שורדים: הרשימה של היום, בלי מניות שנמחקו.",
           "- מרווחי קנייה/מכירה בת\"א רחבים יותר - לכן נבדקה גם עמלה כפולה."]
+    if cut:
+        Lr.append("- ניקוי נתונים (קפיצה של מעל 50% ביום = פיצול לא מתוקנן): " + "; ".join(f"{t}: {v}" for t, v in cut.items()))
     if meta["missing"]:
         Lr.append(f"- לא נמצאו נתונים ל: {', '.join(meta['missing'])}")
     (OUTPUT_DIR / "ta_ab_report.md").write_text("\n".join(Lr))
