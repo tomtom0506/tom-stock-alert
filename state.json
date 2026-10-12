@@ -1339,5 +1339,9 @@
   "US_AUGO_bigmove_2026-10-12": true,
   "US_HIMS_bigmove_2026-10-12": true,
   "US_TMUS_bigmove_2026-10-12": true,
-  "US_ASTS_bigmove_2026-10-12": true
+  "US_ASTS_bigmove_2026-10-12": true,
+  "US_FIGS_bigmove_2026-10-12": true,
+  "US_TTMI_bigmove_2026-10-12": true,
+  "US_LITE_bigmove_2026-10-12": true,
+  "US_CBRS_bigmove_2026-10-12": true
 }
