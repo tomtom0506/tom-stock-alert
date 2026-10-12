@@ -1330,5 +1330,14 @@
   "US_ARQT_bigmove_2026-10-09": true,
   "US_ASTS_bigmove_2026-10-09": true,
   "US_TMUS_bigmove_2026-10-09": true,
-  "US_HIMS_bigmove_2026-10-09": true
+  "US_HIMS_bigmove_2026-10-09": true,
+  "US_FSLY_bigmove_2026-10-12": true,
+  "US_NVAX_bigmove_2026-10-12": true,
+  "US_CCI_bigmove_2026-10-12": true,
+  "US_MRNA_bigmove_2026-10-12": true,
+  "US_HUM_bigmove_2026-10-12": true,
+  "US_AUGO_bigmove_2026-10-12": true,
+  "US_HIMS_bigmove_2026-10-12": true,
+  "US_TMUS_bigmove_2026-10-12": true,
+  "US_ASTS_bigmove_2026-10-12": true
 }
