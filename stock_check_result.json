@@ -1,9 +1,9 @@
 {
   "ticker": "PLTR",
   "predicted_direction": "up",
-  "raw_score": 2.61,
-  "overall_score": 71.6,
-  "timing_score": 59.4,
+  "raw_score": 2.6,
+  "overall_score": 71.5,
+  "timing_score": 59.3,
   "quality_score": 100.0,
   "long_term_score": 89.8,
   "verdict": "quality_wait",
@@ -15,14 +15,14 @@
     "free_cash_flow": 100.0
   },
   "components": {
-    "timing": 59.4,
+    "timing": 59.3,
     "quality": 100.0,
     "analyst": 79.7
   },
   "excluded_from_blend": [],
-  "price": 209.88,
+  "price": 210.15,
   "support": 177.29,
-  "resistance": 291.29,
+  "resistance": 291.66,
   "analyst_count": 26,
   "sector": "Technology",
   "short_pct": 2.5899999,
@@ -41,7 +41,7 @@
     "date": "2026-11-02",
     "days_away": 21
   },
-  "checked_at": "2026-10-12T13:50:53.152405+00:00",
+  "checked_at": "2026-10-12T13:51:19.638757+00:00",
   "price_as_of_date": "2026-10-12",
   "market_status": {
     "market": "ארה\"ב (US)",
@@ -5067,7 +5067,7 @@
       ],
       [
         "2026-10-12",
-        209.87
+        210.1
       ]
     ],
     "intraday": {
@@ -5091,11 +5091,11 @@
         ],
         [
           "09:50",
-          209.87
+          210.04
         ]
       ]
     },
-    "generated_at": "2026-10-12T13:50:53.152567+00:00"
+    "generated_at": "2026-10-12T13:51:19.638891+00:00"
   },
   "strategy_view": {
     "action": "hold",
