@@ -1,0 +1,59 @@
+name: 🏆 מניות מנצחות 🧪
+
+# כל יום מסחר אחרי סגירת ארה"ב: עדכון מחירים, כניסה/יציאה מפוזיציות.
+# בחירת מניות חדשות: בימי שישי, או בהפעלה ידנית.
+# כותב רק את winners.json - לא נוגע בבוט הראשי.
+on:
+  schedule:
+    - cron: "30 22 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      force_select:
+        description: "להריץ בחירת מניות עכשיו"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: winners
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy yfinance requests
+
+      - name: Run
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FORCE_SELECT: ${{ github.event_name == 'workflow_dispatch' && inputs.force_select && 'true' || 'false' }}
+        run: python winners_live.py
+
+      - name: Commit winners.json (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add winners.json
+          git diff --staged --quiet && exit 0
+          git commit -m "Update winners"
+          for i in 1 2 3; do
+            git fetch origin main && git merge -X ours --no-edit origin/main && git push origin HEAD:main && break
+            sleep 10
+          done
