@@ -28,10 +28,11 @@ jobs:
 
       - name: Run
         env:
-          SEC_USER_AGENT: "TomStockAlert research tomtom0506@users.noreply.github.com"
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
         run: python research/winners_research.py
 
       - name: Upload results
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: winners-results
