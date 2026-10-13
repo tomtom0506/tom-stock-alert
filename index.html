@@ -762,6 +762,14 @@
     <div id="longTermList" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 
+  <div id="winnersSection" data-tab="stocks" data-subtab="winners">
+    <div class="section-title">🏆 מניות מנצחות <span style="font-size:12px; font-weight:400; color:var(--text-faint);">🧪 ניסוי</span></div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
+      חברה חזקה (מכירות לא יורדות, רווחית) שירדה 35% ומעלה מהשיא השנתי, וזולה גם מול הענף שלה וגם מול עצמה (EV/EBIT). עד 20 מניות, כל אחת מוחזקת שנה. הבחירה נרשמת מראש ונמדדת מול ה-S&amp;P 500 ומול ממוצע כל המניות - כך נדע בזמן אמת אם יש בשיטה משהו. מידע בלבד, לא ייעוץ השקעות.
+    </div>
+    <div id="winnersBody"><div style="font-size:12px; color:var(--text-faint);">טוען...</div></div>
+  </div>
+
   <div id="monthlyPortfolioSection" class="hidden" data-tab="stocks" data-subtab="monthly">
     <div class="section-title" id="monthlyPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       📅 תיק חודשי <span id="monthlyPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
@@ -1060,12 +1068,16 @@
 </div>
 
 <script>
-const APP_VERSION = "6.11.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.12.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.12.0", date: "2026-10-13", items: [
+    "🏆 לשונית חדשה במניות: מניות מנצחות (🧪 ניסוי). חברה חזקה שירדה 35% ומעלה מהשיא השנתי וזולה גם מול הענף וגם מול עצמה - עד 20 מניות, כל אחת לשנה, נבחרות כל יום שישי ונרשמות מראש. נמדדות מול ה-S&P 500 ומול ממוצע כל המניות, עם גרף. במחקר על 2011-2026 השיטה לא הוכחה (t=0.31) - לכן זה ניסוי בזמן אמת.",
+    "💬 לכל מניה: למה היא ירדה - מול השוק והענף (🌍 שוק / 🏭 ענף / 🏢 החברה), ימי הירידה החדים עם 📊 כשזה היה יום דוח, וכותרות מאותם ימים. הלשונית מסכמת גם איזה סוג ירידה מתאושש טוב יותר.",
+  ]},
   { version: "6.11.0", date: "2026-10-11", items: [
     "📌 המסך הראשי נבנה מחדש סביב השאלה 'מה לקנות עכשיו' (backend 5.20.0): 🚀 עד 3 מניות לטווח קצר - רק מאותות A/B שעברו מחקר, ביום שאין אות כתוב 'אין אות היום' ולא משלימים מה-Top10. 🏛 3 מניות לטווח ארוך מרשימת האיכות (🧪) - קונות רק כשהמחיר מעל ממוצע 200, ומתחלפות רק באזהרה או ברענון החודשי.",
     "🔴 אזהרות מכירה: בטווח הקצר - בסגירה של יום היציאה המתוכנן (10 ימי מסחר ב-A, 60 ב-B, הכלל שנבדק). בטווח הארוך - שבירה של ממוצע 200 (ביותר מ-2%) או יציאה מרשימת האיכות. כותרת כבדה מסומנת ⚠️ לבדיקה בכרטיס בלבד - המסווג רועש מכדי למכור לפיו.",
@@ -3015,6 +3027,80 @@ function renderLongTerm(data) {
   }).join("");
 }
 
+// ---------- v6.12.0: 🏆 מניות מנצחות 🧪 (winners.json, written by winners_live.py) ----------
+async function loadWinners() {
+  const el = document.getElementById("winnersBody");
+  if (!el) return;
+  try {
+    const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/winners.json?t=${Date.now()}`);
+    if (!r.ok) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">עוד לא רצה בחירה ראשונה.</div>`; return; }
+    renderWinners(await safeJson(r));
+  } catch (e) {
+    el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">לא הצלחתי לטעון את הנתונים.</div>`;
+  }
+}
+
+function winnersChart(series) {
+  if (!series || series.length < 2) return "";
+  const W = 340, H = 140, P = 6;
+  const vals = series.flatMap(p => [p.port, p.spy, p.ew]);
+  const lo = Math.min(...vals), hi = Math.max(...vals), span = (hi - lo) || 1;
+  const x = i => P + i * (W - 2 * P) / (series.length - 1);
+  const y = v => H - P - (v - lo) * (H - 2 * P) / span;
+  const line = (k, color, w) => `<polyline fill="none" stroke="${color}" stroke-width="${w}" points="${series.map((p, i) => `${x(i).toFixed(1)},${y(p[k]).toFixed(1)}`).join(" ")}"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block; margin:6px 0;">
+    <line x1="${P}" x2="${W - P}" y1="${y(100)}" y2="${y(100)}" stroke="var(--border)" stroke-dasharray="3 3"/>
+    ${line("ew", "var(--text-faint)", 1.5)}${line("spy", "#6aa0e0", 1.5)}${line("port", "#e0b04a", 2.5)}</svg>
+    <div style="font-size:11px; color:var(--text-faint); display:flex; gap:12px; justify-content:center;">
+      <span><span style="color:#e0b04a;">━</span> התיק</span><span><span style="color:#6aa0e0;">━</span> S&amp;P 500</span><span>━ ממוצע כל המניות</span></div>`;
+}
+
+function winnersExplain(x) {
+  if (!x) return "";
+  const days = (x.worst_days || []).map(d => `${fmtDateIL(d.date)}: ${d.pct}%${d.earnings ? " 📊" : ""}`).join(" · ");
+  const heads = (x.headlines || []).map(h => `<div style="margin-top:4px;">${h.tag ? `<b>${h.tag}</b> · ` : ""}${h.url ? `<a href="${h.url}" target="_blank" rel="noopener" style="color:var(--text-dim);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
+  return `<div style="font-size:12px; color:var(--text-dim); line-height:1.6; margin-top:4px;">${x.summary || ""}</div>
+    <details style="font-size:11.5px; color:var(--text-faint); margin-top:4px;"><summary>ימי הירידה וכותרות</summary>
+      <div style="margin-top:4px;">ימי הירידה החדים: ${days || "—"}${(x.worst_days || []).some(d => d.earnings) ? " (📊 = יום דוח רבעוני)" : ""}</div>${heads || `<div style="margin-top:4px;">לא נמצאו כותרות לימים האלה.</div>`}
+      <div style="margin-top:4px;">הכותרות מתויגות לפי מילות מפתח - לפעמים התיוג טועה, כדאי לקרוא את הכותרת עצמה.</div></details>`;
+}
+
+function renderWinners(w) {
+  const el = document.getElementById("winnersBody");
+  const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
+  const st = w.stats || {};
+  const box = (label, v, sub) => `<div class="picks-box"><div class="pb-label">${label}</div><div class="pb-big mono" style="font-size:24px; color:${col(v)};">${v == null ? "—" : signedPct(v, 1)}</div>${sub ? `<div class="pb-small">${sub}</div>` : ""}</div>`;
+  let h = "";
+  if (w.series && w.series.length) {
+    h += `<div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("🏆 התיק", st.port_pct, `היום: <span style="color:${col(st.daily_pct)};">${signedPct(st.daily_pct, 2)}</span>`)}${box("S&amp;P 500", st.spy_pct)}${box("ממוצע המניות", st.ew_pct)}</div>`;
+    h += `<div style="font-size:11.5px; color:var(--text-faint); text-align:center;">מאז ${fmtDateIL(st.since)} · ${st.beat_spy}/${st.trades} מניות מקדימות את ה-S&amp;P · ${st.beat_ew}/${st.trades} את ממוצע המניות</div>`;
+    h += winnersChart(w.series);
+    const bk = st.by_kind || {};
+    const kl = { market: "🌍 ירידת שוק", sector: "🏭 ירידת ענף", company: "🏢 בעיה של החברה" };
+    const kinds = Object.keys(bk).map(k => `${kl[k]}: ${bk[k].n} מניות, ${signedPct(bk[k].avg_vs_ew_pct, 1)} מול הממוצע`).join(" · ");
+    if (kinds) h += `<div style="font-size:11.5px; color:var(--text-dim); margin:4px 0 10px;">לפי סוג הירידה: ${kinds}</div>`;
+  }
+  const pos = w.positions || [];
+  h += `<div style="font-size:14px; font-weight:800; margin:10px 0 4px;">מוחזקות (${pos.length}/${(w.rule || {}).max_positions || 20})</div>`;
+  h += pos.length ? pos.map(p => `<div class="picks-card">
+      <div style="display:flex; justify-content:space-between; gap:8px;">
+        <div><b>${p.ticker}</b> <span style="font-size:11px; color:var(--text-dim);">${p.name || ""} · ${p.sector || ""}</span>
+          <div style="font-size:11px; color:var(--text-faint);">נכנסה ${fmtDateIL(p.entry_date)}${p.entry_price ? ` ב-$${p.entry_price}` : ""} · עוד ${p.sessions_left ?? "—"} ימי מסחר · ${(p.explanation || {}).kind_label || ""}</div></div>
+        <div style="text-align:left; white-space:nowrap;"><div class="mono" style="font-weight:800; color:${col(p.ret_pct)};">${signedPct(p.ret_pct, 1)}</div>
+          <div style="font-size:11px; color:var(--text-faint);">S&amp;P ${signedPct(p.spy_pct, 1)} · ממוצע ${signedPct(p.ew_pct, 1)}</div></div></div>
+      ${winnersExplain(p.explanation)}</div>`).join("")
+    : `<div style="font-size:12.5px; color:var(--text-dim);">עוד אין מניות מוחזקות.</div>`;
+  const pend = w.pending || [];
+  if (pend.length) h += `<div style="font-size:14px; font-weight:800; margin:12px 0 4px;">🆕 ממתינות לקנייה בפתיחה הבאה</div>` + pend.map(p => `<div class="picks-card"><b>${p.ticker}</b> <span style="font-size:11px; color:var(--text-dim);">${p.name || ""} · ירדה ${Math.abs(p.drawdown_pct)}% · EV/EBIT ${p.ev_ebit}</span>${winnersExplain(p.explanation)}</div>`).join("");
+  const waiting = (w.candidates || []).filter(c => c.status === "waiting");
+  if (waiting.length) h += `<div style="font-size:12px; color:var(--text-faint); margin-top:10px;">עומדות בתנאים אבל אין מקום פנוי: ${waiting.map(c => c.ticker).join(", ")}</div>`;
+  const closed = (w.closed || []).slice().reverse();
+  if (closed.length) h += `<div style="font-size:14px; font-weight:800; margin:12px 0 4px;">נסגרו</div>` + closed.map(c => `<div class="picks-row"><div><b>${c.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">${fmtDateIL(c.entry_date)} → ${fmtDateIL(c.exit_date)}</span></div><div class="mono" style="color:${col(c.ret_pct)};">${signedPct(c.ret_pct, 1)} <span style="font-size:11px; color:var(--text-faint);">(S&amp;P ${signedPct(c.spy_pct, 1)})</span></div></div>`).join("");
+  const lastSel = (w.selection_log || []).slice(-1)[0];
+  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-top:12px;">${w.research_note || ""}<br>${lastSel ? `בחירה אחרונה: ${fmtDateIL(lastSel.date)}${lastSel.error ? " - נכשלה (ה-SEC לא ענה), תנסה שוב בשבוע הבא" : ` - ${lastSel.qualified} עמדו בתנאים, ${(lastSel.added || []).length} נוספו`} · ` : ""}בחירה חדשה כל יום שישי · עודכן ${w.updated_at ? fmtDateIL(w.updated_at.slice(0, 10)) : "—"}</div>`;
+  el.innerHTML = h;
+}
+
 // ---------- v6.11.0: 📌 main page - 3 short + 3 long picks, their boxes, 👍/👎 ----------
 function renderPicks(data) {
   const pk = data.picks || {};
@@ -3672,6 +3758,7 @@ async function loadPredictions() {
     listStatus = data.list_status || {};
     { const c = document.getElementById("top10StatusChip"); if (c) c.innerHTML = listStatusChip("top10", { margin: "0 0 4px" }); }
     try { renderPicks(data); bindHomeMoreToggle(); } catch (e) { console.error("picks render failed", e); }
+    loadWinners();
     try {
       renderExposureCard(data);
       renderLayersCard(data);
@@ -5089,6 +5176,7 @@ const SUBTABS = {
   stocks: [
     { id: "top10", label: "טווח קצר", icon: "⚡" },
     { id: "longterm", label: "טווח ארוך", icon: "🏛" },
+    { id: "winners", label: "מניות מנצחות", icon: "🏆" },
     { id: "recommended", label: "מומלצות עכשיו", icon: "🔁" },
     { id: "monthly", label: "תיק חודשי", icon: "📅" },
     { id: "holdings", label: "התיק שלי", icon: "💼" },
