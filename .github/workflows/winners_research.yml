@@ -1,0 +1,39 @@
+name: 🏆 מחקר מניות מנצחות - שלוש עדשות
+
+# הפעלה ידנית בלבד. לא נוגע בשום קובץ של האפליקציה החיה -
+# מוריד היסטוריה, מריץ את הבדיקה, ושומר את התוצאות כ-artifact להורדה.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy yfinance requests
+
+      - name: Run
+        env:
+          SEC_USER_AGENT: "TomStockAlert research tomtom0506@users.noreply.github.com"
+        run: python research/winners_research.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v7
+        with:
+          name: winners-results
+          path: research/output_winners_research/
+          retention-days: 30
