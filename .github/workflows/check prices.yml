@@ -3,6 +3,13 @@ name: Check Stock Prices
 on:
   schedule:
     - cron: "*/15 * * * *"
+    # v5.20.1: GitHub skips most */15 runs on busy days, so the moments that
+    # matter also get their own triggers (UTC). Each is a separate trigger,
+    # so at least one usually fires on time:
+    - cron: "20 0 * * 2-6"     # after midnight UTC: the daily price snapshot
+    - cron: "0 13 * * 1-5"     # before the US open
+    - cron: "20 20 * * 1-5"    # after the US close (summer time)
+    - cron: "20 21 * * 1-5"    # after the US close (winter time, from 1.11)
   workflow_dispatch:
     inputs:
       refresh_news:
