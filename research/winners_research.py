@@ -60,7 +60,7 @@ HERE = Path(__file__).resolve().parent
 OUTPUT_DIR = HERE / "output_winners_research"
 SP500_CSV_URL = "https://raw.githubusercontent.com/datasets/s-and-p-500-companies/master/data/constituents.csv"
 SEC_FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK{cik:010d}.json"
-SEC_UA = os.environ.get("SEC_USER_AGENT", "TomStockAlert research tomtom0506@users.noreply.github.com")
+SEC_UA = os.environ.get("SEC_USER_AGENT") or "TomStockAlert research tomtom0506@users.noreply.github.com"
 START = "2012-01-01"
 HOLDOUT = "2019-01-01"
 N_PICKS = 20
@@ -99,18 +99,71 @@ def log(m):
 
 
 # ---------------------------------------------------------------- SEC data
+SEC_BULK_URL = "https://www.sec.gov/Archives/edgar/daily-index/xbrl/companyfacts.zip"
+FETCH_ERRORS = []
+
+
 def fetch_facts(cik, session):
-    for attempt in range(3):
+    """One try plus one retry, short timeout - run 1 (13.10.2026) spent 80
+    minutes on 3 slow retries per company while SEC refused every request."""
+    for attempt in range(2):
         try:
-            r = session.get(SEC_FACTS_URL.format(cik=int(cik)), timeout=60)
+            r = session.get(SEC_FACTS_URL.format(cik=int(cik)), timeout=20)
             if r.status_code == 200:
                 return r.json()
             if r.status_code == 404:
                 return None
-        except Exception:
-            pass
-        time.sleep(2 + attempt * 3)
+            if len(FETCH_ERRORS) < 5:
+                FETCH_ERRORS.append(f"CIK {cik}: HTTP {r.status_code} {r.text[:150]!r}")
+        except Exception as e:
+            if len(FETCH_ERRORS) < 5:
+                FETCH_ERRORS.append(f"CIK {cik}: {type(e).__name__}: {e}")
+        time.sleep(1.5)
     return None
+
+
+def probe_sec(session):
+    """Checks access BEFORE the long loop. Returns 'api', 'bulk' or None, and
+    a diagnostic line for the report."""
+    try:
+        r = session.get(SEC_FACTS_URL.format(cik=320193), timeout=20)
+        line = f"API: HTTP {r.status_code}, server={r.headers.get('Server')}, body={r.text[:200]!r}"
+        log(line)
+        if r.status_code == 200 and "facts" in r.text[:2000]:
+            return "api", line
+    except Exception as e:
+        line = f"API: {type(e).__name__}: {e}"
+        log(line)
+    try:
+        r = session.head(SEC_BULK_URL, timeout=20, allow_redirects=True)
+        line2 = f"bulk zip: HTTP {r.status_code}, size={r.headers.get('Content-Length')}"
+        log(line2)
+        if r.status_code == 200:
+            return "bulk", line + " | " + line2
+        return None, line + " | " + line2
+    except Exception as e:
+        return None, line + f" | bulk zip: {type(e).__name__}: {e}"
+
+
+def load_bulk(session, ciks):
+    """Fallback: SEC's nightly bulk file (one download, ~1.3GB) - no per-company requests."""
+    import zipfile
+    path = Path("/tmp/companyfacts.zip")
+    log("downloading SEC bulk companyfacts.zip ...")
+    with session.get(SEC_BULK_URL, stream=True, timeout=120) as r:
+        r.raise_for_status()
+        with open(path, "wb") as f:
+            for chunk in r.iter_content(chunk_size=1 << 22):
+                f.write(chunk)
+    log(f"bulk zip {path.stat().st_size / 1e9:.2f} GB")
+    out = {}
+    with zipfile.ZipFile(path) as z:
+        names = set(z.namelist())
+        for cik in ciks:
+            n = f"CIK{int(cik):010d}.json"
+            if n in names:
+                out[cik] = json.loads(z.read(n))
+    return out
 
 
 def _facts_for(facts, taxonomy, tag):
@@ -408,15 +461,39 @@ def main():
     # fundamentals
     session = requests.Session()
     session.headers.update({"User-Agent": SEC_UA, "Accept-Encoding": "gzip, deflate"})
+    log(f"SEC User-Agent: {SEC_UA}")
+    mode, diag = probe_sec(session)
+    if mode is None:
+        OUTPUT_DIR.joinpath("winners_report.md").write_text(
+            "# 🏆 מחקר מניות מנצחות - לא רץ\n\nה-SEC סירב לבקשות מהשרת של GitHub, ולכן אין נתונים פונדמנטליים.\n\n"
+            f"אבחון: `{diag}`\nUser-Agent: `{SEC_UA}`\n")
+        log("SEC refused both the API and the bulk file - stopping early (see report)")
+        sys.exit(1)
     parsed = {}
-    for k, t in enumerate(tickers):
-        f = fetch_facts(meta[t]["cik"], session)
-        if f:
-            parsed[t] = parse_company(f)
-        time.sleep(0.12)                 # SEC fair-access limit: 10 requests/second
-        if (k + 1) % 50 == 0:
-            log(f"SEC facts {k + 1}/{len(tickers)} ({len(parsed)} ok)")
-    log(f"SEC facts for {len(parsed)}/{len(tickers)}")
+    if mode == "bulk":
+        raw = load_bulk(session, [meta[t]["cik"] for t in tickers])
+        for t in tickers:
+            if meta[t]["cik"] in raw:
+                parsed[t] = parse_company(raw[meta[t]["cik"]])
+        del raw
+    else:
+        misses = 0
+        for k, t in enumerate(tickers):
+            f = fetch_facts(meta[t]["cik"], session)
+            if f:
+                parsed[t] = parse_company(f)
+                misses = 0
+            else:
+                misses += 1
+            if misses >= 15:
+                log(f"15 failures in a row - stopping. {FETCH_ERRORS}")
+                OUTPUT_DIR.joinpath("winners_report.md").write_text(
+                    "# 🏆 מחקר מניות מנצחות - נעצר\n\nה-SEC התחיל לסרב באמצע.\n\n" + "\n".join(f"- `{e}`" for e in FETCH_ERRORS))
+                sys.exit(1)
+            time.sleep(0.12)             # SEC fair-access limit: 10 requests/second
+            if (k + 1) % 50 == 0:
+                log(f"SEC facts {k + 1}/{len(tickers)} ({len(parsed)} ok)")
+    log(f"SEC facts for {len(parsed)}/{len(tickers)} via {mode}; first errors: {FETCH_ERRORS}")
 
     # quarterly rebalance dates
     qdates = [d for d in pd.date_range("2010-01-01", date.today(), freq="QS") if d.strftime("%Y-%m-%d") >= "2010-01-01"]
