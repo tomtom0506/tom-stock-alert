@@ -1083,12 +1083,15 @@
 </div>
 
 <script>
-const APP_VERSION = "6.13.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.14.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.14.0", date: "2026-10-15", items: [
+    "🧪 מבחן קדימה במסך 🎯 פעולה (backend 5.22.0): כל המלצת A/B משוחקת פעמיים על המחירים האמיתיים - מכירה בתאריך (הכלל שנבדק) ומכירה ביעד/בסטופ, מה שקודם. שתי קוביות זו לצד זו: סכום האחוזים של כל העסקאות שנסגרו בכל שיטה, מול ה-S&P 500 באותם ימים, וטבלה של כל עסקה ואיך נגמרה בכל שיטה. הרמות נשמרות ביום האות, כך שאי אפשר לכוונן אותן בדיעבד. במחקר על 26 שנה המכירה לפי מחיר הורידה את הרווח - כאן בודקים קדימה.",
+  ]},
   { version: "6.13.0", date: "2026-10-14", items: [
     "🎯 לשונית 'היום' מתחלקת לשתיים: 🎯 פעולה (חדש, נפתח ראשון) - רק אסטרטגיות A/B שעברו מחקר, ותשובה אחת: מה לקנות, מה למכור, או 'אין מה לעשות היום'. 📋 מלא - המסך הקודם בדיוק כמו שהיה.",
     "💲 בכל המלצה: קנייה בפתיחה (פקודת שוק) עם שער ייחוס = הסגירה האחרונה, וטווח שמחוצה לו הפתיחה נחשבת פער חריג (±3%). מכירה בסגירה של תאריך מוגדר - בדיוק הכלל שנבדק. גם בהודעת הטלגרם היומית.",
@@ -3047,6 +3050,25 @@ function renderLongTerm(data) {
   }).join("");
 }
 
+// ---------- v6.14.0: 🧪 forward test - time exit vs price exit, side by side ----------
+function exitTestBlock(t, col) {
+  const head = `<div style="font-size:14px; font-weight:800; margin:18px 2px 4px;">🧪 מבחן קדימה: מכירה לפי זמן מול לפי מחיר</div>
+    <div style="font-size:11.5px; color:var(--text-faint); line-height:1.5; margin:0 2px 8px;">כל המלצה משוחקת פעמיים על המחירים האמיתיים: פעם מוכרים בתאריך (הכלל שנבדק), ופעם ביעד/בסטופ - מה שקורה קודם. האחוזים של כל העסקאות שנסגרו מחוברים, מול ה-S&amp;P 500 באותם ימים. במחקר על 26 שנה המכירה לפי מחיר הורידה את הרווח - כאן בודקים אם זה נכון גם קדימה.</div>`;
+  if (!t || !(t.trades || []).length) return head + `<div class="act-row" style="font-size:12.5px; color:var(--text-dim);">מתחיל מההמלצות הבאות - הרמות נשמרות ביום האות, כך שאי אפשר לכוונן אותן בדיעבד.</div>`;
+  const box = (title, sm) => `<div class="picks-box"><div class="pb-label">${title}</div>
+    <div class="pb-big mono" style="font-size:24px; color:${col(sm.closed ? sm.sum_pct : null)};">${sm.closed ? signedPct(sm.sum_pct, 1) : "—"}</div>
+    <div class="pb-small">S&amp;P באותם ימים: <span style="color:${col(sm.closed ? sm.spy_sum_pct : null)};">${sm.closed ? signedPct(sm.spy_sum_pct, 1) : "—"}</span></div>
+    <div class="pb-small">${sm.closed ? `${sm.wins}/${sm.closed} ברווח` : "עוד אין עסקה שנסגרה"}</div></div>`;
+  const why = { target: "🎯 יעד", stop: "🛑 סטופ", time: "⏱ תאריך" };
+  const cell = (r, open) => r ? `<span class="mono" style="color:${col(r.pnl_pct)}; font-weight:700;">${signedPct(r.pnl_pct, 1)}</span> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(r.exit_date)}</span>`
+    : `<span style="font-size:11px; color:var(--text-faint);">פתוחה ${open != null ? `(${signedPct(open, 1)})` : ""}</span>`;
+  const rows = (t.trades || []).slice().reverse().map(x => `<div class="picks-row" style="align-items:center;">
+      <div><b>${x.ticker}</b> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(x.entry_date)}</span></div>
+      <div style="text-align:left; font-size:12px; line-height:1.6;">⏱ ${cell(x.time, x.open_pnl_pct)}<br>${x.price_exit ? why[x.price_exit] : "🎯/🛑"} ${cell(x.price, x.open_pnl_pct)}</div></div>`).join("");
+  return head + `<div class="picks-boxes">${box("⏱ לפי תאריך", t.time || {})}${box("🎯 לפי מחיר או תאריך", t.price || {})}</div>
+    <div class="act-row" style="padding:6px 14px;">${rows}</div>`;
+}
+
 // ---------- v6.13.0: 🎯 action screen (home › פעולה) - only research-validated A/B ----------
 function renderActionScreen(data) {
   const el = document.getElementById("actionBody");
@@ -3057,7 +3079,7 @@ function renderActionScreen(data) {
   const buys = pk.short_buy || [];
   const sells = pk.short_sell_due || [];
   const held = (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
-  const tech = p => (p.tech_target || p.tech_stop) ? `<div class="act-tech">🧪 רמות טכניות לידיעה (עוד לא נבדקו): ${p.tech_target ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${p.tech_target && p.tech_stop ? " · " : ""}${p.tech_stop ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
+  const tech = p => (p.tech_target || p.tech_stop) ? `<div class="act-tech">🧪 רמות טכניות (במחקר על 26 שנה פעולה לפיהן הורידה את הרווח · נבדקות קדימה למטה): ${p.tech_target ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${p.tech_target && p.tech_stop ? " · " : ""}${p.tech_stop ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
   let h = `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:4px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`;
   if (buys.length || sells.length) {
     const parts = [];
@@ -3094,7 +3116,8 @@ function renderActionScreen(data) {
       <div><div style="font-size:12.5px; color:var(--text-dim);">ההמלצות בפועל מאז ${fmtDateIL(b.start_date)}</div><div style="font-size:11.5px; color:var(--text-faint);">S&amp;P 500 באותם ימים: <span style="color:${col(b.spy_pct)};">${signedPct(b.spy_pct, 2)}</span></div></div>
       <div class="mono" style="font-size:22px; font-weight:800; color:${col(b.cum_pct)};">${signedPct(b.cum_pct, 2)}</div></div>`;
   }
-  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. הקנייה והמכירה לפי זמן - כך נבדק. הרמות הטכניות 🧪 מוצגות לידיעה בלבד עד שמחקר היציאה יגיד אם כדאי לפעול לפיהן. מידע בלבד, לא ייעוץ השקעות.</div>`;
+  h += exitTestBlock(pk.exit_test, col);
+  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. הקנייה והמכירה לפי זמן - כך נבדק. הרמות הטכניות 🧪 מוצגות כדי לבדוק אותן קדימה - במחקר על 26 שנה מכירה לפיהן הורידה את הרווח, ולכן הכלל המומלץ נשאר מכירה בתאריך. מידע בלבד, לא ייעוץ השקעות.</div>`;
   el.innerHTML = h;
 }
 

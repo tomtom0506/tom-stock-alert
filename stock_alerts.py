@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.21.0"
+BACKEND_VERSION = "5.22.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -5478,6 +5478,7 @@ def run_strategy_book(store, force=False):
     try:
         store["spy_closes"] = {d.strftime("%Y-%m-%d"): round(float(v), 4) for d, v in spy.iloc[-300:].items()}
         store["picks_short_sim"] = simulate_picks_short(store.get("picks_short_log") or {}, O, C, spy)
+        store["exit_forward_test"] = compare_exits_forward(store.get("picks_short_log") or {}, O, H, L, C, spy)
     except Exception as e:
         print(f"Short picks sim failed: {type(e).__name__}: {e}")
 
@@ -6363,6 +6364,18 @@ def update_short_picks_log(store):
         })
         if len(picked) >= PICKS_MAX:
             break
+    # v5.22.0: freeze the 🧪 chart levels as they were on the signal day, so
+    # the forward test (time exit vs price exit) can't be fitted afterwards
+    snap = {}
+    for e in reversed(store.get("history") or []):
+        if e["ticker"] not in snap:
+            snap[e["ticker"]] = e
+        if len(snap) > 3000:
+            break
+    for p in picked:
+        lv = _chart_levels(snap, p["ticker"], p.get("close"))
+        p["tech_target"], p["tech_stop"] = lv.get("tech_target"), lv.get("tech_stop")
+        p["levels_frozen"] = True
     log[session] = picked
     # keep ~1 year of signal days
     for d in sorted(log)[:-260]:
@@ -6447,6 +6460,71 @@ def simulate_picks_short(log, O, C, spy=None):
         if len(s) > 1:
             out["spy_same_window_pct"] = round((float(s.iloc[-1]) / float(s.iloc[0]) - 1) * 100, 2)
     return out
+
+
+def compare_exits_forward(log, O, H, L, C, spy):
+    """v5.22.0 - Tomer, 15.10.2026: the 26-year research said price exits
+    (support/resistance) HURT the A/B results; he wants it proven forward too.
+    Every shown short pick whose levels were frozen on its signal day is
+    played twice on real prices: TIME (the validated rule) and PRICE (first
+    of target / stop / time - stop assumed first on a day touching both).
+    Each trade is compared with SPY over its own days. Sums of trade
+    percentages, as he asked, plus counts."""
+    idx = C.index
+    pos_of = {d.strftime("%Y-%m-%d"): i for i, d in enumerate(idx)}
+    cols = {t: j for j, t in enumerate(C.columns)}
+    Ov, Hv, Lv, Cv = O.values, H.reindex(columns=C.columns).values, L.reindex(columns=C.columns).values, C.values
+    spy_s = spy.reindex(idx).ffill()
+    last = len(idx) - 1
+    fee, slip = PICKS_FEE_PCT / 100, PICKS_SLIPPAGE_PCT / 100
+    trades, busy_until = [], {}
+    for sig_date in sorted(log):
+        i = pos_of.get(sig_date)
+        if i is None:
+            continue
+        for pk in log[sig_date]:
+            if not pk.get("levels_frozen"):
+                continue
+            j = cols.get(pk["ticker"])
+            e, x = i + 1, i + pk["hold"]
+            if j is None or e > last or busy_until.get(pk["ticker"], -1) >= e:
+                continue
+            busy_until[pk["ticker"]] = x
+            if not (np.isfinite(Ov[e, j]) and Ov[e, j] > 0):
+                continue
+            entry = Ov[e, j] * (1 + slip)
+            spy0 = float(spy_s.iloc[e - 1])
+
+            def res(k, px):
+                r = (px * (1 - slip) * (1 - fee)) / (entry / (1 - fee)) - 1
+                return {"exit_date": idx[k].strftime("%Y-%m-%d"), "pnl_pct": round(r * 100, 2),
+                        "spy_pct": round((float(spy_s.iloc[k]) / spy0 - 1) * 100, 2)}
+            t_res = res(x, Cv[x, j]) if x <= last else None
+            tgt, stp = pk.get("tech_target"), pk.get("tech_stop")
+            p_res, why = None, None
+            for k in range(e, min(x, last) + 1):
+                o, h, l = Ov[k, j], Hv[k, j], Lv[k, j]
+                if stp and np.isfinite(l) and l <= stp:
+                    p_res, why = res(k, min(o, stp) if k > e and np.isfinite(o) else stp), "stop"
+                    break
+                if tgt and np.isfinite(h) and h >= tgt:
+                    p_res, why = res(k, max(o, tgt) if k > e and np.isfinite(o) else tgt), "target"
+                    break
+            if p_res is None and x <= last:
+                p_res, why = dict(t_res), "time"
+            now = (Cv[last, j] / entry - 1) * 100 if np.isfinite(Cv[last, j]) else None
+            trades.append({"ticker": pk["ticker"], "strategy": pk["strategy"], "signal_date": sig_date,
+                           "entry_date": idx[e].strftime("%Y-%m-%d"), "entry": round(float(entry), 2),
+                           "target": tgt, "stop": stp, "time": t_res, "price": p_res, "price_exit": why,
+                           "open_pnl_pct": round(now, 2) if now is not None else None})
+
+    def summ(key):
+        done = [t[key] for t in trades if t[key]]
+        return {"closed": len(done), "sum_pct": round(sum(d["pnl_pct"] for d in done), 2),
+                "spy_sum_pct": round(sum(d["spy_pct"] for d in done), 2),
+                "wins": sum(1 for d in done if d["pnl_pct"] > 0)}
+    return {"updated_at": datetime.now(timezone.utc).isoformat(), "time": summ("time"), "price": summ("price"),
+            "trades": trades[-60:], "both_closed": sum(1 for t in trades if t["time"] and t["price"])}
 
 
 def update_long_picks(store, today_entries):
@@ -6631,6 +6709,7 @@ def build_picks_view(store):
         "long": lp.get("holdings") or [], "long_closed_recent": (lp.get("closed") or [])[-5:],
         "warnings": (store.get("picks", {}).get("warnings") or [])[-20:],
         "boxes": boxes, "thumbs": thumbs, "thumbs_reason": why,
+        "exit_test": store.get("exit_forward_test"),
     }
     return store["picks"]
 
