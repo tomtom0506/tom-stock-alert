@@ -115,6 +115,17 @@
   .indices-row {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px;
   }
+  /* v6.13.0 - 🎯 action screen */
+  .act-status { border-radius:18px; padding:18px; margin:4px 0 12px; }
+  .act-status.buy { background: color-mix(in srgb, var(--up) 14%, transparent); }
+  .act-status.sell { background: color-mix(in srgb, var(--down) 14%, transparent); }
+  .act-status.none { background: var(--surface, rgba(127,127,127,.08)); text-align:center; padding:30px 18px; }
+  .act-row { border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:8px; }
+  .act-row .head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+  .act-row .tk { font-size:17px; font-weight:800; }
+  .act-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-top:8px; font-size:12.5px; }
+  .act-grid .lbl { color:var(--text-faint); font-size:11.5px; }
+  .act-tech { margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-dim); }
   /* v6.11.0 - 📌 main-page picks */
   .picks-boxes { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:6px 0 12px; }
   .picks-box { background:var(--surface, rgba(127,127,127,.08)); border:1px solid var(--border); border-radius:14px; padding:14px 12px; text-align:center; }
@@ -616,7 +627,11 @@
     </div>
   </div>
 
-  <div id="homePicksSection" data-tab="home">
+  <div id="homeActionSection" data-tab="home" data-subtab="action">
+    <div id="actionBody"><div style="font-size:12px; color:var(--text-faint);">טוען...</div></div>
+  </div>
+
+  <div id="homePicksSection" data-tab="home" data-subtab="full">
     <div id="picksThumbs"></div>
     <div id="picksBoxes" class="picks-boxes"></div>
     <div id="picksShortCard" class="picks-card"></div>
@@ -624,12 +639,12 @@
     <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:4px 2px 14px;">מידע בלבד, לא ייעוץ השקעות. 🚀 טווח קצר = אסטרטגיות A/B שעברו מחקר על 26 שנות S&amp;P 500 - יתרון בממוצע, לא בכל עסקה. 🏛 טווח ארוך = רשימת האיכות, 🧪 עוד לא מוכח.</div>
     <button id="homeMoreToggle" class="home-more-toggle" type="button">▾ עוד במסך הזה</button>
   </div>
-  <div id="homeMoreWrap" class="home-more collapsed" data-tab="home">
-  <div id="homeExposureCard" data-tab="home"></div>
-  <div id="homeMovesCard" data-tab="home"></div>
-  <div id="homeHoldingNewsCard" data-tab="home"></div>
-  <div id="homeLayersCard" data-tab="home"></div>
-  <div class="stats-row hidden" id="statsRow" data-tab="home">
+  <div id="homeMoreWrap" class="home-more collapsed" data-tab="home" data-subtab="full">
+  <div id="homeExposureCard" data-tab="home" data-subtab="full"></div>
+  <div id="homeMovesCard" data-tab="home" data-subtab="full"></div>
+  <div id="homeHoldingNewsCard" data-tab="home" data-subtab="full"></div>
+  <div id="homeLayersCard" data-tab="home" data-subtab="full"></div>
+  <div class="stats-row hidden" id="statsRow" data-tab="home" data-subtab="full">
     <div class="stat-tile" id="statAccuracyTile" style="cursor:pointer;"><div class="stat-num mono" id="statAccuracy">—</div><div class="stat-label">אחוז הצלחת חיזוי ℹ️</div></div>
     <div class="stat-tile"><div class="stat-num mono" id="statPredictions">—</div><div class="stat-label">תחזיות חזקות היום</div></div>
     <div class="stat-tile"><div class="stat-num mono" id="statTracked">—</div><div class="stat-label">מניות במעקב</div></div>
@@ -1068,12 +1083,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.12.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.13.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.13.0", date: "2026-10-14", items: [
+    "🎯 לשונית 'היום' מתחלקת לשתיים: 🎯 פעולה (חדש, נפתח ראשון) - רק אסטרטגיות A/B שעברו מחקר, ותשובה אחת: מה לקנות, מה למכור, או 'אין מה לעשות היום'. 📋 מלא - המסך הקודם בדיוק כמו שהיה.",
+    "💲 בכל המלצה: קנייה בפתיחה (פקודת שוק) עם שער ייחוס = הסגירה האחרונה, וטווח שמחוצה לו הפתיחה נחשבת פער חריג (±3%). מכירה בסגירה של תאריך מוגדר - בדיוק הכלל שנבדק. גם בהודעת הטלגרם היומית.",
+    "🧪 רמות טכניות לידיעה ליד כל המלצה ועסקה פתוחה: יעד (קו ההתנגדות) וסטופ (קו התמיכה). עוד לא נבדקו - מחקר יציאה נפרד בודק אם 'מחיר או זמן, הראשון מביניהם' עדיף על זמן בלבד.",
+  ]},
   { version: "6.12.0", date: "2026-10-13", items: [
     "🏆 לשונית חדשה במניות: מניות מנצחות (🧪 ניסוי). חברה חזקה שירדה 35% ומעלה מהשיא השנתי וזולה גם מול הענף וגם מול עצמה - עד 20 מניות, כל אחת לשנה, נבחרות כל יום שישי ונרשמות מראש. נמדדות מול ה-S&P 500 ומול ממוצע כל המניות, עם גרף. במחקר על 2011-2026 השיטה לא הוכחה (t=0.31) - לכן זה ניסוי בזמן אמת.",
     "💬 לכל מניה: למה היא ירדה - מול השוק והענף (🌍 שוק / 🏭 ענף / 🏢 החברה), ימי הירידה החדים עם 📊 כשזה היה יום דוח, וכותרות מאותם ימים. הלשונית מסכמת גם איזה סוג ירידה מתאושש טוב יותר.",
@@ -3027,6 +3047,57 @@ function renderLongTerm(data) {
   }).join("");
 }
 
+// ---------- v6.13.0: 🎯 action screen (home › פעולה) - only research-validated A/B ----------
+function renderActionScreen(data) {
+  const el = document.getElementById("actionBody");
+  if (!el) return;
+  const pk = data.picks || {};
+  const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
+  const usd = v => v == null ? "—" : `$${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  const buys = pk.short_buy || [];
+  const sells = pk.short_sell_due || [];
+  const held = (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
+  const tech = p => (p.tech_target || p.tech_stop) ? `<div class="act-tech">🧪 רמות טכניות לידיעה (עוד לא נבדקו): ${p.tech_target ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${p.tech_target && p.tech_stop ? " · " : ""}${p.tech_stop ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
+  let h = `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:4px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`;
+  if (buys.length || sells.length) {
+    const parts = [];
+    if (buys.length) parts.push(`לקנות ${buys.length === 1 ? "מניה אחת" : buys.length + " מניות"} בפתיחה`);
+    if (sells.length) parts.push(`למכור ${sells.length === 1 ? "מניה אחת" : sells.length + " מניות"} בסגירה`);
+    h += `<div class="act-status ${buys.length ? "buy" : "sell"}"><div style="font-size:13px; font-weight:700; color:${buys.length ? "var(--up)" : "var(--down)"};">יש פעולה</div><div style="font-size:20px; font-weight:800; line-height:1.3;">${parts.join(" · ")}</div></div>`;
+  } else {
+    h += `<div class="act-status none"><div style="font-size:22px; font-weight:800;">אין מה לעשות היום</div><div style="font-size:13.5px; color:var(--text-dim); margin-top:6px; line-height:1.5;">אין אות קנייה חדש, ואף עסקה לא הגיעה ליום המכירה. זה המצב ברוב הימים, וזה תקין.</div></div>`;
+  }
+  h += buys.map(b => `<div class="act-row">
+      <div class="head"><div class="tk" style="color:var(--up);">קנה ${b.ticker}</div><div style="font-size:11.5px; color:var(--text-dim);">${b.strategy_label}</div></div>
+      <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">${b.why}</div>
+      <div class="act-grid">
+        <div><div class="lbl">קנייה</div><b>בפתיחה</b> (פקודת שוק)</div>
+        <div><div class="lbl">שער ייחוס (סגירה אחרונה)</div><b class="mono">${usd(b.ref_price)}</b></div>
+        <div><div class="lbl">מכירה (הכלל שנבדק)</div><b>בסגירה של ${fmtDateIL(b.exit_estimate)}</b></div>
+        <div><div class="lbl">פער פתיחה חריג אם מחוץ ל-</div><span class="mono">${usd(b.gap_lo)} – ${usd(b.gap_hi)}</span></div>
+      </div>${tech(b)}</div>`).join("");
+  h += sells.map(o => `<div class="act-row">
+      <div class="head"><div class="tk" style="color:var(--down);">מכור ${o.ticker}</div><div class="mono" style="font-weight:700; color:${col(o.pnl_pct)};">${signedPct(o.pnl_pct, 1)}</div></div>
+      <div class="act-grid">
+        <div><div class="lbl">מכירה</div><b>בסגירה של ${fmtDateIL(o.exit_estimate)}</b> (פקודת שוק)</div>
+        <div><div class="lbl">שער נוכחי / קנייה</div><span class="mono">${usd(o.last)} / ${usd(o.entry)}</span></div>
+      </div>${tech(o)}</div>`).join("");
+  if (held.length) {
+    h += `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:14px 2px 6px;">מוחזקות · אין מה לעשות איתן היום</div>`;
+    h += held.map(o => `<div class="act-row">
+      <div class="head"><div><span class="tk" style="font-size:15px;">${o.ticker}</span> <span style="font-size:11.5px; color:var(--text-faint);">למכור בסגירה של ${fmtDateIL(o.exit_estimate)}</span></div><div class="mono" style="font-weight:700; color:${col(o.pnl_pct)};">${signedPct(o.pnl_pct, 1)}</div></div>
+      <div style="font-size:11.5px; color:var(--text-faint); margin-top:2px;">נקנתה ${usd(o.entry)} · עכשיו ${usd(o.last)}</div>${tech(o)}</div>`).join("");
+  }
+  const b = (pk.boxes || {}).short || {};
+  if (b.days) {
+    h += `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+      <div><div style="font-size:12.5px; color:var(--text-dim);">ההמלצות בפועל מאז ${fmtDateIL(b.start_date)}</div><div style="font-size:11.5px; color:var(--text-faint);">S&amp;P 500 באותם ימים: <span style="color:${col(b.spy_pct)};">${signedPct(b.spy_pct, 2)}</span></div></div>
+      <div class="mono" style="font-size:22px; font-weight:800; color:${col(b.cum_pct)};">${signedPct(b.cum_pct, 2)}</div></div>`;
+  }
+  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. הקנייה והמכירה לפי זמן - כך נבדק. הרמות הטכניות 🧪 מוצגות לידיעה בלבד עד שמחקר היציאה יגיד אם כדאי לפעול לפיהן. מידע בלבד, לא ייעוץ השקעות.</div>`;
+  el.innerHTML = h;
+}
+
 // ---------- v6.12.0: 🏆 מניות מנצחות 🧪 (winners.json, written by winners_live.py) ----------
 async function loadWinners() {
   const el = document.getElementById("winnersBody");
@@ -3757,6 +3828,7 @@ async function loadPredictions() {
     renderBuySellQueue(data);
     listStatus = data.list_status || {};
     { const c = document.getElementById("top10StatusChip"); if (c) c.innerHTML = listStatusChip("top10", { margin: "0 0 4px" }); }
+    try { renderActionScreen(data); } catch (e) { console.error("action render failed", e); }
     try { renderPicks(data); bindHomeMoreToggle(); } catch (e) { console.error("picks render failed", e); }
     loadWinners();
     try {
@@ -5173,6 +5245,10 @@ if (!legalAlreadyAccepted) showLegalGate(true);
    -------------------------------------------------------------------- */
 const TAB_IDS = ["home", "stocks", "simulation", "recs", "portfolios"]; // "check" is a special screen, reached via the action circle only - not a top tab
 const SUBTABS = {
+  home: [
+    { id: "action", label: "פעולה", icon: "🎯" },
+    { id: "full", label: "מלא", icon: "📋" },
+  ],
   stocks: [
     { id: "top10", label: "טווח קצר", icon: "⚡" },
     { id: "longterm", label: "טווח ארוך", icon: "🏛" },

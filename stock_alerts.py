@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.20.0"
+BACKEND_VERSION = "5.21.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -6568,14 +6568,54 @@ def _box(sim, store, closed_key="closed"):
             "vs_spy_pct": round(cum - spy, 2) if spy is not None else None}
 
 
+GAP_WARN_PCT = 3.0     # v5.21.0: a buy is "at the open"; warn if it opens this far from the reference
+
+
+def _chart_levels(snap_by_ticker, ticker, price):
+    """🧪 v5.21.0 - chart levels shown next to a recommendation, NOT part of
+    the validated rule (research/exit_research.py tests whether they help):
+    target = the nearest resistance above the price (else the 52-week high),
+    stop = the support line below it. Same numbers the app computes daily."""
+    e = snap_by_ticker.get(ticker)
+    if not e or not price:
+        return {}
+    out = {}
+    for k in ("resistance", "year_high"):
+        v = e.get(k)
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and v > price * 1.005:
+            out["tech_target"] = round(float(v), 2)
+            out["tech_target_pct"] = round((v / price - 1) * 100, 1)
+            break
+    v = e.get("support")
+    if isinstance(v, (int, float)) and not isinstance(v, bool) and v < price * 0.995:
+        out["tech_stop"] = round(float(v), 2)
+        out["tech_stop_pct"] = round((v / price - 1) * 100, 1)
+    return out
+
+
 def build_picks_view(store):
     """Everything the main page and the digest need, in one place."""
     book = store.get("strategy_book") or {}
     session = book.get("session")
     short_sim = store.get("picks_short_sim") or {}
     lp = store.get("picks_long") or {}
-    buys = (store.get("picks_short_log") or {}).get(session, []) if session else []
-    sells_due = [p for p in short_sim.get("open") or [] if p["sessions_left"] <= 1]
+    snap = {}
+    for e in reversed(store.get("history") or []):
+        if e["ticker"] not in snap:
+            snap[e["ticker"]] = e
+        if len(snap) > 3000:
+            break
+    buys = []
+    for b in ((store.get("picks_short_log") or {}).get(session, []) if session else []):
+        ref = b.get("close")
+        buys.append({**b, "ref_price": ref,
+                     "gap_hi": round(ref * (1 + GAP_WARN_PCT / 100), 2) if ref else None,
+                     "gap_lo": round(ref * (1 - GAP_WARN_PCT / 100), 2) if ref else None,
+                     "exit_estimate": _add_sessions(session, b.get("hold") or 10),
+                     **_chart_levels(snap, b["ticker"], ref)})
+    opens = [{**p, **_chart_levels(snap, p["ticker"], p.get("last") or p.get("entry"))} for p in short_sim.get("open") or []]
+    short_sim = {**short_sim, "open": opens}
+    sells_due = [p for p in opens if p["sessions_left"] <= 1]
     boxes = {"short": _box(short_sim, store), "long": _box(lp, store)}
     elig = [b for b in boxes.values() if b["days"] >= PICKS_MIN_DAYS_FOR_VERDICT and b["vs_spy_pct"] is not None]
     if not elig:
@@ -6603,7 +6643,15 @@ def send_picks_digest(store):
         return
     L = [f"📌 המלצות - אחרי המסחר של {session}"]
     L.append("🚀 טווח קצר - לקנות בפתיחה הבאה:")
-    L += [f"• {p['ticker']} ({p['strategy_label']}): {p['why']} · מחיר {p['close']} · להחזיק {p['hold']} ימי מסחר"
+    def _lv(p):
+        bits = []
+        if p.get("tech_target"):
+            bits.append(f"יעד ${p['tech_target']}")
+        if p.get("tech_stop"):
+            bits.append(f"סטופ ${p['tech_stop']}")
+        return (" · 🧪 " + " / ".join(bits)) if bits else ""
+    L += [f"• {p['ticker']} ({p['strategy_label']}): {p['why']} · ייחוס ${p['close']} · קנייה בפתיחה · "
+          f"מכירה בסגירה ~{fmt_date_il(p['exit_estimate'])}{_lv(p)}"
           for p in pk.get("short_buy") or []] or ["• אין אות היום"]
     if pk.get("short_sell_due"):
         L.append("🔴 טווח קצר - למכור בסגירה של יום המסחר הבא:")
