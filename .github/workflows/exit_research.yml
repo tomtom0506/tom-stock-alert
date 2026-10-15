@@ -1,0 +1,37 @@
+name: 🎯 מחקר יציאה - זמן מול מחיר
+
+# הפעלה ידנית בלבד. לא נוגע בשום קובץ של האפליקציה החיה -
+# מוריד היסטוריה, בודק תיאוריות, ושומר את התוצאות כ-artifact להורדה.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy yfinance requests
+
+      - name: Run
+        run: python research/exit_research.py
+
+      - name: Upload results
+        uses: actions/upload-artifact@v7
+        with:
+          name: exit-results
+          path: research/output_exit_research/
+          retention-days: 30
