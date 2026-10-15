@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.22.0"
+BACKEND_VERSION = "5.23.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -1631,17 +1631,7 @@ FORWARD_EVAL_MIN_N = 50         # minimum names on a day for its IC to count
 FORWARD_EVAL_MAX_DAYS = 120     # days kept in store["forward_eval"]["days"]
 DATA_CLEAN_VERSION = 1          # bump to re-run the one-time cleanup/rebuild below
 SIM_FLAG_KEYS = [
-    ("top10", "portfolio_sim"),
-    ("top10_experimental", "portfolio_sim_experimental"),
-    ("top10_leading", "portfolio_sim_leading"),
-    ("top10_original", "portfolio_sim_original"),
-    ("top10_fast_rs", "portfolio_sim_fast_rs"),
-    ("top10_dual_momentum_lowvol", "portfolio_sim_dual_momentum_lowvol"),
-    ("top10_analyst_momentum", "portfolio_sim_analyst_momentum"),
-    ("rec_short", "portfolio_sim_recommendations"),
-    ("rec_long_enter", "portfolio_sim_long_enter"),
-    ("rec_long_dip", "portfolio_sim_long_dip"),
-    ("rec_long_value", "portfolio_sim_long_value"),
+    ("top10", "portfolio_sim"),     # v5.23.0: the 6 formula variants, the rec_* and long_* sims were retired (15.10.2026)
 ]
 
 
@@ -4525,34 +4515,37 @@ def build_strategy_comparison(store):
         start = sim.get("start_date") or ((sim.get("daily_log") or [{}])[0].get("date"))
         if not start:
             return  # not started yet (e.g. long-term list still collecting fundamentals)
+        ret = sim.get("total_return_pct")
+        if ret is None:
+            ret = round((float(v) / float(sim.get("start_value") or 100000) - 1) * 100, 2)
         rows.append({"key": key, "label": label, "layer": layer, "start_date": start,
-                     "value": round(float(v), 2), "return_pct": round((float(v) / 100000 - 1) * 100, 2)})
+                     "value": round(float(v), 2), "return_pct": round(float(ret), 2)})
 
-    add("core_exposure", "S&P 500 + כלל חשיפה", "core", "core_sim_sp500_exposure")
+    # v5.23.0 (15.10.2026 cleanup): ONE results table. tag = proven /
+    # experiment / benchmark / mine - the frontend shows it as a badge.
     add("sp500", "S&P 500 - החזקה רגילה", "benchmark", "index_sim_sp500")
-    add("long_term", "🏛 טווח ארוך - 10 מניות איכות", "long", "long_term_sim")
-    add("long_term_exposure", "🏛 טווח ארוך + כלל חשיפה", "long", "long_term_sim_exposure")
-    add("top10", "⚡ טווח קצר - Top10 (ניסוי)", "short", "portfolio_sim")
-    add("top10_exposure", "⚡ Top10 + כלל חשיפה", "short", "portfolio_sim_exposure")
-    add("recommendations", "🎯 ההמלצות לטווח קצר (טאב המלצות)", "short", "portfolio_sim_recommendations")
-    add("live", "📒 התיק החי (3 מניות, כולל עמלות)", "live", "live_portfolio")
+    add("core_exposure", "S&P 500 + כלל חשיפה", "core", "core_sim_sp500_exposure")
     for key in ("A", "B"):
         sb = (store.get("strategy_book") or {}).get(key)
         if sb and sb.get("start_date"):
-            row = {"key": f"book_{key}", "label": f"{sb['label']} (תיק אסטרטגיה, כולל עמלות)", "layer": "short",
+            row = {"key": f"book_{key}", "label": f"אסטרטגיה {key} - {sb['label']} (כל האותות, כולל עמלות)", "layer": "short",
                    "start_date": sb["start_date"], "value": sb["value"], "return_pct": sb["total_return_pct"]}
             if sb.get("spy_same_window_pct") is not None:   # starts before our own S&P sim - use the book's own SPY window
                 row["sp500_same_window_pct"] = sb["spy_same_window_pct"]
                 row["vs_sp500_pct"] = round(row["return_pct"] - row["sp500_same_window_pct"], 2)
             rows.append(row)
-    add("long_enter", "🏛 ✅ טווח ארוך - כניסה במגמה תקינה", "long", "portfolio_sim_long_enter")
-    add("long_dip", "🏛 🟡 טווח ארוך - קנייה בתיקון", "long", "portfolio_sim_long_dip")
-    add("long_value", "🏛 💎 טווח ארוך - זולה מול השווי שלה", "long", "portfolio_sim_long_value")
-    add("equal_weight", "החזקה שווה של כל היקום שנסרק", "benchmark", "benchmark_equal_weight_sim")
-    mv = (store.get("portfolios_view") or {}).get("monthly")
-    if mv and mv.get("start_date"):
-        rows.append({"key": "monthly", "label": "📅 התיק החודשי", "layer": "long", "start_date": mv["start_date"],
-                     "value": mv["marked_value"], "return_pct": mv["return_pct"]})
+    ps = store.get("picks_short_sim") or {}
+    if ps.get("start_date") and ps.get("value"):
+        row = {"key": "picks_short", "label": "3 ההמלצות לטווח קצר (מה שהוצג במסך)", "layer": "short",
+               "start_date": ps["start_date"], "value": ps["value"], "return_pct": round((ps["value"] / 100000 - 1) * 100, 2)}
+        if ps.get("spy_same_window_pct") is not None:
+            row["sp500_same_window_pct"] = ps["spy_same_window_pct"]
+            row["vs_sp500_pct"] = round(row["return_pct"] - ps["spy_same_window_pct"], 2)
+        rows.append(row)
+    add("picks_long", "3 ההמלצות לטווח ארוך (ניסוי)", "long", "picks_long")
+    add("long_term", "טווח ארוך - 10 מניות איכות (ניסוי)", "long", "long_term_sim")
+    add("top10", "Top10 (ניסוי, הכרעה ב-30.11)", "short", "portfolio_sim")
+    add("mine", "התיק שלי", "mine", "my_portfolio_sim")
     # v5.10.1: each row's gap vs S&P 500 is measured over THAT row's own
     # window (the long-term list started 30.9 and was being compared with
     # S&P's return since 21.8)
@@ -4570,6 +4563,11 @@ def build_strategy_comparison(store):
                 base = sp.get("start_value", 100000)
             r["sp500_same_window_pct"] = round((float(sp["value"]) / base - 1) * 100, 2)
             r["vs_sp500_pct"] = round(r["return_pct"] - r["sp500_same_window_pct"], 2)
+    tag_of = {"sp500": "benchmark", "core_exposure": "proven", "book_A": "proven", "book_B": "proven",
+              "picks_short": "proven", "picks_long": "experiment", "long_term": "experiment", "top10": "experiment",
+              "mine": "mine"}
+    for r in rows:
+        r["tag"] = tag_of.get(r["key"], "info")
     store["strategy_comparison"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows}
 
 
@@ -4580,11 +4578,6 @@ def update_three_layer_views(store):
     sp_log = (store.get("index_sim_sp500") or {}).get("daily_log") or []
     build_exposure_sim(store, _returns_from_value_log(sp_log), "core_sim_sp500_exposure", "S&P 500 + כלל חשיפה",
                        start_date=sp_log[0]["date"] if sp_log else None)
-    top_log = (store.get("portfolio_sim") or {}).get("daily_log") or []
-    build_exposure_sim(store, [(r["date"], r["return_pct"]) for r in top_log], "portfolio_sim_exposure", "Top10 + כלל חשיפה")
-    lt_log = (store.get("long_term_sim") or {}).get("daily_log") or []
-    build_exposure_sim(store, _returns_from_value_log(lt_log), "long_term_sim_exposure", "טווח ארוך + כלל חשיפה",
-                       start_date=lt_log[0]["date"] if lt_log else None)
     build_strategy_comparison(store)
 
 
@@ -6844,6 +6837,45 @@ def save_prediction_store(store, archive=True):
         json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
 
 
+# ===========================================================================
+# v5.23.0 - cleanup of 15.10.2026 (see the review doc): retired screens stop
+# being computed and their keys leave the live file once (the monthly
+# archives keep the history). today.json = the small file the main screen
+# loads first (~50KB instead of the ~13MB predictions.json).
+# ===========================================================================
+RETIRED_KEYS = [
+    "portfolio_sim_experimental", "portfolio_sim_leading", "portfolio_sim_original", "portfolio_sim_fast_rs",
+    "portfolio_sim_dual_momentum_lowvol", "portfolio_sim_analyst_momentum", "portfolio_sim_exposure",
+    "portfolio_sim_recommendations", "portfolio_sim_long_enter", "portfolio_sim_long_dip", "portfolio_sim_long_value",
+    "long_term_sim_exposure", "live_portfolio", "monthly_portfolio", "monthly_portfolio_sim", "formula_comparison",
+    "factor_analysis", "rec_trade_record", "portfolios_view", "tomorrow_forecast", "benchmark_comparison",
+]
+TODAY_FILE = BASE_DIR / "today.json"
+
+
+def retire_old_keys(store):
+    if store.get("cleanup_v2_done"):
+        return
+    gone = [k for k in RETIRED_KEYS if store.pop(k, None) is not None]
+    store["cleanup_v2_done"] = {"at": datetime.now(timezone.utc).isoformat(), "removed": gone}
+    print(f"Cleanup v2: removed {len(gone)} retired keys")
+
+
+def write_today_json(store):
+    ex = dict(store.get("exposure") or {})
+    ex.pop("series", None)
+    out = {
+        "generated_at": datetime.now(timezone.utc).isoformat(), "backend_version": BACKEND_VERSION,
+        "last_run_status": store.get("last_run_status"), "picks": store.get("picks"), "exposure": ex,
+        "strategy_comparison": store.get("strategy_comparison"),
+        "book": {k: {x: v for x, v in ((store.get("strategy_book") or {}).get(k) or {}).items()
+                     if x in ("label", "start_date", "total_return_pct", "spy_same_window_pct", "stats", "holdings")}
+                 for k in ("A", "B")},
+    }
+    with open(TODAY_FILE, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False, separators=(",", ":"), default=float)
+
+
 def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
@@ -6885,6 +6917,10 @@ def main():
             "traded_today": False,
             "backend_version": BACKEND_VERSION,
         }
+        try:
+            write_today_json(prediction_store)
+        except Exception as e:
+            print(f"today.json failed: {type(e).__name__}: {e}")
         save_prediction_store(prediction_store)
         save_json(STATE_FILE, state)
         return
@@ -6910,12 +6946,10 @@ def main():
         except Exception as e:
             print(f"Forward evaluation failed, continuing without it: {type(e).__name__}: {e}")
         calibrate_formula_blend(prediction_store)
-        build_formula_comparison(prediction_store)
 
         try:
             update_index_benchmark_sim(prediction_store, "index_sim_sp500", "^GSPC")
             update_index_benchmark_sim(prediction_store, "index_sim_ta125", "^TA125.TA")
-            build_benchmark_comparison(prediction_store)
         except Exception as e:
             print(f"Benchmark comparison update failed, continuing without it: {type(e).__name__}: {e}")
 
@@ -6923,11 +6957,6 @@ def main():
             update_three_layer_views(prediction_store)
         except Exception as e:
             print(f"Three-layer views update failed, continuing without it: {type(e).__name__}: {e}")
-
-        last_factor_run = (prediction_store.get("factor_analysis") or {}).get("updated_at", "")[:10]
-        if last_factor_run != today_str:
-            analysis = analyze_factor_performance(prediction_store)
-            send_factor_analysis_report(analysis)
 
         run_predictions(prediction_store)
     except Exception as e:
@@ -6960,11 +6989,7 @@ def main():
     except Exception as e:
         print(f"My-portfolio update failed, continuing without it: {type(e).__name__}: {e}")
 
-    try:
-        today_entries_for_mp = [e for e in prediction_store["history"] if e["date"] == today_str]
-        manage_monthly_portfolio(prediction_store, today_entries_for_mp)
-    except Exception as e:
-        print(f"Monthly portfolio management failed: {type(e).__name__}: {e}")
+    today_entries_for_mp = [e for e in prediction_store["history"] if e["date"] == today_str]
 
     try:
         manage_long_term_picks(prediction_store, today_entries_for_mp)
@@ -6984,9 +7009,6 @@ def main():
         print(f"Recommendations failed: {type(e).__name__}: {e}")
 
     try:
-        build_rec_trade_record(prediction_store)
-        manage_live_portfolio(prediction_store, today_entries_for_mp)
-        build_portfolios_view(prediction_store)
         build_strategy_comparison(prediction_store)
         build_list_status(prediction_store)
     except Exception as e:
@@ -7002,6 +7024,11 @@ def main():
         "traded_today": True,
         "backend_version": BACKEND_VERSION,
     }
+    retire_old_keys(prediction_store)
+    try:
+        write_today_json(prediction_store)
+    except Exception as e:
+        print(f"today.json failed: {type(e).__name__}: {e}")
     save_prediction_store(prediction_store)
     save_json(STATE_FILE, state)
 

@@ -411,7 +411,24 @@ def mark(st):
     return filled, exited
 
 
+def check_bot_alive():
+    """v5.23.0: the main bot can't report its own silence, so this evening
+    job does: on a weekday, if the main bot's last run is 3h+ old, say so."""
+    try:
+        if datetime.now(timezone.utc).weekday() >= 5:
+            return
+        t = json.loads((BASE / "today.json").read_text(encoding="utf-8"))
+        at = datetime.fromisoformat(((t.get("last_run_status") or {}).get("checked_at") or "").replace("Z", "+00:00"))
+        hours = (datetime.now(timezone.utc) - at).total_seconds() / 3600
+        if hours >= 3:
+            telegram(f"⚠️ הבוט הראשי לא רץ כבר {hours:.0f} שעות - הנתונים באפליקציה לא מעודכנים. "
+                     f"GitHub כנראה מדלג על ההרצות; אפשר להריץ ידנית את Check Stock Prices.")
+    except Exception as e:
+        print(f"bot-alive check skipped: {e}")
+
+
 def main():
+    check_bot_alive()
     st = load_state()
     force = os.environ.get("FORCE_SELECT", "").lower() == "true"
     is_friday = datetime.now(timezone.utc).weekday() == 4
