@@ -1,0 +1,58 @@
+name: 🔬 מחקר (הפעלה ידנית)
+
+# v5.23.0: one workflow for every offline research script (replaces 11
+# separate files). Pick the script in the menu; results are saved as an
+# artifact named after it. Never touches the live app files.
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "איזה מחקר להריץ"
+        type: choice
+        options:
+          - exit_research
+          - dip_research
+          - winners_research
+          - ab_parity_check
+          - top10_horizon_backtest
+          - ta_ab_check
+          - theory_lab_stage3
+          - theory_lab_stage2
+          - theory_lab
+          - theory_lab_stage4
+          - vectorbt_regime_momentum_research
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install pandas numpy yfinance requests
+          if [ "${{ inputs.script }}" = "vectorbt_regime_momentum_research" ]; then pip install vectorbt; fi
+
+      - name: Run
+        env:
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: python research/${{ inputs.script }}.py
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.script }}-results
+          path: research/output_*/
+          retention-days: 30
