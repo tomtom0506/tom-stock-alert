@@ -35,7 +35,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-RESEARCH_VERSION = "1.0.1"
+RESEARCH_VERSION = "1.0.2"
 
 # ---------------------------------------------------------------- הגדרות
 TOP_N = 25                    # כמה "מנצחות"/"מפסידות" בכל חודש
@@ -143,7 +143,10 @@ def load_universe(path: str | None) -> pd.DataFrame:
                 return "pharma"
             return "other"
         df["group"] = df.apply(grp, axis=1)
-    return df.drop_duplicates("ticker").reset_index(drop=True)
+    df = df.drop_duplicates("ticker")
+    # מחלקות מניה כפולות (GOOG/GOOGL, FOX/FOXA...) = אותה חברה פעמיים -> משאירים אחת
+    key = df["name"].astype(str).str.replace(r"\s*\(Class [A-C]\)", "", regex=True).str.strip()
+    return df[~key.duplicated()].reset_index(drop=True)
 
 
 # ---------------------------------------------------------------- מחירים
@@ -608,6 +611,20 @@ def event_study(events: pd.DataFrame, close: pd.DataFrame, split: str = SPLIT) -
     spy = close["SPY"]
     idx = close.index
     rows = []
+    # בסיס: התשואה העודפת ה*רגילה* של אותה מניה בחלון באותו אורך, בשנה שלפני (בלי מידע מהעתיד).
+    # בלי זה, מניה שפשוט ניצחה את SPY באותן שנים תיראה כאילו יש לה "ריצה לפני אירוע".
+    base_cache: dict = {}
+
+    def baseline(ticker, pos, n):
+        k = (ticker, n)
+        if k not in base_cache:
+            pxs = close[ticker]
+            base_cache[k] = (pxs / pxs.shift(n)) - (spy / spy.shift(n))
+        ser = base_cache[k]
+        lo, hi = max(0, pos - 61 - 252), pos - 61
+        w = ser.iloc[lo:hi].dropna()
+        return w.mean() if len(w) >= 120 else np.nan
+
     for e in events.itertuples():
         if e.ticker not in close.columns:
             continue
@@ -626,23 +643,28 @@ def event_study(events: pd.DataFrame, close: pd.DataFrame, split: str = SPLIT) -
                      "scheduled": e.scheduled,
                      "pre_60": ex(pos - 61, pos - 1), "pre_30": ex(pos - 31, pos - 1),
                      "reaction": ex(pos - 1, min(pos + 1, len(idx) - 1)),
-                     "post_20": ex(pos + 1, pos + 21)})
+                     "post_20": ex(pos + 1, pos + 21),
+                     "base_30": baseline(e.ticker, pos, 30), "base_20": baseline(e.ticker, pos, 20)})
     es = pd.DataFrame(rows)
     if es.empty:
         return es, pd.DataFrame()
+    # אירוע בלי מחירים (למשל אישור FDA מלפני שהחברה נסחרה) לא נספר בכלל
+    es = es.dropna(subset=["pre_30", "reaction", "post_20"], how="all")
+    es["pre_30_adj"] = es["pre_30"] - es["base_30"]
+    es["post_20_adj"] = es["post_20"] - es["base_20"]
     es["period"] = np.where(es["date"] < pd.Timestamp(split), "לפני " + split[:4], "מ-" + split[:4])
     es["abs_reaction"] = es["reaction"].abs()
 
     def agg(g):
         o = {"events": len(g)}
-        for col in ("pre_60", "pre_30", "reaction", "post_20", "abs_reaction"):
+        for col in ("pre_60", "pre_30", "pre_30_adj", "reaction", "post_20", "post_20_adj", "abs_reaction"):
             x = g[col].dropna()
             o[col + "_mean"] = x.mean()
             o[col + "_median"] = x.median()
             o[col + "_t"] = x.mean() / (x.std(ddof=1) / math.sqrt(len(x))) if len(x) > 2 and x.std() > 0 else np.nan
         o["pre_30_hit"] = (g["pre_30"] > 0).mean()
         # אסטרטגיית "ריצה לקראת האירוע": כניסה 30 יום לפני, יציאה יום לפני - רק לאירועים מתוזמנים
-        o["runup_net_mean"] = (g["pre_30"] - 2 * COST_PER_SIDE).mean() if g["scheduled"].all() else np.nan
+        o["runup_net_mean"] = (g["pre_30_adj"] - 2 * COST_PER_SIDE).mean() if g["scheduled"].all() else np.nan
         return pd.Series(o)
 
     summary = es.groupby(["type", "group", "period"]).apply(agg, include_groups=False).reset_index()
@@ -726,12 +748,14 @@ def write_summary(fp: dict | None, cat: dict | None, meta: dict) -> str:
             L.append("")
         s = cat.get("event_summary")
         if s is not None and not s.empty:
-            L.append("| סוג | מגזר | תקופה | אירועים | לפני 30 יום | t | תגובה | גודל תגובה | אחרי 20 יום | t | ריצה-לקראת נטו |")
+            L.append("_עמודות 'מתוקן' = מעבר למה שהמניה עושה בדרך כלל מול SPY (בסיס: השנה שלפני). רק הן קובעות._")
+            L.append("")
+            L.append("| סוג | מגזר | תקופה | אירועים | לפני 30 (גולמי) | לפני 30 מתוקן | t | גודל תגובה | אחרי 20 מתוקן | t | ריצה-לקראת נטו |")
             L.append("|---|---|---|---|---|---|---|---|---|---|---|")
             for r in s.itertuples():
                 L.append(f"| {r.type} | {r.group} | {r.period} | {int(r.events)} | {pct(r.pre_30_mean)} | "
-                         f"{r.pre_30_t:.1f} | {pct(r.reaction_mean)} | {pct(r.abs_reaction_mean)} | "
-                         f"{pct(r.post_20_mean)} | {r.post_20_t:.1f} | {pct(r.runup_net_mean)} |")
+                         f"{pct(r.pre_30_adj_mean)} | {r.pre_30_adj_t:.1f} | {pct(r.abs_reaction_mean)} | "
+                         f"{pct(r.post_20_adj_mean)} | {r.post_20_adj_t:.1f} | {pct(r.runup_net_mean)} |")
             L.append("")
         m = cat.get("monthly")
         if m is not None and not m.empty:
@@ -765,9 +789,13 @@ def main(argv=None) -> int:
 
     uni = load_universe(a.universe)
     if a.max_tickers:
-        share = uni.groupby("group")["ticker"].transform("count")
-        rank = uni.groupby("group").cumcount()
-        uni = uni[rank < np.maximum(1, a.max_tickers * share // len(uni))].reset_index(drop=True)
+        # הרצת בדיקה: לפחות 15 טכנולוגיה ו-15 תרופות, פזורות לאורך הא"ב (לא רק הראשונות)
+        parts = []
+        for g, gdf in uni.groupby("group"):
+            k = min(len(gdf), 15) if g in ("tech", "pharma") else max(1, a.max_tickers - 30)
+            k = min(len(gdf), k)
+            parts.append(gdf.iloc[np.linspace(0, len(gdf) - 1, k).round().astype(int)])
+        uni = pd.concat(parts).drop_duplicates("ticker").reset_index(drop=True)
     uni.to_csv(os.path.join(OUT_DIR, "universe_used.csv"), index=False)
 
     # יקום קטן (הרצת בדיקה): שומרים על אותו בסיס של ~5% במקום 25 קבוע
