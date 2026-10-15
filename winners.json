@@ -1,8 +1,7 @@
 {
  "version": 1,
  "started": "2026-10-13",
- "positions": [],
- "pending": [
+ "positions": [
   {
    "ticker": "FSLR",
    "name": "First Solar",
@@ -63,7 +62,16 @@
     "summary": "FSLR ירדה 41% מהשיא (03.06.26). באותה תקופה ה-S&P עלה 4% והענף (XLK) עלה 0% - בעיה של החברה. הירידה החדה ביותר: -11% ב-05.06.26. בכותרות: 🏷️ אנליסטים."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 184.03,
+   "last_price": 179.08,
+   "ret_pct": -2.88,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "LDOS",
@@ -125,7 +133,16 @@
     "summary": "LDOS ירדה 39% מהשיא (04.11.25). באותה תקופה ה-S&P עלה 17% והענף (XLI) עלה 12% - בעיה של החברה. הירידה החדה ביותר: -11% ב-11.02.26. בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 119.5,
+   "last_price": 120.59,
+   "ret_pct": 0.71,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "INTU",
@@ -187,7 +204,16 @@
     "summary": "INTU ירדה 54% מהשיא (27.10.25). באותה תקופה ה-S&P עלה 15% והענף (XLK) עלה 32% - בעיה של החברה. הירידה החדה ביותר: -20% ב-21.05.26 (יום דוח רבעוני 📊)."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 301.6,
+   "last_price": 310.44,
+   "ret_pct": 2.73,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "LVS",
@@ -249,7 +275,16 @@
     "summary": "LVS ירדה 46% מהשיא (01.12.25). באותה תקופה ה-S&P עלה 16% והענף (XLY) ירד 4% - בעיה של החברה. הירידה החדה ביותר: -14% ב-29.01.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 37.15,
+   "last_price": 37.02,
+   "ret_pct": -0.55,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "PODD",
@@ -311,69 +346,16 @@
     "summary": "PODD ירדה 60% מהשיא (19.11.25). באותה תקופה ה-S&P עלה 19% והענף (XLV) עלה 13% - בעיה של החברה. הירידה החדה ביותר: -20% ב-05.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית, ⚖️ חקירה / משפט."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
-  },
-  {
-   "ticker": "APTV",
-   "name": "Aptiv",
-   "sector": "Consumer Discretionary",
-   "drawdown_pct": -50.0,
-   "ev_ebit": 13.3,
-   "vs_industry": 0.67,
-   "vs_itself": 0.75,
-   "cheap_score": 0.503,
-   "explanation": {
-    "kind": "company",
-    "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -50.0,
-    "peak_date": "2026-01-09",
-    "spy_pct": 13.0,
-    "sector_etf": "XLY",
-    "sector_pct": -9.0,
-    "worst_days": [
-     {
-      "date": "2026-08-04",
-      "pct": -16.6,
-      "earnings": true
-     },
-     {
-      "date": "2026-04-01",
-      "pct": -10.6,
-      "earnings": false
-     },
-     {
-      "date": "2026-05-05",
-      "pct": -7.9,
-      "earnings": true
-     }
-    ],
-    "headlines": [
-     {
-      "title": "Is Wall Street Bullish or Bearish on Aptiv Stock?",
-      "publisher": "Yahoo Finance",
-      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNUnE0NmZFTWZheDRfZkRSWnRpbjRQQjg4ZW56enhCd1h4ak9ZazB3RjlKT1JzVi00Mk4xbERMX1ZSa3l0OEFsU0dxLXFYempWRDM1ZjUzV09xdEZVUjVqNHpJYlRuZGV0WWRUaVQ2SFBZd1ZBUVYtUS1HU1FCTTNHLXlFWHh0VjVOTVRaVnhEV2NxNEFsUm1UcXcxZWZkWEU?oc=5",
-      "tag": null,
-      "date": "2026-08-04"
-     },
-     {
-      "title": "Aptiv - 2Q26 Highlights My Forecasted Risks (NYSE:APTV)",
-      "publisher": "Seeking Alpha",
-      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNUGtpbmZIUmJ6alBaM0tpVGNpT3Nmd2x1QXAzNUlZbFNmblVuLUR0UHRiMHFKd2lPRVEtYjJ2ZXE2b3JrVnpoeGJUZV9lYmxoTjVsVVBHQ2x2WmVleW9iUXZfcU56dHM5WDJCN3Y2RzhUUFMyYkJzUDJIaXBaX2x6T19fSldsR1dNMXl4UlNQdHlYVFd5MUYtdkNlRU4?oc=5",
-      "tag": null,
-      "date": "2026-08-04"
-     },
-     {
-      "title": "Aptiv Reports Second Quarter 2026 Financial Results",
-      "publisher": "Business Wire",
-      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPYXBCYU51MzViVm5mNUVsNEJOeWtTOVB6U1lrNXpubS1ncUQtcHV5UU1aTzZaUUZWakRwZEp3M255d0pWdE15elc2bGZoR19kcFp2WUw1V0NQVzVBdTNsZzQ4VDNOTnEtSThzR2o4MndZYnYzQ25pY2VnZnRIWGliT2VlbUNaSW13R1liVDlqNGhnZzJYUGxXRVVIeF9VaVZqRjFLWHJ0WG1KbXRN?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-08-04"
-     }
-    ],
-    "summary": "APTV ירדה 50% מהשיא (09.01.26). באותה תקופה ה-S&P עלה 13% והענף (XLY) ירד 9% - בעיה של החברה. הירידה החדה ביותר: -17% ב-04.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
-   },
-   "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 139.72,
+   "last_price": 133.93,
+   "ret_pct": -4.34,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "HII",
@@ -435,7 +417,16 @@
     "summary": "HII ירדה 42% מהשיא (02.03.26). באותה תקופה ה-S&P עלה 14% והענף (XLI) ירד 5% - בעיה של החברה. הירידה החדה ביותר: -10% ב-05.05.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 260.0,
+   "last_price": 264.53,
+   "ret_pct": 1.54,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "EFX",
@@ -497,7 +488,16 @@
     "summary": "EFX ירדה 36% מהשיא (24.10.25). באותה תקופה ה-S&P עלה 16% והענף (XLI) עלה 10% - בעיה של החברה. הירידה החדה ביותר: -12% ב-03.02.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 148.89,
+   "last_price": 150.36,
+   "ret_pct": 0.79,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "FIS",
@@ -559,7 +559,16 @@
     "summary": "FIS ירדה 46% מהשיא (20.10.25). באותה תקופה ה-S&P עלה 17% והענף (XLF) עלה 6% - בעיה של החברה. הירידה החדה ביותר: -9% ב-03.02.26."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 35.01,
+   "last_price": 35.47,
+   "ret_pct": 1.11,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "MKC",
@@ -621,7 +630,16 @@
     "summary": "MKC ירדה 37% מהשיא (12.02.26). באותה תקופה ה-S&P עלה 15% והענף (XLP) ירד 4% - בעיה של החברה. הירידה החדה ביותר: -6% ב-31.03.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 44.8,
+   "last_price": 44.8,
+   "ret_pct": -0.2,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "NOC",
@@ -683,7 +701,16 @@
     "summary": "NOC ירדה 37% מהשיא (02.03.26). באותה תקופה ה-S&P עלה 14% והענף (XLI) ירד 5% - בעיה של החברה. הירידה החדה ביותר: -7% ב-21.04.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 485.6,
+   "last_price": 495.69,
+   "ret_pct": 1.87,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
   },
   {
    "ticker": "ORCL",
@@ -743,6 +770,79 @@
      }
     ],
     "summary": "ORCL ירדה 54% מהשיא (16.10.25). באותה תקופה ה-S&P עלה 19% והענף (XLK) עלה 38% - בעיה של החברה. הירידה החדה ביותר: -11% ב-11.12.25 (יום דוח רבעוני 📊). בכותרות: 🤖 תחרות / טכנולוגיה."
+   },
+   "status": "new",
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 140.0,
+   "last_price": 130.55,
+   "ret_pct": -6.94,
+   "spy_pct": -1.08,
+   "ew_pct": -0.37,
+   "sessions_left": 251,
+   "exit_estimate": "2027-09-30"
+  }
+ ],
+ "pending": [
+  {
+   "ticker": "APTV",
+   "name": "Aptiv",
+   "sector": "Consumer Discretionary",
+   "drawdown_pct": -50.0,
+   "ev_ebit": 13.3,
+   "vs_industry": 0.67,
+   "vs_itself": 0.75,
+   "cheap_score": 0.503,
+   "explanation": {
+    "kind": "company",
+    "kind_label": "🏢 בעיה של החברה",
+    "drop_pct": -50.0,
+    "peak_date": "2026-01-09",
+    "spy_pct": 13.0,
+    "sector_etf": "XLY",
+    "sector_pct": -9.0,
+    "worst_days": [
+     {
+      "date": "2026-08-04",
+      "pct": -16.6,
+      "earnings": true
+     },
+     {
+      "date": "2026-04-01",
+      "pct": -10.6,
+      "earnings": false
+     },
+     {
+      "date": "2026-05-05",
+      "pct": -7.9,
+      "earnings": true
+     }
+    ],
+    "headlines": [
+     {
+      "title": "Is Wall Street Bullish or Bearish on Aptiv Stock?",
+      "publisher": "Yahoo Finance",
+      "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxNUnE0NmZFTWZheDRfZkRSWnRpbjRQQjg4ZW56enhCd1h4ak9ZazB3RjlKT1JzVi00Mk4xbERMX1ZSa3l0OEFsU0dxLXFYempWRDM1ZjUzV09xdEZVUjVqNHpJYlRuZGV0WWRUaVQ2SFBZd1ZBUVYtUS1HU1FCTTNHLXlFWHh0VjVOTVRaVnhEV2NxNEFsUm1UcXcxZWZkWEU?oc=5",
+      "tag": null,
+      "date": "2026-08-04"
+     },
+     {
+      "title": "Aptiv - 2Q26 Highlights My Forecasted Risks (NYSE:APTV)",
+      "publisher": "Seeking Alpha",
+      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxNUGtpbmZIUmJ6alBaM0tpVGNpT3Nmd2x1QXAzNUlZbFNmblVuLUR0UHRiMHFKd2lPRVEtYjJ2ZXE2b3JrVnpoeGJUZV9lYmxoTjVsVVBHQ2x2WmVleW9iUXZfcU56dHM5WDJCN3Y2RzhUUFMyYkJzUDJIaXBaX2x6T19fSldsR1dNMXl4UlNQdHlYVFd5MUYtdkNlRU4?oc=5",
+      "tag": null,
+      "date": "2026-08-04"
+     },
+     {
+      "title": "Aptiv Reports Second Quarter 2026 Financial Results",
+      "publisher": "Business Wire",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPYXBCYU51MzViVm5mNUVsNEJOeWtTOVB6U1lrNXpubS1ncUQtcHV5UU1aTzZaUUZWakRwZEp3M255d0pWdE15elc2bGZoR19kcFp2WUw1V0NQVzVBdTNsZzQ4VDNOTnEtSThzR2o4MndZYnYzQ25pY2VnZnRIWGliT2VlbUNaSW13R1liVDlqNGhnZzJYUGxXRVVIeF9VaVZqRjFLWHJ0WG1KbXRN?oc=5",
+      "tag": "📉 דוח / תחזית",
+      "date": "2026-08-04"
+     }
+    ],
+    "summary": "APTV ירדה 50% מהשיא (09.01.26). באותה תקופה ה-S&P עלה 13% והענף (XLY) ירד 9% - בעיה של החברה. הירידה החדה ביותר: -17% ב-04.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
    "selected_on": "2026-10-13"
@@ -1513,5 +1613,31 @@
  },
  "research_note": "במחקר 2011-2026 (רשימת S&P לפי ההרכב בכל תאריך): +10% לעסקה מעל ממוצע כל המניות באותם ימים, אבל t=0.31 - כלומר לא מובהק, ורוב העודף הגיע מ-2025 ו-2016. לכן זה ניסוי שנמדד מהיום.",
  "candidates_date": "2026-10-13",
- "updated_at": "2026-10-14T01:21:47.643071+00:00"
+ "updated_at": "2026-10-15T00:45:59.601547+00:00",
+ "series": [
+  {
+   "date": "2026-10-14",
+   "port": 99.54,
+   "spy": 98.92,
+   "ew": 99.63,
+   "n": 11
+  }
+ ],
+ "stats": {
+  "port_pct": -0.46,
+  "spy_pct": -1.08,
+  "ew_pct": -0.37,
+  "since": "2026-10-14",
+  "daily_pct": 0.0,
+  "trades": 11,
+  "closed": 0,
+  "beat_spy": 8,
+  "beat_ew": 7,
+  "by_kind": {
+   "company": {
+    "n": 11,
+    "avg_vs_ew_pct": -0.19
+   }
+  }
+ }
 }
