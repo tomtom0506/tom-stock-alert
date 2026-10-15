@@ -35,7 +35,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-RESEARCH_VERSION = "1.0.0"
+RESEARCH_VERSION = "1.0.1"
 
 # ---------------------------------------------------------------- הגדרות
 TOP_N = 25                    # כמה "מנצחות"/"מפסידות" בכל חודש
@@ -234,6 +234,8 @@ def build_panel(close: pd.DataFrame, vol: pd.DataFrame, universe: pd.DataFrame,
     panel["sector"] = panel["ticker"].map(sec).fillna("?")
 
     n = panel.groupby("date")["fwd"].transform("count")
+    log(f"לפני סינון גודל: {len(panel):,} תצפיות, {panel['ticker'].nunique()} טיקרים עם נתונים, "
+        f"עד {int(n.max()) if len(n) else 0} מניות בחודש (נדרש לפחות {4 * top_n})")
     panel = panel[n >= 4 * top_n].copy()            # מספיק מניות כדי ש-TOP_N יהיה משמעותי
     panel["n"] = panel.groupby("date")["fwd"].transform("count")
     rk_top = panel.groupby("date")["fwd"].rank(ascending=False, method="first")
@@ -253,8 +255,14 @@ def add_quintiles(panel: pd.DataFrame) -> pd.DataFrame:
     return p
 
 
+STATS_COLS = ["feature", "label", "quintile", "obs", "top_rate", "bottom_rate",
+              "lift_top", "lift_bottom", "direction", "mean_fwd"]
+
+
 def quintile_stats(p: pd.DataFrame) -> pd.DataFrame:
     rows = []
+    if p.empty:
+        return pd.DataFrame(columns=STATS_COLS)
     base = p["base"].mean()
     for f in FEATURES:
         for q, g in p.groupby(f + "_q"):
@@ -272,7 +280,7 @@ def quintile_stats(p: pd.DataFrame) -> pd.DataFrame:
                          "lift_top": top_rate / base, "lift_bottom": bot_rate / base,
                          "direction": top_rate / bot_rate if bot_rate > 0 else np.nan,
                          "mean_fwd": g["fwd"].mean()})
-    return pd.DataFrame(rows)
+    return pd.DataFrame(rows, columns=STATS_COLS)
 
 
 def select_rules(stats_in: pd.DataFrame) -> pd.DataFrame:
@@ -762,10 +770,18 @@ def main(argv=None) -> int:
         uni = uni[rank < np.maximum(1, a.max_tickers * share // len(uni))].reset_index(drop=True)
     uni.to_csv(os.path.join(OUT_DIR, "universe_used.csv"), index=False)
 
+    # יקום קטן (הרצת בדיקה): שומרים על אותו בסיס של ~5% במקום 25 קבוע
+    if len(uni) < 20 * TOP_N:
+        TOP_N = max(3, len(uni) // 20)
+        log(f"יקום קטן ({len(uni)}) - TOP_N הותאם ל-{TOP_N} (בסיס ~5%, כמו בהרצה המלאה)")
+
     close, vol = download_prices(uni["ticker"].tolist(), a.start)
     close, bad_month = clean_prices(close)
     panel = build_panel(close, vol, uni, bad_month, top_n=TOP_N)
     log(f"פאנל: {len(panel):,} תצפיות מניה-חודש, {panel['date'].nunique()} חודשים")
+    if panel.empty:
+        log("שגיאה: הפאנל ריק - אין מספיק מניות עם נתונים. ראה שורת 'לפני סינון גודל' למעלה.")
+        return 2
 
     fp = cat = None
     if a.part in ("fingerprint", "all"):
