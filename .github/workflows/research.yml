@@ -10,6 +10,7 @@ on:
         description: "איזה מחקר להריץ"
         type: choice
         options:
+          - insider_parity_check
           - exit_research
           - dip_research
           - winners_research
@@ -41,7 +42,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install pandas numpy yfinance requests
+          pip install pandas numpy yfinance requests lxml
           if [ "${{ inputs.script }}" = "vectorbt_regime_momentum_research" ]; then pip install vectorbt; fi
 
       - name: Run
