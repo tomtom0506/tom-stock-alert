@@ -38,7 +38,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-RESEARCH_VERSION = "1.0.0"
+RESEARCH_VERSION = "1.2.0"
 
 # ---------------------------------------------------------------- הגדרות
 DOWNLOAD_START = "1995-01-01"     # היסטוריה ל"מניה חזקה" (3 שנים לפני שנה אחורה) כבר ב-2000
@@ -110,6 +110,8 @@ def load_universe(path: str | None) -> pd.DataFrame:
         df = pd.read_csv(path)
         if "tier" not in df.columns:
             df["tier"] = "large"
+        if "sub_industry" not in df.columns:
+            df["sub_industry"] = "?"
         log(f"יקום מקובץ: {path} ({len(df)})")
         return df
     frames = []
@@ -122,16 +124,18 @@ def load_universe(path: str | None) -> pd.DataFrame:
                 name = _pick(t.columns, "Security", "Company")
                 if sym and name and len(t) > 100:
                     sec = _pick(t.columns, "GICS Sector", "GICS sector")
+                    subi = _pick(t.columns, "GICS Sub-Industry", "GICS sub-industry", "GICS Sub-industry")
                     frames.append(pd.DataFrame({
                         "ticker": t[sym].astype(str).str.strip().str.replace(".", "-", regex=False),
-                        "name": t[name].astype(str), "sector": t[sec] if sec else "?", "tier": tier}))
+                        "name": t[name].astype(str), "sector": t[sec] if sec else "?",
+                        "sub_industry": t[subi] if subi else "?", "tier": tier}))
                     log(f"  {tier}: {len(t)} מניות")
                     break
     except Exception as e:  # noqa: BLE001
         log(f"שגיאה בטעינת רשימות המדדים ({e})")
     if not frames:
         log("משתמש ביקום גיבוי (רק לבדיקה)")
-        return pd.DataFrame({"ticker": FALLBACK, "name": FALLBACK, "sector": "?", "tier": "large"})
+        return pd.DataFrame({"ticker": FALLBACK, "name": FALLBACK, "sector": "?", "sub_industry": "?", "tier": "large"})
     df = pd.concat(frames).drop_duplicates("ticker")
     key = df["name"].str.replace(r"\s*\(Class [A-C]\)", "", regex=True).str.strip()
     df = df[~key.duplicated()].reset_index(drop=True)
@@ -200,6 +204,7 @@ class Market:
         spy_s = close["SPY"]
         self.regime = (spy_s > spy_s.rolling(200, min_periods=200).mean()).to_numpy()
         self.c = c.to_numpy(float)
+        self.vol = v.to_numpy(float)
 
     def idx(self, date) -> int:
         return int(self.dates.searchsorted(pd.Timestamp(date)))
@@ -331,8 +336,12 @@ def run_dip(m: Market) -> dict:
     sel = None
     if not best.empty:
         b = best.iloc[0]
-        sel = grid[(grid["band"] == b["band"]) & (grid["target"] == b["target"]) &
-                   (grid["stop"].astype(str) == str(b["stop"])) & (grid["max_days"].astype(str) == str(b["max_days"]))]
+        # מפתח שמטפל ב-None/NaN (ב-pandas 3, astype(str) משאיר NaN כחסר - זה היה הבאג ב-v1.0.0)
+        def _k(x):
+            return "none" if x is None or (isinstance(x, float) and np.isnan(x)) else str(float(x))
+        key = grid["band"] + "|" + grid["target"].map(_k) + "|" + grid["stop"].map(_k) + "|" + grid["max_days"].map(_k)
+        bk = f"{b['band']}|{_k(b['target'])}|{_k(b['stop'])}|{_k(b['max_days'])}"
+        sel = grid[key == bk]
     # ברירת המחדל של Tomer - קבועה מראש
     e = dip_entry(m, TOMER_DEFAULT["band"])
     tom = []
@@ -636,6 +645,207 @@ def run_insider_portfolios(m: Market, clusters: pd.DataFrame, dip_sel: pd.DataFr
     return pd.DataFrame(rows)
 
 
+
+
+# ---------------------------------------------------------------- B2: תיק אנשי פנים משופר (הוצע *אחרי* ש-B נראה)
+# ⚠️ פוסט-הוק: הכללים נבחרו אחרי שראינו את חיתוכי B (מנכ"ל/סמנכ"ל, 3+, שנה). לכן התוצאה ההיסטורית
+# אופטימית מטבעה, והמבחן האמיתי הוא מעקב קדימה. החיתוכים עצמם הוגדרו מראש בקובץ הרעיון.
+B2_HOLD = 252
+B2_WINDOW = 5               # אות "חי" 5 ימי מסחר - כך פוזיציה שמתפנה תוך שבוע עדיין תופסת אותו
+B2_MAX_POS = 20
+
+
+def insider_score(c: pd.DataFrame) -> pd.Series:
+    """ציון חוזק: מנכ"ל/סמנכ"ל כספים = 2, כל איש פנים = 1, ותוספת קטנה לפי גודל הקנייה."""
+    return 2 * c["ceo_cfo"].astype(float) + c["insiders"].astype(float) + np.log10(c["value"].clip(lower=1)) / 10
+
+
+def insider_rank_matrix(m: Market, clusters: pd.DataFrame, days: int) -> tuple[np.ndarray, np.ndarray]:
+    sig = np.zeros_like(m.ok, dtype=bool)
+    rank = np.full(m.ok.shape, np.nan)
+    tix = {t: j for j, t in enumerate(m.tickers)}
+    sc = insider_score(clusters)
+    for e, v in zip(clusters.itertuples(), sc):
+        j = tix.get(e.ticker)
+        if j is None:
+            continue
+        pos = int(m.dates.searchsorted(e.signal_date, side="right"))
+        sl = slice(pos, min(pos + days, len(m.dates)))
+        sig[sl, j] = True
+        rank[sl, j] = np.fmax(rank[sl, j], v)
+    return sig & m.ok, rank
+
+
+def run_b2(m: Market, clusters: pd.DataFrame) -> pd.DataFrame:
+    rows = []
+    start = f"{INSIDER_FIRST_YEAR}-06-01"
+    strong = clusters[clusters["ceo_cfo"].astype(bool) | (clusters["insiders"] >= 3)]
+    variants = [("B2: כל אשכול, עדיפות לחזקים, שנה", clusters),
+                ("B2: רק חזקים (מנכ\"ל/סמנכ\"ל או 3+), שנה", strong)]
+    for name, cl in variants:
+        sig, rank = insider_rank_matrix(m, cl, B2_WINDOW)
+        for period, (s, en) in {"2006-2015": (start, SPLIT), "2016+": (SPLIT, None)}.items():
+            for reg in (False, True):
+                r = simulate(m, sig, s, en, None, None, B2_HOLD, max_pos=B2_MAX_POS, use_regime=reg, rank=rank)
+                rows.append({"strategy": name + (" + מסנן שוק" if reg else ""), "period": period, **metrics(m, r)})
+    return pd.DataFrame(rows)
+
+
+def live_signals(m: Market, clusters: pd.DataFrame, tiers: pd.Series, days: int = 45) -> pd.DataFrame:
+    """אותות מהשבועות האחרונים - נקודת ההתחלה למעקב קדימה במעבדה (לא המלצה)."""
+    if clusters.empty:
+        return pd.DataFrame()
+    cut = m.dates[-1] - pd.Timedelta(days=days)
+    c = clusters[clusters["signal_date"] >= cut].copy()
+    if c.empty:
+        return c
+    c["score"] = insider_score(c).round(2)
+    c["strong"] = c["ceo_cfo"].astype(bool) | (c["insiders"] >= 3)
+    c["tier"] = c["ticker"].map(tiers).fillna("מחוץ ליקום")
+    tix = {t: j for j, t in enumerate(m.tickers)}
+    c["dd_from_high"] = [m.dd[-1, tix[t]] if t in tix else np.nan for t in c["ticker"]]
+    c["passes_liquidity"] = [bool(m.ok[-1, tix[t]]) if t in tix else False for t in c["ticker"]]
+    return c.sort_values(["strong", "score"], ascending=False)
+
+# ---------------------------------------------------------------- D: שרשרת אספקה / התפשטות בענף
+LEADER_JUMP = 0.08          # D1: המובילה בתת-ענף קפצה 8%+ מעל SPY ביום אחד
+NVDA_JUMP = 0.05            # D2: אנבידיה קפצה 5%+ מעל SPY
+CHAIN_HORIZONS = [5, 10, 21]
+CHAIN_COOLDOWN = 21         # ימי מסחר בין אירועים באותה קבוצה
+CHAIN_PLACEBO_K = 5
+MIN_FOLLOWERS = 3
+# D2: מפה ידנית של שרשרת ה-AI. נבנתה *היום* - ולכן יש בה ידיעה בדיעבד מי הצליח.
+# משמשת רק לשאלה אם יש *עיכוב* (הספקים זזים אחרי אנבידיה ולא באותו יום), מול ימים אקראיים.
+AI_LEADER = "NVDA"
+AI_SUPPLIERS = {
+    "שבבים וזיכרון": ["TSM", "MU", "AVGO", "MRVL", "AMD"],
+    "שרתים": ["SMCI", "DELL", "HPE"],
+    "קירור וחשמל": ["VRT", "ETN", "CEG", "VST", "MPWR"],
+    "תקשורת ואופטיקה": ["ANET", "COHR", "LITE", "CIEN", "APH"],
+}
+AI_EXTRA_TICKERS = sorted({AI_LEADER} | {t for v in AI_SUPPLIERS.values() for t in v})
+
+
+def _basket_ex(m: Market, cols: list[int], a: int, b: int) -> float:
+    """תשואה עודפת ממוצעת (משקל שווה) של סל מניות מסגירת a לסגירת b, מול SPY."""
+    if b >= len(m.dates) or a < 0:
+        return np.nan
+    pa, pb = m.c[a, cols], m.c[b, cols]
+    ok = ~np.isnan(pa) & ~np.isnan(pb) & (pa > 0) & ~m.bad[a:b + 1][:, cols].any(axis=0)
+    if ok.sum() == 0:
+        return np.nan
+    return float(np.mean(pb[ok] / pa[ok] - 1) - (m.spy[b] / m.spy[a] - 1))
+
+
+def _measure(m: Market, cols: list[int], t: int) -> dict:
+    """t = יום הקפיצה של המובילה. כניסה בסגירה של t+1 (יום אחרי), כמו משקיע שקרא את החדשות."""
+    rec = {"same_day": _basket_ex(m, cols, t - 1, t), "next_day": _basket_ex(m, cols, t, t + 1)}
+    for h in CHAIN_HORIZONS:
+        rec[f"after_{h}"] = _basket_ex(m, cols, t + 1, t + 1 + h)
+    return rec
+
+
+def chain_industry(m: Market, uni: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """D1: בכל תת-ענף, המובילה = המחזור הדולרי הגבוה ביותר (60 יום, נכון לאתמול).
+    כשהיא קופצת LEADER_JUMP+ מעל SPY - מה עושות שאר המניות בתת-הענף בימים שאחרי?"""
+    tix = {t: j for j, t in enumerate(m.tickers)}
+    dv = pd.DataFrame(m.c * np.nan_to_num(m.vol), index=m.dates).rolling(60, min_periods=50).mean().shift(1).to_numpy()
+    r = np.vstack([np.full(m.c.shape[1], np.nan), m.c[1:] / m.c[:-1] - 1])
+    spy_r = np.concatenate([[np.nan], m.spy[1:] / m.spy[:-1] - 1])
+    rng = np.random.default_rng(21)
+    real, plac = [], []
+    split_i = m.idx(SPLIT)
+    i_start = m.idx(SIM_START)
+    for sub, g in uni.groupby("sub_industry"):
+        cols = [tix[t] for t in g["ticker"] if t in tix]
+        if len(cols) < MIN_FOLLOWERS + 1:
+            continue
+        cols = np.array(cols)
+        sub_dv = np.where(np.isnan(dv[:, cols]), -1, dv[:, cols])
+        leader_pos = sub_dv.argmax(axis=1)
+        has = sub_dv.max(axis=1) > 0
+        lead_r = r[np.arange(len(m.dates)), cols[leader_pos]]
+        ab = lead_r - spy_r
+        last = -10 ** 9
+        for t in np.flatnonzero(has & (ab >= LEADER_JUMP)):
+            if t < i_start or t + 1 + max(CHAIN_HORIZONS) >= len(m.dates) or t - last < CHAIN_COOLDOWN:
+                continue
+            if m.bad[t, cols[leader_pos[t]]]:
+                continue
+            fol = [int(c) for k, c in enumerate(cols) if k != leader_pos[t] and m.ok[t - 1, c]]
+            if len(fol) < MIN_FOLLOWERS:
+                continue
+            last = t
+            period = "2000-2015" if t < split_i else "2016+"
+            real.append({"sub_industry": sub, "date": m.dates[t], "leader": m.tickers[cols[leader_pos[t]]],
+                         "leader_jump": ab[t], "followers": len(fol), "period": period, **_measure(m, fol, t)})
+            lo, hi = (i_start + 1, split_i) if t < split_i else (split_i, len(m.dates) - 2 - max(CHAIN_HORIZONS))
+            for tt in rng.integers(lo, hi, CHAIN_PLACEBO_K):
+                fol2 = [int(c) for k, c in enumerate(cols) if k != leader_pos[tt] and m.ok[tt - 1, c]]
+                if len(fol2) >= MIN_FOLLOWERS:
+                    plac.append({"period": period, **_measure(m, fol2, int(tt))})
+    return pd.DataFrame(real), pd.DataFrame(plac)
+
+
+def chain_ai(m: Market) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """D2: ימים שבהם אנבידיה קפצה NVDA_JUMP+ מעל SPY -> סלי הספקים לפי קבוצה."""
+    tix = {t: j for j, t in enumerate(m.tickers)}
+    if AI_LEADER not in tix:
+        return pd.DataFrame(), pd.DataFrame()
+    j = tix[AI_LEADER]
+    r = m.c[1:, j] / m.c[:-1, j] - 1
+    ab = np.concatenate([[np.nan], r - (m.spy[1:] / m.spy[:-1] - 1)])
+    groups = {k: [tix[t] for t in v if t in tix] for k, v in AI_SUPPLIERS.items()}
+    groups["כל הספקים"] = sorted({c for v in groups.values() for c in v})
+    rng = np.random.default_rng(31)
+    real, plac, last = [], [], -10 ** 9
+    split_i = m.idx(SPLIT)
+    for t in np.flatnonzero(ab >= NVDA_JUMP):
+        if t < m.idx(SIM_START) or t + 1 + max(CHAIN_HORIZONS) >= len(m.dates) or t - last < 5:
+            continue
+        last = t
+        period = "2000-2015" if t < split_i else "2016+"
+        lo, hi = (m.idx(SIM_START) + 1, split_i) if t < split_i else (split_i, len(m.dates) - 2 - max(CHAIN_HORIZONS))
+        rand = rng.integers(lo, hi, CHAIN_PLACEBO_K)
+        for gname, cols in groups.items():
+            live = [c for c in cols if m.ok[t - 1, c]]
+            if not live:
+                continue
+            real.append({"group": gname, "date": m.dates[t], "nvda_jump": ab[t], "period": period, **_measure(m, live, int(t))})
+            for tt in rand:
+                live2 = [c for c in cols if m.ok[tt - 1, c]]
+                if live2:
+                    plac.append({"group": gname, "period": period, **_measure(m, live2, int(tt))})
+    return pd.DataFrame(real), pd.DataFrame(plac)
+
+
+def chain_compare(real: pd.DataFrame, plac: pd.DataFrame, by: list[str]) -> pd.DataFrame:
+    if real.empty:
+        return pd.DataFrame()
+    cols = ["same_day", "next_day"] + [f"after_{h}" for h in CHAIN_HORIZONS]
+    out = []
+    keys = [("הכל",) + tuple("הכל" for _ in by[1:])] if by else []
+    for key, g in list(real.groupby(by)) + ([(("הכל",) * len(by), real)] if "period" in by and len(by) == 1 else []):
+        key = key if isinstance(key, tuple) else (key,)
+        q = plac
+        for col, val in zip(by, key):
+            if val != "הכל" and col in plac.columns:
+                q = q[q[col] == val]
+        rec = dict(zip(by, key))
+        rec["events"] = len(g)
+        for c in cols:
+            x, y = g[c].dropna(), q[c].dropna() if c in q.columns else pd.Series(dtype=float)
+            rec[c] = x.mean() if len(x) else np.nan
+            if len(x) > 2 and len(y) > 2:
+                se = math.sqrt(x.var(ddof=1) / len(x) + y.var(ddof=1) / len(y))
+                rec[c + "_vs_placebo"] = x.mean() - y.mean()
+                rec[c + "_t"] = (x.mean() - y.mean()) / se if se > 0 else np.nan
+            else:
+                rec[c + "_vs_placebo"] = rec[c + "_t"] = np.nan
+        out.append(rec)
+    del keys
+    return pd.DataFrame(out)
+
 # ---------------------------------------------------------------- סיכום
 def pct(x):
     try:
@@ -662,7 +872,7 @@ def perf_rows(df: pd.DataFrame, label_col: str) -> list[str]:
     return L
 
 
-def write_summary(meta, dip=None, ins=None) -> str:
+def write_summary(meta, dip=None, ins=None, chain=None) -> str:
     L = [f"# תוצאות מחקר - קניית ירידות ואנשי פנים (v{RESEARCH_VERSION})",
          f"הורץ: {meta['run_at']} | יקום: {meta['universe']} | חלוקה: {SPLIT} | עד {MAX_POSITIONS} פוזיציות | "
          f"עמלה {COST_PER_SIDE:.1%} לצד", ""]
@@ -683,7 +893,8 @@ def write_summary(meta, dip=None, ins=None) -> str:
         if dip["selected"] is not None and not dip["selected"].empty:
             s = dip["selected"].copy()
             s["combo"] = s["band"] + " / +" + (s["target"] * 100).round().astype(int).astype(str) + "% / עצירה " + \
-                s["stop"].astype(str) + " / זמן " + s["max_days"].astype(str)
+                s["stop"].map(lambda x: "בלי" if pd.isna(x) else f"{x:.0%}") + " / זמן " + \
+                s["max_days"].map(lambda x: "בלי" if pd.isna(x) else f"{int(x)} ימים")
             L += ["### השילוב שנבחר על 2000-2015 (לפי Calmar) ונבדק על 2016+", ""]
             L += perf_rows(s, "combo")
             L.append("")
@@ -699,8 +910,43 @@ def write_summary(meta, dip=None, ins=None) -> str:
             L.append(f"| {r['period']} | {r['cut']} | {r['events']} | {pct(r.get('vsp_21'))} | {num(r.get('vsp_21_t'))} | "
                      f"{pct(r.get('vsp_63'))} | {num(r.get('vsp_63_t'))} | {pct(r.get('vsp_126'))} | {num(r.get('vsp_126_t'))} | "
                      f"{pct(r.get('vsp_252'))} | {num(r.get('vsp_252_t'))} |")
-        L += ["", "## B+C. תיקים", ""]
+        L += ["", "## B+C. תיקים", "",
+              "_⚠️ שורות B2 הן פוסט-הוק: הכללים נבחרו אחרי שראינו את B. התוצאה ההיסטורית אופטימית; המבחן האמיתי = מעקב קדימה._", ""]
         L += perf_rows(ins["portfolios"], "strategy")
+        L.append("")
+        lv = ins.get("live")
+        if lv is not None and not lv.empty:
+            L += [f"### אותות מ-45 הימים האחרונים ({len(lv)}) - למעקב קדימה, לא המלצה", "",
+                  "| טיקר | תאריך דיווח | אנשי פנים | מנכ\"ל/סמנכ\"ל | סכום | ציון | חזק | שכבה | מתחת לשיא | נזילות |",
+                  "|---|---|---|---|---|---|---|---|---|---|"]
+            for r in lv.head(25).to_dict("records"):
+                L.append(f"| {r['ticker']} | {pd.Timestamp(r['signal_date']):%Y-%m-%d} | {r['insiders']} | "
+                         f"{'✓' if r['ceo_cfo'] else ''} | ${r['value'] / 1e6:.2f}M | {r['score']} | {'✓' if r['strong'] else ''} | "
+                         f"{r['tier']} | {pct(r['dd_from_high'])} | {'✓' if r['passes_liquidity'] else '✗'} |")
+            L.append("")
+    if chain:
+        def ctable(df, keycols):
+            hdr = " | ".join(keycols)
+            T = [f"| {hdr} | אירועים | באותו יום | t | למחרת | t | +5 ימים | t | +10 | t | +21 | t |",
+                 "|" + "---|" * (len(keycols) + 11)]
+            for r in df.to_dict("records"):
+                k = " | ".join(str(r[c]) for c in keycols)
+                T.append(f"| {k} | {r['events']} | {pct(r.get('same_day_vs_placebo'))} | {num(r.get('same_day_t'))} | "
+                         f"{pct(r.get('next_day_vs_placebo'))} | {num(r.get('next_day_t'))} | "
+                         f"{pct(r.get('after_5_vs_placebo'))} | {num(r.get('after_5_t'))} | "
+                         f"{pct(r.get('after_10_vs_placebo'))} | {num(r.get('after_10_t'))} | "
+                         f"{pct(r.get('after_21_vs_placebo'))} | {num(r.get('after_21_t'))} |")
+            return T
+        L += ["## D. שרשרת אספקה - האם 'התשתית' זזה אחרי המובילה?", "",
+              "_כל הערכים: תשואה עודפת מול SPY *מעבר לימים אקראיים* באותה תקופה. 'באותו יום' ו'למחרת' = מה שכבר קרה "
+              "לפני שאפשר להיכנס. '+5/+10/+21' = מכניסה בסגירה של היום שאחרי הקפיצה - זה מה שאפשר להרוויח._", "",
+              f"### D1. התפשטות בתת-ענף (מובילה קפצה {LEADER_JUMP:.0%}+, {chain['n1']} אירועים)", ""]
+        if not chain["industry"].empty:
+            L += ctable(chain["industry"], ["period"])
+        L += ["", f"### D2. שרשרת ה-AI (אנבידיה קפצה {NVDA_JUMP:.0%}+, {chain['n2']} ימים)", "",
+              "_⚠️ המפה נבנתה היום, כשכבר ידוע מי הצליח. מה שתקף כאן הוא רק *העיכוב* מול ימים אקראיים, לא בחירת המניות._", ""]
+        if not chain["ai"].empty:
+            L += ctable(chain["ai"], ["group", "period"])
         L.append("")
     L += ["## איך לקרוא", "",
           "- **CAGR** = תשואה שנתית ממוצעת. **ירידה מקס'** = הנפילה הגדולה מהשיא - כמה כאב בדרך.",
@@ -714,19 +960,24 @@ def write_summary(meta, dip=None, ins=None) -> str:
 # ---------------------------------------------------------------- main
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="מחקר offline: קניית ירידות + אנשי פנים")
-    ap.add_argument("--part", choices=["dip", "insider", "all"], default="all")
+    ap.add_argument("--part", default="all", help="dip / insider / chain / all, או כמה מופרדים בפסיק: insider,chain")
     ap.add_argument("--universe", default=None)
     ap.add_argument("--max-tickers", type=int, default=0)
     a = ap.parse_args(argv)
+    parts = {"dip", "insider", "chain"} if a.part.strip() == "all" else {x.strip() for x in a.part.split(",")}
+    bad = parts - {"dip", "insider", "chain"}
+    if bad:
+        ap.error(f"part לא מוכר: {bad}")
     ensure_dirs()
 
     uni = load_universe(a.universe)
     if a.max_tickers and len(uni) > a.max_tickers:
         uni = uni.iloc[np.linspace(0, len(uni) - 1, a.max_tickers).round().astype(int)].drop_duplicates("ticker")
         log(f"הרצת בדיקה: {len(uni)} מניות פזורות על פני כל היקום")
-    for extra in ("DELL", "INTC"):          # הדוגמאות מהשיחה - לבדיקה ידנית בטבלת העסקאות
+    for extra in ["DELL", "INTC"] + AI_EXTRA_TICKERS:   # דוגמאות מהשיחה + מפת ה-AI (D2)
         if extra not in set(uni["ticker"]):
-            uni = pd.concat([uni, pd.DataFrame([{"ticker": extra, "name": extra, "sector": "?", "tier": "large"}])])
+            uni = pd.concat([uni, pd.DataFrame([{"ticker": extra, "name": extra, "sector": "?",
+                                                 "sub_industry": "_extra", "tier": "large"}])])
     uni.to_csv(os.path.join(OUT_DIR, "universe_used.csv"), index=False)
     tiers = uni.set_index("ticker")["tier"]
 
@@ -737,7 +988,7 @@ def main(argv=None) -> int:
             "universe": f"{len(m.tickers)} מניות ({', '.join(f'{k}={v}' for k, v in uni['tier'].value_counts().items())})"}
 
     dip = ins = None
-    if a.part in ("dip", "all"):
+    if "dip" in parts:
         log("A: קניית ירידות - רשת ספים...")
         dip = run_dip(m)
         dip["grid"].to_csv(os.path.join(OUT_DIR, "dip_grid.csv"), index=False)
@@ -745,7 +996,7 @@ def main(argv=None) -> int:
         dip["crises"].to_csv(os.path.join(OUT_DIR, "dip_crises.csv"), index=False)
         dip["tomer_trades"].to_csv(os.path.join(OUT_DIR, "dip_tomer_trades_2016plus.csv"), index=False)
 
-    if a.part in ("insider", "all"):
+    if "insider" in parts:
         ua = os.environ.get("SEC_USER_AGENT", "").strip()
         if not ua:
             log("SEC_USER_AGENT לא מוגדר - SEC חוסם בקשות אנונימיות. מדלג על B/C.")
@@ -762,11 +1013,31 @@ def main(argv=None) -> int:
             es.to_csv(os.path.join(OUT_DIR, "insider_event_returns.csv"), index=False)
             summ.to_csv(os.path.join(OUT_DIR, "insider_summary.csv"), index=False)
             ports = run_insider_portfolios(m, clusters, dip["selected"] if dip else None) if not clusters.empty else pd.DataFrame()
+            if not clusters.empty:
+                log("B2: תיק משופר (עדיפות לאותות חזקים, החזקה שנה)...")
+                ports = pd.concat([ports, run_b2(m, clusters)], ignore_index=True)
+            live = live_signals(m, clusters, tiers)
+            live.to_csv(os.path.join(OUT_DIR, "insider_live_signals.csv"), index=False)
             ports.to_csv(os.path.join(OUT_DIR, "insider_portfolios.csv"), index=False)
             ins = {"n_purchases": len(purch), "n_clusters": len(clusters), "n_events": len(es),
-                   "summary": summ, "portfolios": ports}
+                   "summary": summ, "portfolios": ports, "live": live}
 
-    md = write_summary(meta, dip, ins)
+    chain = None
+    if "chain" in parts:
+        log("D1: התפשטות בתוך תת-ענף...")
+        r1, p1 = chain_industry(m, uni[uni["sub_industry"] != "_extra"])
+        r1.to_csv(os.path.join(OUT_DIR, "chain_industry_events.csv"), index=False)
+        log(f"  {len(r1)} קפיצות של מובילות ענף")
+        log("D2: שרשרת ה-AI סביב אנבידיה...")
+        r2, p2 = chain_ai(m)
+        r2.to_csv(os.path.join(OUT_DIR, "chain_ai_events.csv"), index=False)
+        chain = {"industry": chain_compare(r1, p1, ["period"]) if not r1.empty else pd.DataFrame(),
+                 "ai": chain_compare(r2, p2, ["group", "period"]) if not r2.empty else pd.DataFrame(),
+                 "n1": len(r1), "n2": r2["date"].nunique() if not r2.empty else 0}
+        chain["industry"].to_csv(os.path.join(OUT_DIR, "chain_industry_summary.csv"), index=False)
+        chain["ai"].to_csv(os.path.join(OUT_DIR, "chain_ai_summary.csv"), index=False)
+
+    md = write_summary(meta, dip, ins, chain)
     with open(os.path.join(OUT_DIR, "SUMMARY.md"), "w", encoding="utf-8") as fh:
         fh.write(md)
     print("\n" + md)
