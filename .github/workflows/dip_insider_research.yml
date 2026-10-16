@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       part:
-        description: "dip / insider / all"
+        description: "dip / insider / chain / all"
         default: "all"
         required: true
       max_tickers:
