@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.23.0"
+BACKEND_VERSION = "5.24.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -6735,10 +6735,23 @@ def send_picks_digest(store):
         b = (pk.get("boxes") or {}).get(k) or {}
         if b.get("cum_pct") is not None:
             L.append(f"📊 3 ההמלצות ל{lab}: מצטבר {b['cum_pct']:+.2f}% · היום {b['daily_pct']:+.2f}%")
+    # v5.24.0: one line for NEW strong insider-buying clusters (lab experiment), never a separate alert
+    try:
+        ins = load_json(BASE_DIR / "insider.json", {})
+        last = (store.get("picks_digest") or {}).get("insider_seen") or ""
+        fresh = [x for x in ins.get("signals") or [] if x.get("strong") and x.get("liquid") and x["filing_date"] > last]
+        if fresh:
+            ceo = ", כולל מנכ״ל/סמנכ״ל כספים"
+            L.append("🧪 קניות אנשי פנים (ניסוי): " + ", ".join(
+                f"{x['ticker']} ({x['insiders']} אנשי פנים{ceo if x['ceo_cfo'] else ''})" for x in fresh[:5]))
+        store["_insider_seen"] = max([x["filing_date"] for x in fresh] + [last]) if fresh else last
+    except Exception as e:
+        print(f"insider line skipped: {e}")
     L.append({"up": "👍", "down": "👎", "wait": "⏳"}[pk.get("thumbs", "wait")] + " " + (pk.get("thumbs_reason") or ""))
     L.append("מידע בלבד, לא ייעוץ השקעות.")
     send_telegram_message("\n".join(L))
-    store["picks_digest"] = {"session": session, "sent_at": datetime.now(timezone.utc).isoformat()}
+    store["picks_digest"] = {"session": session, "sent_at": datetime.now(timezone.utc).isoformat(),
+                             "insider_seen": store.pop("_insider_seen", None) or (store.get("picks_digest") or {}).get("insider_seen")}
 
 
 def fmt_date_il(d):

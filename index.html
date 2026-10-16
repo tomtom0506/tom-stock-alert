@@ -1028,6 +1028,11 @@
   <div id="labExitSection" data-tab="lab" data-subtab="exit">
     <div id="labExitBody"></div>
   </div>
+  <div id="labInsiderSection" data-tab="lab" data-subtab="insider">
+    <div class="section-title">קניות אנשי פנים <span class="tag exp">ניסוי</span></div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">אשכול: לפחות 2 דירקטורים או נושאי משרה קנו במניה בשוק הפתוח, יחד מעל $100,000, תוך 30 יום. "חזק" = מנכ"ל או סמנכ"ל כספים ביניהם, או 3 אנשי פנים ומעלה. התיק קונה רק אותות חזקים, ומחזיק כל אחד שנה. הכרעה מרכזית: 15.4.2027.</div>
+    <div id="insiderBody"><div style="font-size:12px; color:var(--text-faint);">טוען...</div></div>
+  </div>
   <div id="labIntro" data-tab="lab">
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin:2px 2px 10px;">כאן נמצא כל מה שעוד לא הוכח. כל ניסוי נמדד מול ה-S&amp;P באותם ימים, ובתאריך ההכרעה נשאר רק מה שמקדים אותו. <span class="tag exp">ניסוי</span></div>
   </div>
@@ -1103,12 +1108,15 @@
 </div>
 
 <script>
-const APP_VERSION = "6.15.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.16.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.16.0", date: "2026-10-16", items: [
+    "🕴 מעבדה › אנשי פנים (backend 5.24.0): מעקב קדימה אחרי אשכולות קנייה של אנשי פנים - האות היחיד ממחקרי 16.10 שהחזיק מול פלצבו בשתי התקופות. אותות מ-45 הימים האחרונים, ותיק נייר 'רק חזקים' (20 משבצות, שנה לכל אחת) מול ה-S&P. נתונים ישירות מדיווחי Form 4 ל-SEC, כל ערב. שורה בהודעת הטלגרם היומית רק כשיש אות חזק חדש. הכרעה ב-15.4.2027.",
+  ]},
   { version: "6.15.0", date: "2026-10-15", items: [
     "🧹 צמצום גדול (backend 5.23.0), לפי הסקירה של 15.10: 4 לשוניות במקום 5 לשוניות ו-11 תתי-לשוניות. 🏠 היום · 💼 התיק שלי · 📊 ביצועים · 🧪 מעבדה.",
     "🏠 היום › פעולה: שורת מצב השוק (כלל החשיפה), מה לקנות ומה למכור לפי A/B, 3 מניות הטווח הארוך (מסומנות ניסוי), ותקציר מבחן היציאה. 'מלא' נשאר בינתיים.",
@@ -3076,6 +3084,38 @@ function renderLongTerm(data) {
   }).join("");
 }
 
+// ---------- v6.16.0: 🧪 insider cluster buys (insider.json, written by insider_live.py) ----------
+async function loadInsider() {
+  const el = document.getElementById("insiderBody");
+  if (!el) return;
+  try {
+    const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/insider.json?t=${Date.now()}`);
+    if (!r.ok) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">מתחיל בריצת הערב הקרובה.</div>`; return; }
+    renderInsider(await r.json());
+  } catch (e) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">לא הצלחתי לטעון את הנתונים.</div>`; }
+}
+
+function renderInsider(d) {
+  const el = document.getElementById("insiderBody");
+  const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
+  const pf = d.portfolio || {};
+  const usd = v => `$${Math.round(v).toLocaleString("en-US")}`;
+  let h = `<div class="picks-boxes"><div class="picks-box"><div class="pb-label">תיק "רק חזקים"</div><div class="pb-big mono" style="font-size:24px; color:${col(pf.ret_pct)};">${signedPct(pf.ret_pct, 1)}</div><div class="pb-small">${pf.open || 0} פתוחות · ${pf.closed || 0} נסגרו</div></div>
+    <div class="picks-box"><div class="pb-label">S&amp;P 500 באותה תקופה</div><div class="pb-big mono" style="font-size:24px; color:${col(pf.spy_pct)};">${signedPct(pf.spy_pct, 1)}</div><div class="pb-small">מאז ${fmtDateIL(pf.since || d.started)}</div></div></div>`;
+  const sig = d.signals || [];
+  h += `<div style="font-size:13px; font-weight:700; margin:12px 2px 6px;">אותות מ-45 הימים האחרונים</div>`;
+  h += sig.length ? `<div class="act-row" style="padding:4px 12px;">` + sig.map(x => `<div class="picks-row" style="align-items:center;">
+      <div><b>${x.ticker}</b> ${x.strong ? '<span class="tag exp">חזק</span>' : ""} <span style="font-size:11px; color:var(--text-faint);">${fmtDateIL(x.filing_date)} · ${x.insiders} אנשי פנים${x.ceo_cfo ? " · מנכ״ל/סמנכ״ל ✓" : ""}${x.liquid ? "" : " · לא עובר סינון נזילות"}</span></div>
+      <div style="text-align:left; font-size:12px;"><span class="mono">${usd(x.value)}</span><br><span style="font-size:10.5px; color:var(--text-faint);">${x.dd_from_high_pct != null ? `${x.dd_from_high_pct}% מהשיא` : ""}</span></div></div>`).join("") + `</div>`
+    : `<div style="font-size:12px; color:var(--text-dim);">אין אותות כרגע.</div>`;
+  const pos = d.positions || [];
+  if (pos.length) h += `<div style="font-size:13px; font-weight:700; margin:12px 2px 6px;">פוזיציות פתוחות</div><div class="act-row" style="padding:4px 12px;">` + pos.map(p => `<div class="picks-row"><div><b>${p.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">נקנתה ${fmtDateIL(p.entry_date)} ב-$${Number(p.entry_price).toFixed(2)}</span></div><div class="mono" style="color:${col(p.ret_pct)};">${signedPct(p.ret_pct, 1)}</div></div>`).join("") + `</div>`;
+  const sn = d.sanity || {};
+  if (sn.warning) h += `<div class="act-row" style="color:var(--down); font-size:12px;">⚠️ ${sn.strong_last_30d} אותות חזקים ב-30 יום, כשבהיסטוריה היו כ-${sn.expected_per_month} בחודש - כנראה תקלה בנתונים.</div>`;
+  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">${d.note || ""} מקור: דיווחי Form 4 ל-SEC. עודכן ${d.updated_at ? fmtDateIL(d.updated_at.slice(0, 10)) : "—"}.</div>`;
+  el.innerHTML = h;
+}
+
 // ---------- v6.15.0: results tab, lab exit tab, fast first paint from today.json ----------
 const TAG_HTML = { proven: '<span class="tag proven">מוכח</span>', experiment: '<span class="tag exp">ניסוי</span>',
                    benchmark: '<span class="tag info">ייחוס</span>', mine: '<span class="tag mine">שלך</span>', info: '<span class="tag info">מידע</span>' };
@@ -3962,6 +4002,7 @@ async function loadPredictions() {
     try { renderActionScreen(data); renderFreshness(data); renderResults(data); renderLabExit(data); } catch (e) { console.error("v6.15 render failed", e); }
     try { renderPicks(data); bindHomeMoreToggle(); } catch (e) { console.error("picks render failed", e); }
     loadWinners();
+    loadInsider();
     // v6.15.0: each block on its own, so one failure can't blank the rest;
     // retired screens (strategies, recs, portfolios, logs, daily tiles) are no longer rendered
     for (const [name, fn] of [["exposure", () => renderExposureCard(data)], ["layers", () => renderLayersCard(data)],
@@ -5374,6 +5415,7 @@ const SUBTABS = {
     { id: "longterm", label: "טווח ארוך", icon: "🏛" },
     { id: "winners", label: "מניות מנצחות", icon: "🏆" },
     { id: "exit", label: "מבחן יציאה", icon: "🎯" },
+    { id: "insider", label: "אנשי פנים", icon: "🕴" },
   ],
 };
 const CONTEXT_ACTION = {
