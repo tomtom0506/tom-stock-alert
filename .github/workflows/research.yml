@@ -9,6 +9,7 @@ on:
       script:
         description: "איזה מחקר להריץ"
         type: choice
+        default: insider_parity_check
         options:
           - insider_parity_check
           - exit_research
@@ -43,17 +44,17 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install pandas numpy yfinance requests lxml
-          if [ "${{ inputs.script }}" = "vectorbt_regime_momentum_research" ]; then pip install vectorbt; fi
+          if [ "${{ inputs.script || 'insider_parity_check' }}" = "vectorbt_regime_momentum_research" ]; then pip install vectorbt; fi
 
       - name: Run
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
-        run: python research/${{ inputs.script }}.py
+        run: python research/${{ inputs.script || 'insider_parity_check' }}.py
 
       - name: Upload results
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ inputs.script }}-results
+          name: ${{ inputs.script || 'insider_parity_check' }}-results
           path: research/output_*/
           retention-days: 30
