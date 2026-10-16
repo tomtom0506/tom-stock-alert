@@ -66,11 +66,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 184.03,
-   "last_price": 179.08,
-   "ret_pct": -2.88,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 178.81,
+   "ret_pct": -3.03,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -137,11 +137,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 119.5,
-   "last_price": 120.59,
-   "ret_pct": 0.71,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 124.0,
+   "ret_pct": 3.56,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -208,11 +208,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 301.6,
-   "last_price": 310.44,
-   "ret_pct": 2.73,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 330.17,
+   "ret_pct": 9.25,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -279,11 +279,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 37.15,
-   "last_price": 37.02,
-   "ret_pct": -0.55,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 38.32,
+   "ret_pct": 2.94,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -350,11 +350,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 139.72,
-   "last_price": 133.93,
-   "ret_pct": -4.34,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 138.77,
+   "ret_pct": -0.88,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -421,11 +421,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 260.0,
-   "last_price": 264.53,
-   "ret_pct": 1.54,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 267.22,
+   "ret_pct": 2.57,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -492,11 +492,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 148.89,
-   "last_price": 150.36,
-   "ret_pct": 0.79,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 161.26,
+   "ret_pct": 8.09,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -563,11 +563,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 35.01,
-   "last_price": 35.47,
-   "ret_pct": 1.11,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 36.13,
+   "ret_pct": 2.99,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -634,11 +634,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 44.8,
-   "last_price": 44.8,
-   "ret_pct": -0.2,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 45.71,
+   "ret_pct": 1.83,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -705,11 +705,11 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 485.6,
-   "last_price": 495.69,
-   "ret_pct": 1.87,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 499.63,
+   "ret_pct": 2.68,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
   {
@@ -776,15 +776,13 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 140.0,
-   "last_price": 130.55,
-   "ret_pct": -6.94,
-   "spy_pct": -1.08,
-   "ew_pct": -0.37,
-   "sessions_left": 251,
+   "last_price": 134.47,
+   "ret_pct": -4.14,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
    "exit_estimate": "2027-09-30"
-  }
- ],
- "pending": [
+  },
   {
    "ticker": "APTV",
    "name": "Aptiv",
@@ -845,9 +843,19 @@
     "summary": "APTV ירדה 50% מהשיא (09.01.26). באותה תקופה ה-S&P עלה 13% והענף (XLY) ירד 9% - בעיה של החברה. הירידה החדה ביותר: -17% ב-04.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
    "status": "new",
-   "selected_on": "2026-10-13"
+   "selected_on": "2026-10-13",
+   "entry_date": "2026-10-14",
+   "exit_planned_after_sessions": 252,
+   "entry_price": 43.71,
+   "last_price": 45.19,
+   "ret_pct": 3.18,
+   "spy_pct": -0.8,
+   "ew_pct": 0.79,
+   "sessions_left": 250,
+   "exit_estimate": "2027-09-30"
   }
  ],
+ "pending": [],
  "closed": [],
  "selection_log": [
   {
@@ -869,6 +877,13 @@
    ],
    "free_slots": 20,
    "with_fundamentals": 503
+  },
+  {
+   "date": "2026-10-15",
+   "qualified": 9,
+   "added": [],
+   "free_slots": 8,
+   "with_fundamentals": 503
   }
  ],
  "candidates": [
@@ -876,19 +891,19 @@
    "ticker": "FSLR",
    "name": "First Solar",
    "sector": "Information Technology",
-   "drawdown_pct": -41.2,
-   "ev_ebit": 10.2,
-   "vs_industry": 0.27,
-   "vs_itself": 0.58,
-   "cheap_score": 0.157,
+   "drawdown_pct": -43.8,
+   "ev_ebit": 9.7,
+   "vs_industry": 0.3,
+   "vs_itself": 0.56,
+   "cheap_score": 0.168,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -41.2,
+    "drop_pct": -43.8,
     "peak_date": "2026-06-03",
-    "spy_pct": 3.7,
+    "spy_pct": 2.8,
     "sector_etf": "XLK",
-    "sector_pct": 0.0,
+    "sector_pct": -3.4,
     "worst_days": [
      {
       "date": "2026-06-05",
@@ -908,10 +923,10 @@
     ],
     "headlines": [
      {
-      "title": "First Solar: Tax Credits To Provide Short-Term Boost In Margins (Rating Downgrade)",
-      "publisher": "Seeking Alpha",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxPd0FwMENENEphNms4RlB0MzNRbkZkdDFLdVRCcnh0R1ZzYUtISFB6YUpoNl9kZXI4cll6OXpaeUIycTdGYTdvTDdBNkFvWktLejA3WDJFVnlmNDk2Zjl4S1dCc25HQUFNUllBay1teUZoMDVOUzNzUHhUZ2dCRksxaVk1RkNJdWRWaGR1WnA2YnA3SlVSV05pekdQbU0tdzF1elc4ZDV3?oc=5",
-      "tag": "🏷️ אנליסטים",
+      "title": "First Solar drops as investors weigh policy/tariff assumptions and ongoing ITC TOPCon case | FSLR Stock News",
+      "publisher": "Quiver Quantitative",
+      "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxQLU5rY3ZTT1JKQ0NzTWNyWVZRamlMa2t2STVxNGgzcGNJd0hjWGNuUnpLcnZWTmNPVVQxZ1V1VktKQ0pqTWN2NVFidkdtRy1LWWFYNjgxUXFTNVE3WG8tSFZHRlVlWHJJQ181czVPQnJZWDFaNzNNMk91Zk42RkNnTUt3VzlwWS01Y0xmTm9WQ1dQc0dHeXpRa0FPOWdob1RwazQzTnl5V1lDUElhaWtRdVZCd2NnN1hGd1lBbk5UX1RzdWM?oc=5",
+      "tag": "🌍 שוק / מאקרו",
       "date": "2026-06-05"
      },
      {
@@ -922,34 +937,34 @@
       "date": "2026-06-05"
      },
      {
-      "title": "iShares Global Clean Energy ETF (ICLN) vs Invesco Solar ETF (TAN): Which Is the Better Buy?",
-      "publisher": "The Motley Fool",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxPQ3VIWFlDYmJXV28wVHVhRU44cXN3YWNuM3g2TnU3MkFhdDJzTFRfWUxZYjdEZzJFcEFwQmlKTTJEX2Q0bzhua0ZQSDA3VGxBRDB5cF94eUhpU1hxVnhLLUxKQVg3NVdJUVJWVy1tMVJSTVhzT0RhZWRYS1BlUmRIdjg0VmkzUmloc3ZkYjNEMDZ6bEZJeVk3SHZ2YVN1bEZZQ2JBRENrVk9UelRKLVlyR0J1OVA4NHo4T0dyOTdDNHA5MHllX040amZwdkU?oc=5",
+      "title": "S&P 500 Movers | Winners: COO, FDXF, KMB | Losers: MU, TER, FSLR",
+      "publisher": "Trefis",
+      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNcXFTVkxMQUNaS0R3anhYaThxcG1QQlhxWUlXVnp2S0VjUGdEYVl1cWtyaVZpdlRTeUExNW1uRHBUdDhxU2oxaFpuSjdOSTdsQnV6M0syRjdQUzlrRkpqcVRFUnhWdXRYRHVjTDM3Q2hGMXhybGhreWN2c1ZDUi05UXQ1SHVNbndPTmJGSHQzZE5Tbl9BenpJUldxZl9sbXNyZWxxLUxTaS1La3h3V25ZWm5sSQ?oc=5",
       "tag": null,
       "date": "2026-06-05"
      }
     ],
-    "summary": "FSLR ירדה 41% מהשיא (03.06.26). באותה תקופה ה-S&P עלה 4% והענף (XLK) עלה 0% - בעיה של החברה. הירידה החדה ביותר: -11% ב-05.06.26. בכותרות: 🏷️ אנליסטים."
+    "summary": "FSLR ירדה 44% מהשיא (03.06.26). באותה תקופה ה-S&P עלה 3% והענף (XLK) ירד 3% - בעיה של החברה. הירידה החדה ביותר: -11% ב-05.06.26. בכותרות: 🌍 שוק / מאקרו."
    },
-   "status": "new"
+   "status": "held"
   },
   {
    "ticker": "LDOS",
    "name": "Leidos",
    "sector": "Industrials",
-   "drawdown_pct": -39.6,
-   "ev_ebit": 7.1,
-   "vs_industry": 0.31,
-   "vs_itself": 0.61,
-   "cheap_score": 0.189,
+   "drawdown_pct": -37.9,
+   "ev_ebit": 7.3,
+   "vs_industry": 0.34,
+   "vs_itself": 0.63,
+   "cheap_score": 0.215,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -38.9,
+    "drop_pct": -37.1,
     "peak_date": "2025-11-04",
-    "spy_pct": 16.5,
+    "spy_pct": 15.5,
     "sector_etf": "XLI",
-    "sector_pct": 11.9,
+    "sector_pct": 11.3,
     "worst_days": [
      {
       "date": "2026-02-11",
@@ -976,163 +991,41 @@
       "date": "2026-02-11"
      },
      {
+      "title": "S&P 500 Movers | Winners: GNRC, SNDK, MU | Losers: CBRE, LDOS, HOOD",
+      "publisher": "Trefis",
+      "url": "https://news.google.com/rss/articles/CBMitwFBVV95cUxNUnEtMzM3Nl9PWGJBZmcwTEt3R0IyWEc2R3BmeVdTRWRvZzJlT0drWV9qODdMMjBVemJRc3FuVnAxZ2RlU0N0cUFwZHlMTFJZLUljaUhObUU0ZEdiZFpiaktTWWctQTV5QkxLeTd4QVg2RVo1NVNvd1daSlpyajBJdl9fV2lsOUZzdmRLMFRTYVpRajRzRk04M2N1NzBoaE9jUFJRTDNabC1jeGdsV0lhM1dVN08xUzA?oc=5",
+      "tag": null,
+      "date": "2026-02-11"
+     },
+     {
       "title": "Leidos to launch next phase of DODNet transformation through accelerated migration of defense agencies",
       "publisher": "PR Newswire",
       "url": "https://news.google.com/rss/articles/CBMi7wFBVV95cUxNdHBUUjlZVElFdERSWndYSU5XQmhzWWtxbmNFTFRWdXBoRS1YS1hBTmhWR3lIcko3WFdhSWxfaURHNFBuQUIybktodTdWbTEyMDRBWUJSVjZvYmdDc3FjNlNtdWw0cGdwdlEtcVVBUENUWnZxcV9PWmdYODBrR21ESThxODFDSlk3VFVxZUJZUVhLVF9IMk0yaFBUcG0zM3Q3RGdERnB4dkhVSHdQcE85T29jUkxUZWI2VDN5ZlN1VjZfRjliLWxHZjlXdXB6NzViOG9NdFRfa0NTeFZ5eW9vakd3SWotOE5CUnlSVEh0aw?oc=5",
       "tag": null,
       "date": "2026-02-11"
-     },
-     {
-      "title": "SAIC shares fall to 4-year low after company slashes revenue forecast",
-      "publisher": "The Business Journals",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQOTlUYVFvY05Vem9sYjFWN29WTUZkeDE3VDAtRXdCMDNaa0ZaZG9UazFqRkNUcW16RzBIT0hMQ2lfVE5OVk1QaWtFVUh6VFRXZVRJUUhFNDFFWTRESVRIY3h5ZWxuNzdmeFl5RjJsODBTb25oeWU3T1VZcGFKR2s0TGREWFNsNjNHdHNjSFdCdmtNdWR1cUhJVUhEZw?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-02-11"
      }
     ],
-    "summary": "LDOS ירדה 39% מהשיא (04.11.25). באותה תקופה ה-S&P עלה 17% והענף (XLI) עלה 12% - בעיה של החברה. הירידה החדה ביותר: -11% ב-11.02.26. בכותרות: 📉 דוח / תחזית."
+    "summary": "LDOS ירדה 37% מהשיא (04.11.25). באותה תקופה ה-S&P עלה 16% והענף (XLI) עלה 11% - בעיה של החברה. הירידה החדה ביותר: -11% ב-11.02.26."
    },
-   "status": "new"
-  },
-  {
-   "ticker": "INTU",
-   "name": "Intuit",
-   "sector": "Information Technology",
-   "drawdown_pct": -54.8,
-   "ev_ebit": 14.8,
-   "vs_industry": 0.64,
-   "vs_itself": 0.32,
-   "cheap_score": 0.202,
-   "explanation": {
-    "kind": "company",
-    "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -54.1,
-    "peak_date": "2025-10-27",
-    "spy_pct": 14.8,
-    "sector_etf": "XLK",
-    "sector_pct": 31.7,
-    "worst_days": [
-     {
-      "date": "2026-05-21",
-      "pct": -20.0,
-      "earnings": true
-     },
-     {
-      "date": "2026-02-03",
-      "pct": -10.9,
-      "earnings": false
-     },
-     {
-      "date": "2026-06-02",
-      "pct": -8.9,
-      "earnings": false
-     }
-    ],
-    "headlines": [
-     {
-      "title": "Why Intuit (INTU) Shares Are Trading Lower Today",
-      "publisher": "Yahoo Finance",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQbGV5U05YMEdyWGRnb09vdXU3NzBpbmZRam94UWlWYTdaVFBWalJnTm05cElBTWxyTWJLV0JJZ194aHpkRzROQ0dxWUppMXVCWEtVVXZSRWJ3dWkweWhWQ2c4ekNkWHZTTWdFRk00QXJpMXRaYTNfNzA4VlBhMWlZN0RGRzJZVTBHQUh5TWc4YW5YMzZQZlJEZTNEbw?oc=5",
-      "tag": null,
-      "date": "2026-05-21"
-     },
-     {
-      "title": "Intuit plans to cut workforce by about 17% as tax software maker reckons with slowing growth",
-      "publisher": "CNBC",
-      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPVU02bzhUMzdxMEFGRGdTSXBBYTBxNGFaN1lVVnNxeV9kMUotWWtFMDdkX2FmR095ZXJhMlBib0ZxQmRyYkN2TEVFZ2ZOaGxFa3Fjdk1mWllQeUNCYUtLcUVKeF9fTkFlN3M4c1otVVd6clhsSlVCSkxhRThyV25oUVRVOWlqaXphUUJLTm9PbEllRHh6UExvdHVNek10dmctWUQ4V1VrVG1EdzTSAbABQVVfeXFMT1g1cmpJUHFrSjZZS0dMZlk5UmpqY3B0VlpSTThiS0MwVFdRSXY5ZHpHZlBYckpRSEY5RFZvNGhIWWlzMi0tclBYT09vRmFaTkF1dEl3NUJYS1VDZDRTbGpSQVlpZlZNWUpaeEtobXpmbDA0eHJ0RHRQdHBKZ1JQSUJ3TWtvMG8yeVpGNXd1Qy05QUw1YmlmbU9yMUZQRGJnUERlRE0tWUs2Vk8tZTVFbDk?oc=5",
-      "tag": null,
-      "date": "2026-05-21"
-     },
-     {
-      "title": "Down 60%, Is Intuit Stock A Solid Buying Opportunity Or A Falling Knife?",
-      "publisher": "Trefis",
-      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxONXpnZXQ3a0hfbWlPTTNTamJJRFV2WHFRRHBDdTV1QmxKa1Rsb1hXSzZHYjhteXQ2TzJQcXVhOE8yNHRYNWdqcEJQTEpnYlRHbXNURDgxaDFDcXl2bXhYT1ByZm1JOXF6NENTMGNrOHJQVlJZdjJZMERTVk9IZFE2d2JPb2cwLWZrVFJwZHp3Ql9jQWtDbmtFUEFjekRoeWozZDZrVWlPWWNqY09veFl1NHRaaFNtZ2d6UHc?oc=5",
-      "tag": null,
-      "date": "2026-05-21"
-     }
-    ],
-    "summary": "INTU ירדה 54% מהשיא (27.10.25). באותה תקופה ה-S&P עלה 15% והענף (XLK) עלה 32% - בעיה של החברה. הירידה החדה ביותר: -20% ב-21.05.26 (יום דוח רבעוני 📊)."
-   },
-   "status": "new"
-  },
-  {
-   "ticker": "LVS",
-   "name": "Las Vegas Sands",
-   "sector": "Consumer Discretionary",
-   "drawdown_pct": -46.9,
-   "ev_ebit": 7.0,
-   "vs_industry": 0.44,
-   "vs_itself": 0.53,
-   "cheap_score": 0.235,
-   "explanation": {
-    "kind": "company",
-    "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -45.9,
-    "peak_date": "2025-12-01",
-    "spy_pct": 15.6,
-    "sector_etf": "XLY",
-    "sector_pct": -4.1,
-    "worst_days": [
-     {
-      "date": "2026-01-29",
-      "pct": -14.0,
-      "earnings": true
-     },
-     {
-      "date": "2026-04-23",
-      "pct": -8.6,
-      "earnings": true
-     },
-     {
-      "date": "2026-01-09",
-      "pct": -4.8,
-      "earnings": false
-     }
-    ],
-    "headlines": [
-     {
-      "title": "Las Vegas Sands Stock Slumps After Macao Results Fall Short",
-      "publisher": "WSJ",
-      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPbEN6SDFDUmlFMzZYZFo3MVM1ZFc3d1NRN1FmS3k0bHZYYUEydUpINjEyTzJYaFptd19ZUGhxUkxVNElMX3hkZTFMSUo3Sy1QYjFwb0RTNUZlM3VrY0FybE15SnhEODQyZ1o4Z0cyZWZpOWJaLWVHTDI4X2wtY0o3clk5aDZHclpUMVVPeXdPTFdLbzFEM0lXSlNFN0Y0NFFVSXMtVXo5MA?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-01-29"
-     },
-     {
-      "title": "Las Vegas Sands Stock Tumbles 13%. It Has a Macau Problem.",
-      "publisher": "Barron's",
-      "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE9TLWpwZHhlRlR3TEtlLUZJRXZTaFEyRFI0NlY1ZUlLUlJ5TmkzejRkWEY1c1RGM1F4X0xDWlpNbHpGbE5qcTBJVnJLbTY3N1pqZ3Z2VmJjanpBbnpwdEFDbjVXaEs2X0FJS0Fvb3dTQVJ3OHpjQlRCMQ?oc=5",
-      "tag": null,
-      "date": "2026-01-29"
-     },
-     {
-      "title": "Why Las Vegas Sands Stock Dived by Almost 14% Today",
-      "publisher": "The Motley Fool",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxObE0wLUdmLS1PRmRMREttZGV0Yk56RUxPSW43UEFvU001MGNEQkttNWpELWltUGxFc1A4T2ZWVWtTMXRrUS04bm9SZEI1eHNSdWFXNkYzdk5fQWdsMnN3TWdJZlRYdTVnaEtENEw4THN4cG9YdVhSTzh3TWI3c3NWam1LX1JfZnZUVnZ5REQzOUd5SExOS25XZA?oc=5",
-      "tag": null,
-      "date": "2026-01-29"
-     }
-    ],
-    "summary": "LVS ירדה 46% מהשיא (01.12.25). באותה תקופה ה-S&P עלה 16% והענף (XLY) ירד 4% - בעיה של החברה. הירידה החדה ביותר: -14% ב-29.01.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
-   },
-   "status": "new"
+   "status": "held"
   },
   {
    "ticker": "PODD",
    "name": "Insulet Corporation",
    "sector": "Health Care",
-   "drawdown_pct": -59.7,
-   "ev_ebit": 18.8,
-   "vs_industry": 0.78,
-   "vs_itself": 0.31,
-   "cheap_score": 0.24,
+   "drawdown_pct": -59.9,
+   "ev_ebit": 18.7,
+   "vs_industry": 0.76,
+   "vs_itself": 0.3,
+   "cheap_score": 0.232,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -59.7,
+    "drop_pct": -59.9,
     "peak_date": "2025-11-19",
-    "spy_pct": 18.7,
+    "spy_pct": 17.7,
     "sector_etf": "XLV",
-    "sector_pct": 13.3,
+    "sector_pct": 18.3,
     "worst_days": [
      {
       "date": "2026-08-05",
@@ -1173,27 +1066,88 @@
       "date": "2026-08-05"
      }
     ],
-    "summary": "PODD ירדה 60% מהשיא (19.11.25). באותה תקופה ה-S&P עלה 19% והענף (XLV) עלה 13% - בעיה של החברה. הירידה החדה ביותר: -20% ב-05.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית, ⚖️ חקירה / משפט."
+    "summary": "PODD ירדה 60% מהשיא (19.11.25). באותה תקופה ה-S&P עלה 18% והענף (XLV) עלה 18% - בעיה של החברה. הירידה החדה ביותר: -20% ב-05.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית, ⚖️ חקירה / משפט."
    },
-   "status": "new"
+   "status": "held"
+  },
+  {
+   "ticker": "INTU",
+   "name": "Intuit",
+   "sector": "Information Technology",
+   "drawdown_pct": -51.7,
+   "ev_ebit": 15.7,
+   "vs_industry": 0.73,
+   "vs_itself": 0.34,
+   "cheap_score": 0.247,
+   "explanation": {
+    "kind": "company",
+    "kind_label": "🏢 בעיה של החברה",
+    "drop_pct": -51.0,
+    "peak_date": "2025-10-27",
+    "spy_pct": 13.8,
+    "sector_etf": "XLK",
+    "sector_pct": 27.2,
+    "worst_days": [
+     {
+      "date": "2026-05-21",
+      "pct": -20.0,
+      "earnings": true
+     },
+     {
+      "date": "2026-02-03",
+      "pct": -10.9,
+      "earnings": false
+     },
+     {
+      "date": "2026-06-02",
+      "pct": -8.9,
+      "earnings": false
+     }
+    ],
+    "headlines": [
+     {
+      "title": "Why Intuit (INTU) Shares Are Trading Lower Today",
+      "publisher": "Yahoo Finance",
+      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxQbGV5U05YMEdyWGRnb09vdXU3NzBpbmZRam94UWlWYTdaVFBWalJnTm05cElBTWxyTWJLV0JJZ194aHpkRzROQ0dxWUppMXVCWEtVVXZSRWJ3dWkweWhWQ2c4ekNkWHZTTWdFRk00QXJpMXRaYTNfNzA4VlBhMWlZN0RGRzJZVTBHQUh5TWc4YW5YMzZQZlJEZTNEbw?oc=5",
+      "tag": null,
+      "date": "2026-05-21"
+     },
+     {
+      "title": "Intuit Stock: Strong Cash Flow Poised for a Re-Rating?",
+      "publisher": "Trefis",
+      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxNVVI1Nm16a1VMS1cyRGRPTTIzQ3hiMXo4aG5NWWdmcEZrbmtUM0xwbnROcWM3NXNDNGl3TVMzSEZhSUZFTzdwRUdQUUgxcnNZUHdYblhpUzJOVjJiMHM2a0hkWmVBVUdmS1ZGZTdvQ3FuZkQyV3A2N0t1WlcxdzlwMzNvYmQzZnRVdkxfNFluWEZRdUxGZmp4RDVKN2NaT0lzNlhZX3pOSUlRSWc3NGlSeXJuZw?oc=5",
+      "tag": "🏷️ אנליסטים",
+      "date": "2026-05-21"
+     },
+     {
+      "title": "Intuit plans to cut workforce by about 17% as tax software maker reckons with slowing growth",
+      "publisher": "CNBC",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxPVU02bzhUMzdxMEFGRGdTSXBBYTBxNGFaN1lVVnNxeV9kMUotWWtFMDdkX2FmR095ZXJhMlBib0ZxQmRyYkN2TEVFZ2ZOaGxFa3Fjdk1mWllQeUNCYUtLcUVKeF9fTkFlN3M4c1otVVd6clhsSlVCSkxhRThyV25oUVRVOWlqaXphUUJLTm9PbEllRHh6UExvdHVNek10dmctWUQ4V1VrVG1EdzTSAbABQVVfeXFMT1g1cmpJUHFrSjZZS0dMZlk5UmpqY3B0VlpSTThiS0MwVFdRSXY5ZHpHZlBYckpRSEY5RFZvNGhIWWlzMi0tclBYT09vRmFaTkF1dEl3NUJYS1VDZDRTbGpSQVlpZlZNWUpaeEtobXpmbDA0eHJ0RHRQdHBKZ1JQSUJ3TWtvMG8yeVpGNXd1Qy05QUw1YmlmbU9yMUZQRGJnUERlRE0tWUs2Vk8tZTVFbDk?oc=5",
+      "tag": null,
+      "date": "2026-05-21"
+     }
+    ],
+    "summary": "INTU ירדה 51% מהשיא (27.10.25). באותה תקופה ה-S&P עלה 14% והענף (XLK) עלה 27% - בעיה של החברה. הירידה החדה ביותר: -20% ב-21.05.26 (יום דוח רבעוני 📊). בכותרות: 🏷️ אנליסטים."
+   },
+   "status": "held"
   },
   {
    "ticker": "APTV",
    "name": "Aptiv",
    "sector": "Consumer Discretionary",
-   "drawdown_pct": -50.0,
-   "ev_ebit": 13.3,
+   "drawdown_pct": -49.0,
+   "ev_ebit": 13.5,
    "vs_industry": 0.67,
-   "vs_itself": 0.75,
-   "cheap_score": 0.503,
+   "vs_itself": 0.76,
+   "cheap_score": 0.507,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -50.0,
+    "drop_pct": -49.0,
     "peak_date": "2026-01-09",
-    "spy_pct": 13.0,
+    "spy_pct": 12.1,
     "sector_etf": "XLY",
-    "sector_pct": -9.0,
+    "sector_pct": -8.3,
     "worst_days": [
      {
       "date": "2026-08-04",
@@ -1234,27 +1188,27 @@
       "date": "2026-08-04"
      }
     ],
-    "summary": "APTV ירדה 50% מהשיא (09.01.26). באותה תקופה ה-S&P עלה 13% והענף (XLY) ירד 9% - בעיה של החברה. הירידה החדה ביותר: -17% ב-04.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
+    "summary": "APTV ירדה 49% מהשיא (09.01.26). באותה תקופה ה-S&P עלה 12% והענף (XLY) ירד 8% - בעיה של החברה. הירידה החדה ביותר: -17% ב-04.08.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
-   "status": "new"
+   "status": "held"
   },
   {
    "ticker": "HII",
    "name": "Huntington Ingalls Industries",
    "sector": "Industrials",
-   "drawdown_pct": -43.0,
-   "ev_ebit": 14.6,
-   "vs_industry": 0.74,
-   "vs_itself": 0.71,
-   "cheap_score": 0.524,
+   "drawdown_pct": -41.1,
+   "ev_ebit": 15.1,
+   "vs_industry": 0.75,
+   "vs_itself": 0.74,
+   "cheap_score": 0.551,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -42.5,
+    "drop_pct": -40.6,
     "peak_date": "2026-03-02",
-    "spy_pct": 14.3,
+    "spy_pct": 13.3,
     "sector_etf": "XLI",
-    "sector_pct": -4.9,
+    "sector_pct": -5.4,
     "worst_days": [
      {
       "date": "2026-05-05",
@@ -1274,10 +1228,10 @@
     ],
     "headlines": [
      {
-      "title": "HII Reports Q1 2026 Financial Results and Reaffirms Fiscal Guidance",
-      "publisher": "Quiver Quantitative",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOc2VMREdZc0ZFcmNSdXJLR2Z1M0prSWxpRkwybVBGbkoxYXk3UERoZjRKcFFBQ2JBYm9TTlFWcGFkM2pfZVVOS0ZHZ1VDZlJxYUR4ZEEtSVpvUXJmZVdjUXhsME1DVzl6d3hNQWFyWWxsTG9WakdwekZVSlZoakwwMjcyUEhOQ3JxMHNzd2E2VmJtTDFsbzhQcjhGeFpicHFvWVE?oc=5",
-      "tag": "📉 דוח / תחזית",
+      "title": "Should You Buy Huntington Ingalls Industries Stock After 21% Drop?",
+      "publisher": "Trefis",
+      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxQbUZOdHdLVWJpYmREM255QTVDaUZ0bG95VlU1Zl8tUHRXMERXYnRKRGptZTY3bHVxSWpmcnlkMHZKRlhyb2F5c1V2UUN1aUhpOVlNd2FZX21pSjJ6MUt4TS1vS3Y0dmpHSVJ2TS1XWkdtRXcxNzRhWXJIVno0eVpfc05XQ09XU1lLWDMtUm1PQkhycXM1b3dCdnJ2dm40c3k1cy13ZTAzaWFmVnpXc1V3M201Z3JiaDJHMzY2cmhMeFBFdw?oc=5",
+      "tag": null,
       "date": "2026-05-05"
      },
      {
@@ -1295,88 +1249,149 @@
       "date": "2026-05-05"
      }
     ],
-    "summary": "HII ירדה 42% מהשיא (02.03.26). באותה תקופה ה-S&P עלה 14% והענף (XLI) ירד 5% - בעיה של החברה. הירידה החדה ביותר: -10% ב-05.05.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
+    "summary": "HII ירדה 41% מהשיא (02.03.26). באותה תקופה ה-S&P עלה 13% והענף (XLI) ירד 5% - בעיה של החברה. הירידה החדה ביותר: -10% ב-05.05.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
-   "status": "new"
+   "status": "held"
   },
   {
-   "ticker": "EFX",
-   "name": "Equifax",
-   "sector": "Industrials",
-   "drawdown_pct": -36.3,
-   "ev_ebit": 20.7,
-   "vs_industry": 0.9,
-   "vs_itself": 0.62,
-   "cheap_score": 0.557,
+   "ticker": "MKC",
+   "name": "McCormick & Company",
+   "sector": "Consumer Staples",
+   "drawdown_pct": -36.2,
+   "ev_ebit": 17.2,
+   "vs_industry": 0.86,
+   "vs_itself": 0.67,
+   "cheap_score": 0.573,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -35.5,
-    "peak_date": "2025-10-24",
-    "spy_pct": 16.2,
-    "sector_etf": "XLI",
-    "sector_pct": 10.3,
+    "drop_pct": -34.4,
+    "peak_date": "2026-02-12",
+    "spy_pct": 14.2,
+    "sector_etf": "XLP",
+    "sector_pct": -1.0,
     "worst_days": [
      {
-      "date": "2026-02-03",
-      "pct": -12.1,
+      "date": "2026-03-31",
+      "pct": -6.1,
       "earnings": true
      },
      {
-      "date": "2026-06-17",
-      "pct": -7.4,
+      "date": "2026-03-11",
+      "pct": -5.5,
       "earnings": false
      },
      {
-      "date": "2026-04-22",
-      "pct": -7.2,
+      "date": "2026-10-01",
+      "pct": -4.9,
       "earnings": true
      }
     ],
     "headlines": [
      {
-      "title": "Equifax Delivers Fourth Quarter 2025 Revenue Growth of 9% Despite Weaker U.S. Hiring and Mortgage Markets",
-      "publisher": "Equifax",
-      "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxQTnJnZll3MUVrd2RORDZURGhVV3BXVGVoaVY4U2xvUktRR2otZnJtUXRBWXlqemFEUDlYTnlXQzc3YWxKVW9iLVFLQ0s5bGlxR2I3bGlYYklMM1EtR3FDdXBDSUVyajItZDhpRURBOExDUWtyOFJ1TUhTZ2o0NGdXUHNRNXVjUVMwc3pyTmN2cUk5T0VTazdYaWhjRzFwNFVKcENxUGlsNV9TX09JeFNPUEVJNWFaa2VQVmk0RlZTVGFuZw?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-02-03"
-     },
-     {
-      "title": "Xerox, Accenture, IBM, Kyndryl, and Equifax Shares Are Falling, What You Need To Know",
+      "title": "McCormick (MKC) Reports Q1: Everything You Need To Know Ahead Of Earnings",
       "publisher": "Yahoo Finance",
-      "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPOTRvT3NxRDNoajE0UHZWLURIMTY3b3VwMUJSUV9TeHV5amxDSnRTeWhtR010VXNaY2tfbUUyaXFzbVZIeDJwZk9sOTdCaENCTmkzRXNORDlmX2hGTWQ4b1YxUkkzWlFJNDFnMEJzek9qYVgxb3U0S2diN1o2ZGozdGlRbVdYWHd3?oc=5",
-      "tag": null,
-      "date": "2026-02-03"
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNbXFmODZ6LXItVm5xT2xhb2xjMGRGZFc1bzhKemFOaWJoeG5reWMyV2lFbm9xLU10LXZLNFhFb3V4enNHNGNZM3NUSmxkbWRDOXZlREUtbE4zUml1ZENCWUt3Vi1RNHZydk9NRVZleGVPdGRvN2E0RDZNcFpYZU1Ud2FxU0p2NjdqckJpOFBfbEtlZjF2bVJ4LWptTmgxcllxcFE?oc=5",
+      "tag": "📉 דוח / תחזית",
+      "date": "2026-03-31"
      },
      {
-      "title": "Equifax Revenue Rises Despite Weak Hiring, Mortgage Markets",
-      "publisher": "WSJ",
-      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQc2RWTldhYVJoVjVyUXhGUnVrSkRWejZZSDJYWkVwZHY4dVhrdFlYY0xOVjh0dEdjVWhXRGh3WVRvbXo0RWR4RWduWXg4TWVFTzk1T2V3anc3VUttT3lHTnRsLWxfU1NDc25NNEhBQjRDZ1Q2YXAtYXh6ZlJRMG5pSU5QQ3MycE9JcXZoTDBhUXVwT1ZuTXdydnhBaWZDV0trQ0FfSVlCa2U?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-02-03"
+      "title": "McCormick & Company Falls to Value Levels Income Investors Love",
+      "publisher": "MarketBeat",
+      "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxPeXB6OF96dS1fNjVCMEhwb2NrRnZqLWJiRjdWeVYzZFVWU0xka3Z6S1haOGdlazB3aWhEeWIwQWhCS0pLbzBUX2Jjc20zRmhpWXdVYXBrN2dRZkVwYVE5WGlIRDlPY3VTYk93elNyNmRBNHhpVENJNUVFdnBGcTZCWVQ2WWNuNFFrM3BDRHZOYi1hMDJ1bVluSjdNLUVINTFKTG5CWA?oc=5",
+      "tag": null,
+      "date": "2026-03-31"
+     },
+     {
+      "title": "McCormick Stock Drops on Potential Multi-Billion Dollar Merger With Unilever",
+      "publisher": "TIKR.com",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNZXBYbXpQQWRQWlNyTmsyclJaeEs4T0JlNG5SbHdjVGdBX1RsdW9qaGItQmxTWFJCVDlCSlBSUE9zZk16ZURQSVdSSF9ZYmZ2djdXVnBWT1pXSk90SFJiS3NzQ05tanN5am9mYVlqVEltN250eHNsUnhWRm1KVW9qYzVfc2Jpa284NE03TjNUeWlsT2o2ZVNsUnR6NlFvNklGSndXNUlaTzRwVEE?oc=5",
+      "tag": null,
+      "date": "2026-03-31"
      }
     ],
-    "summary": "EFX ירדה 36% מהשיא (24.10.25). באותה תקופה ה-S&P עלה 16% והענף (XLI) עלה 10% - בעיה של החברה. הירידה החדה ביותר: -12% ב-03.02.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
+    "summary": "MKC ירדה 34% מהשיא (12.02.26). באותה תקופה ה-S&P עלה 14% והענף (XLP) ירד 1% - בעיה של החברה. הירידה החדה ביותר: -6% ב-31.03.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
    },
-   "status": "new"
+   "status": "held"
+  },
+  {
+   "ticker": "ORCL",
+   "name": "Oracle Corporation",
+   "sector": "Information Technology",
+   "drawdown_pct": -57.0,
+   "ev_ebit": 16.4,
+   "vs_industry": 0.76,
+   "vs_itself": 0.8,
+   "cheap_score": 0.614,
+   "explanation": {
+    "kind": "company",
+    "kind_label": "🏢 בעיה של החברה",
+    "drop_pct": -56.5,
+    "peak_date": "2025-10-16",
+    "spy_pct": 18.1,
+    "sector_etf": "XLK",
+    "sector_pct": 33.7,
+    "worst_days": [
+     {
+      "date": "2025-12-11",
+      "pct": -10.8,
+      "earnings": true
+     },
+     {
+      "date": "2026-06-05",
+      "pct": -9.6,
+      "earnings": false
+     },
+     {
+      "date": "2026-10-14",
+      "pct": -8.8,
+      "earnings": false
+     }
+    ],
+    "headlines": [
+     {
+      "title": "Oracle stock sinks as AI costs jump past Wall Street estimates",
+      "publisher": "Yahoo Finance",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPM2xQZF9KN2V4cEZzUDlMRktZWi1Tb3RSbUlNbHZUQk02amFTSUhMcmZjd0p0dzQ5di1TVzBPdkhha2RKNFZpbVpnbnVtZ0FsWFJQQ0h2T2Z4Q3l3M00xNWczQUt5MG5ndU1iak9uY1BLblhyY0QwQThzVnFzSXp1YmQ2UGhGTWJzWWo4N0JCblo3VzU5TTlFY05QYmdIMEpkaFlzSFpxRmE5SFBs?oc=5",
+      "tag": "🤖 תחרות / טכנולוגיה",
+      "date": "2025-12-11"
+     },
+     {
+      "title": "Oracle slumps as gloomy forecasts, soaring spending fan AI bubble worries",
+      "publisher": "Reuters",
+      "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNVGppa1JKRUg0eWx0SDkyZWt2c0N1UUdXNXBacUc1MnhuTXgzRndlQlgyTWR6ck42RHhtTkw5MVBXYjBrVjVGR1lVbE5vSXo2dkd6dHJFbzY1VUo3elBpT29VcGJpX1B0SzRGVXk1WjgzR190b2ZyOExDRjFoV0pzMFpTMElJc2lGZFdmX2dzaW1Fb2FpcEJZc0tPNEhpdEQ0QkM1aHRua2NWOEFXSGE0?oc=5",
+      "tag": "🤖 תחרות / טכנולוגיה",
+      "date": "2025-12-11"
+     },
+     {
+      "title": "A Bad Week for Oracle Stock Got Even Worse on Friday. Here's Why",
+      "publisher": "Investopedia",
+      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQdmhuY1U3bHp4RnNGZXdXX185eTc4S25ybDAxMGwtUUNnWDlId2JuWU5pRHpSS2ZueTlwenFuOVE1SFlhOElIRy1icUtGSk1BTVJ5dThYWExoYjlfMXQzVklBdVNWOWNjT2xLbElLaTI4SHhMVHJEdEtOZDZoX0hhVHoyZ2l5MXYyMVZKZGZQRFg3eVdTTkg1YTVaTkVLVVRYaUd6NTFFUVhxQQ?oc=5",
+      "tag": null,
+      "date": "2025-12-11"
+     }
+    ],
+    "summary": "ORCL ירדה 56% מהשיא (16.10.25). באותה תקופה ה-S&P עלה 18% והענף (XLK) עלה 34% - בעיה של החברה. הירידה החדה ביותר: -11% ב-11.12.25 (יום דוח רבעוני 📊). בכותרות: 🤖 תחרות / טכנולוגיה."
+   },
+   "status": "held"
   },
   {
    "ticker": "FIS",
    "name": "Fidelity National Information Services",
    "sector": "Financials",
-   "drawdown_pct": -47.9,
-   "ev_ebit": 21.0,
-   "vs_industry": 0.91,
+   "drawdown_pct": -46.8,
+   "ev_ebit": 21.2,
+   "vs_industry": 0.99,
    "vs_itself": 0.62,
-   "cheap_score": 0.563,
+   "cheap_score": 0.617,
    "explanation": {
     "kind": "company",
     "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -45.9,
+    "drop_pct": -44.8,
     "peak_date": "2025-10-20",
-    "spy_pct": 17.2,
+    "spy_pct": 16.2,
     "sector_etf": "XLF",
-    "sector_pct": 5.7,
+    "sector_pct": 6.3,
     "worst_days": [
      {
       "date": "2026-02-03",
@@ -1403,206 +1418,23 @@
       "date": "2026-02-03"
      },
      {
-      "title": "FIS SUCCESSFULLY COMPLETES €770 MILLION BOND ISSUANCE | Corporate",
-      "publisher": "EQS News",
-      "url": "https://news.google.com/rss/articles/CBMizwFBVV95cUxNcktZRFZqNVJ4V3RIOTZxc2QwbE9uMTcxdkNsSU56ODFneHV5cUJPVktUXzJrM1RlSGx6cXFfc3hmb3NoN2JpRHpHemtyNEVnSEZUQllUYzhGNW5QMGFLNFYyaWpWcGhzLTEzVG5WaGFsa1Z6VW93M1NJaV9nbWx6UzNuQW5oSy1Ca0VoMGVrY2Y2bTBCanR4WGYyN1d4OXZaZXp1M2pDQUNlZWJxalA4ekpOeWo1bzV5VXRaWWl5ZGhWdFEyZ1d6amplOWk1c2M?oc=5",
-      "tag": null,
-      "date": "2026-02-03"
-     },
-     {
       "title": "Morgan Stanley Thinks This Stock Is the ‘Best Fintech Asset’",
       "publisher": "Barron's",
       "url": "https://news.google.com/rss/articles/CBMihwFBVV95cUxNR2Nhd0ZXdXZ6VGhNekkwWHhkRlRVQzJSZFZGQmdzSXhfSGhNeFkxMW02alZzby1LNjlRYnJVVEdYbmUwdmtVRmdSbWJ4YTNRQ0FVakJWcTJ2cklIRVNkb0dQbWFpNUFyU0t2aWpEUlZvTkgtaGdOSDU2V1ZjOTZydDdha25oMjQ?oc=5",
       "tag": null,
       "date": "2026-02-03"
+     },
+     {
+      "title": "Fiserv: Deeply Discounted Shares Present Attractive Long-Term Opportunity (NASDAQ:FISV)",
+      "publisher": "Seeking Alpha",
+      "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxQR0VZcGpkVGxGWG1hdHJ6MFdqaTZvMEEyQ3pEMTBTT0FELVJ5V0VjWnFIMFlUVndyaHM0emt3MUs5OHdVNE1hMkRVZGlYQ21JVVlwLUdDNkpySTZtZEJQOS1qV3lXSk1OSWJScGtORk5VMWhJY2JfX3BmclY1clc5WExqR2J3bjU2VEd1ZTdSek1NTEZhVFBlNnV6Z2ZXTk5OZDc2S3ZSU1ZFNS01aUJEamRQaw?oc=5",
+      "tag": null,
+      "date": "2026-02-03"
      }
     ],
-    "summary": "FIS ירדה 46% מהשיא (20.10.25). באותה תקופה ה-S&P עלה 17% והענף (XLF) עלה 6% - בעיה של החברה. הירידה החדה ביותר: -9% ב-03.02.26."
+    "summary": "FIS ירדה 45% מהשיא (20.10.25). באותה תקופה ה-S&P עלה 16% והענף (XLF) עלה 6% - בעיה של החברה. הירידה החדה ביותר: -9% ב-03.02.26."
    },
-   "status": "new"
-  },
-  {
-   "ticker": "MKC",
-   "name": "McCormick & Company",
-   "sector": "Consumer Staples",
-   "drawdown_pct": -37.8,
-   "ev_ebit": 16.9,
-   "vs_industry": 0.87,
-   "vs_itself": 0.65,
-   "cheap_score": 0.568,
-   "explanation": {
-    "kind": "company",
-    "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -36.7,
-    "peak_date": "2026-02-12",
-    "spy_pct": 15.1,
-    "sector_etf": "XLP",
-    "sector_pct": -3.6,
-    "worst_days": [
-     {
-      "date": "2026-03-31",
-      "pct": -6.1,
-      "earnings": true
-     },
-     {
-      "date": "2026-03-11",
-      "pct": -5.5,
-      "earnings": false
-     },
-     {
-      "date": "2026-10-01",
-      "pct": -4.9,
-      "earnings": true
-     }
-    ],
-    "headlines": [
-     {
-      "title": "McCormick & Company Falls to Value Levels Income Investors Love",
-      "publisher": "Yahoo Finance",
-      "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQNk5HU2ZlSjFQbVlZT1VneGdQX0ZkMmYzQURJSVFLaGRLNkVSMGpMLXlsVUM1eHBvMmNpZi10N3NoY2FzMU9HV21OM1Q2eUhneE5rc3BqY0hOeXdPdjV4NkZNUE9TczVQVkVkOWlRNUdDRlVpalNDelJnOEpINS1qYjBXZ2V3SXVrVEJhUzR2WGtLdDA3cEMtT0llYXJoMEtBTHBz?oc=5",
-      "tag": null,
-      "date": "2026-03-31"
-     },
-     {
-      "title": "McCormick Stock Drops on Potential Multi-Billion Dollar Merger With Unilever",
-      "publisher": "TIKR.com",
-      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNZXBYbXpQQWRQWlNyTmsyclJaeEs4T0JlNG5SbHdjVGdBX1RsdW9qaGItQmxTWFJCVDlCSlBSUE9zZk16ZURQSVdSSF9ZYmZ2djdXVnBWT1pXSk90SFJiS3NzQ05tanN5am9mYVlqVEltN250eHNsUnhWRm1KVW9qYzVfc2Jpa284NE03TjNUeWlsT2o2ZVNsUnR6NlFvNklGSndXNUlaTzRwVEE?oc=5",
-      "tag": null,
-      "date": "2026-03-31"
-     },
-     {
-      "title": "McCormick Earnings: Q1 Gains Eclipsed by Massive Unilever Deal",
-      "publisher": "Morningstar",
-      "url": "https://news.google.com/rss/articles/CBMinAFBVV95cUxQcW5JMHpBTWd5UUhHU2hCZWRoR09icXVtQndaMkVxYUhQS3ZNYXBlZFZqdVZYc0VVRGdKeEI2Y0poNlpwUWJtUnJrYVZhOU9vcjVXb1E0a3gwNDVUMjJhOUs4Z0V1STR2UnZFRVhpazVDTVZMV1FZNWNqNEdVTkJZRm1SZDVoalBXc0J5ZDVTeXgxMUp4ZTZsWUpxMmw?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-03-31"
-     }
-    ],
-    "summary": "MKC ירדה 37% מהשיא (12.02.26). באותה תקופה ה-S&P עלה 15% והענף (XLP) ירד 4% - בעיה של החברה. הירידה החדה ביותר: -6% ב-31.03.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
-   },
-   "status": "new"
-  },
-  {
-   "ticker": "NOC",
-   "name": "Northrop Grumman",
-   "sector": "Industrials",
-   "drawdown_pct": -37.1,
-   "ev_ebit": 18.0,
-   "vs_industry": 0.75,
-   "vs_itself": 0.79,
-   "cheap_score": 0.595,
-   "explanation": {
-    "kind": "company",
-    "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -36.6,
-    "peak_date": "2026-03-02",
-    "spy_pct": 14.3,
-    "sector_etf": "XLI",
-    "sector_pct": -4.9,
-    "worst_days": [
-     {
-      "date": "2026-04-21",
-      "pct": -7.0,
-      "earnings": true
-     },
-     {
-      "date": "2026-06-18",
-      "pct": -5.2,
-      "earnings": false
-     },
-     {
-      "date": "2026-09-30",
-      "pct": -4.2,
-      "earnings": false
-     }
-    ],
-    "headlines": [
-     {
-      "title": "Why Northrop Grumman (NOC) Is Down 13.1% After Q1 Beat And Faster B-21 Ramp News – And What's Next",
-      "publisher": "Yahoo Finance",
-      "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPRmZZSHdpTE1RYVpveGJWOWhIMUEwRm1WdXd2amJ4Sll0OXQzWWstclZRSVZIU05XRHZidkZfTV9ELUY3T0dKd284MW9mdmIyQXM1VjJxM1M2SmwxM3NlcE1ZNW1RTW1xeEVUV1NWQlFWSWhLam0wc19xdWE1M1VrNTFhQzVGSnpBV0ZpeFNTN0FoR0ROeWs0Wmd3?oc=5",
-      "tag": "📉 דוח / תחזית",
-      "date": "2026-04-21"
-     },
-     {
-      "title": "Northrop Grumman falls as investors focus on Q1 cash burn and a Space Systems charge",
-      "publisher": "Quiver Quantitative",
-      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxQalpaMjlra3VQMTdDVmZOWFNSOEVFb1pjUXZmSzF5cTduRVFxay1mZVA4QVJXX0tENFhqM0xfaUUxVHZSSFJHbFByTE1oN2p6ZGR3Mm90cGhTSVJwQXFTUVVWRWZDdjZ1Q3p6eUpxb0tfeWY3TVlQZjB5alNWM0h3OHZMT2FhdG1hc2xmVkN1Wmt0ZWRPVmZlQTFkeXhoQzVrSDRIby1IeUpUVGxVWktHTUE1RkhrYW5w?oc=5",
-      "tag": null,
-      "date": "2026-04-21"
-     },
-     {
-      "title": "Northrop Grumman (NYSE:NOC) Stock Price Down 4.9% - Here's What Happened",
-      "publisher": "MarketBeat",
-      "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxQdEJpOU1qQ2FkTzVZeU9hcTdoUFV5NU1DWGFMQWxndWc1TkxuQjRlU1Vwb2EydHFIZEFZdVJseWhTYTFpOEJPSnRmVEVrTWRvRXFaeDdtN3Q2X05KUUJrOVBVdjBQb3pNRWloWnlwZ0pDckc3cEJlYW9MQ3R0UmxFWkNMbkRheHNXRDFNWTNtVzZkT2tUQWVQYnpfbFVFUjVmRmQ2OVJyMUdpT3NmVm9CX0l1WHpHQjVkWmc?oc=5",
-      "tag": null,
-      "date": "2026-04-21"
-     }
-    ],
-    "summary": "NOC ירדה 37% מהשיא (02.03.26). באותה תקופה ה-S&P עלה 14% והענף (XLI) ירד 5% - בעיה של החברה. הירידה החדה ביותר: -7% ב-21.04.26 (יום דוח רבעוני 📊). בכותרות: 📉 דוח / תחזית."
-   },
-   "status": "new"
-  },
-  {
-   "ticker": "ORCL",
-   "name": "Oracle Corporation",
-   "sector": "Information Technology",
-   "drawdown_pct": -54.2,
-   "ev_ebit": 17.5,
-   "vs_industry": 0.76,
-   "vs_itself": 0.86,
-   "cheap_score": 0.655,
-   "explanation": {
-    "kind": "company",
-    "kind_label": "🏢 בעיה של החברה",
-    "drop_pct": -53.6,
-    "peak_date": "2025-10-16",
-    "spy_pct": 19.1,
-    "sector_etf": "XLK",
-    "sector_pct": 38.4,
-    "worst_days": [
-     {
-      "date": "2025-12-11",
-      "pct": -10.8,
-      "earnings": true
-     },
-     {
-      "date": "2026-06-05",
-      "pct": -9.6,
-      "earnings": false
-     },
-     {
-      "date": "2026-06-11",
-      "pct": -8.5,
-      "earnings": true
-     }
-    ],
-    "headlines": [
-     {
-      "title": "Oracle stock sinks as AI costs jump past Wall Street estimates",
-      "publisher": "Yahoo Finance",
-      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPM2xQZF9KN2V4cEZzUDlMRktZWi1Tb3RSbUlNbHZUQk02amFTSUhMcmZjd0p0dzQ5di1TVzBPdkhha2RKNFZpbVpnbnVtZ0FsWFJQQ0h2T2Z4Q3l3M00xNWczQUt5MG5ndU1iak9uY1BLblhyY0QwQThzVnFzSXp1YmQ2UGhGTWJzWWo4N0JCblo3VzU5TTlFY05QYmdIMEpkaFlzSFpxRmE5SFBs?oc=5",
-      "tag": "🤖 תחרות / טכנולוגיה",
-      "date": "2025-12-11"
-     },
-     {
-      "title": "Oracle slumps as gloomy forecasts, soaring spending fan AI bubble worries",
-      "publisher": "Reuters",
-      "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNVGppa1JKRUg0eWx0SDkyZWt2c0N1UUdXNXBacUc1MnhuTXgzRndlQlgyTWR6ck42RHhtTkw5MVBXYjBrVjVGR1lVbE5vSXo2dkd6dHJFbzY1VUo3elBpT29VcGJpX1B0SzRGVXk1WjgzR190b2ZyOExDRjFoV0pzMFpTMElJc2lGZFdmX2dzaW1Fb2FpcEJZc0tPNEhpdEQ0QkM1aHRua2NWOEFXSGE0?oc=5",
-      "tag": "🤖 תחרות / טכנולוגיה",
-      "date": "2025-12-11"
-     },
-     {
-      "title": "A Bad Week for Oracle Stock Got Even Worse on Friday. Here's Why",
-      "publisher": "Investopedia",
-      "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxQdmhuY1U3bHp4RnNGZXdXX185eTc4S25ybDAxMGwtUUNnWDlId2JuWU5pRHpSS2ZueTlwenFuOVE1SFlhOElIRy1icUtGSk1BTVJ5dThYWExoYjlfMXQzVklBdVNWOWNjT2xLbElLaTI4SHhMVHJEdEtOZDZoX0hhVHoyZ2l5MXYyMVZKZGZQRFg3eVdTTkg1YTVaTkVLVVRYaUd6NTFFUVhxQQ?oc=5",
-      "tag": null,
-      "date": "2025-12-11"
-     }
-    ],
-    "summary": "ORCL ירדה 54% מהשיא (16.10.25). באותה תקופה ה-S&P עלה 19% והענף (XLK) עלה 38% - בעיה של החברה. הירידה החדה ביותר: -11% ב-11.12.25 (יום דוח רבעוני 📊). בכותרות: 🤖 תחרות / טכנולוגיה."
-   },
-   "status": "new"
+   "status": "held"
   }
  ],
  "rule": {
@@ -1612,31 +1444,38 @@
   "fee_per_side_pct": 0.1
  },
  "research_note": "במחקר 2011-2026 (רשימת S&P לפי ההרכב בכל תאריך): +10% לעסקה מעל ממוצע כל המניות באותם ימים, אבל t=0.31 - כלומר לא מובהק, ורוב העודף הגיע מ-2025 ו-2016. לכן זה ניסוי שנמדד מהיום.",
- "candidates_date": "2026-10-13",
- "updated_at": "2026-10-15T00:45:59.601547+00:00",
+ "candidates_date": "2026-10-15",
+ "updated_at": "2026-10-16T00:44:52.696386+00:00",
  "series": [
   {
    "date": "2026-10-14",
-   "port": 99.54,
+   "port": 99.59,
    "spy": 98.92,
-   "ew": 99.63,
-   "n": 11
+   "ew": 99.38,
+   "n": 12
+  },
+  {
+   "date": "2026-10-15",
+   "port": 102.51,
+   "spy": 99.2,
+   "ew": 100.79,
+   "n": 12
   }
  ],
  "stats": {
-  "port_pct": -0.46,
-  "spy_pct": -1.08,
-  "ew_pct": -0.37,
+  "port_pct": 2.51,
+  "spy_pct": -0.8,
+  "ew_pct": 0.79,
   "since": "2026-10-14",
-  "daily_pct": 0.0,
-  "trades": 11,
+  "daily_pct": 2.93,
+  "trades": 12,
   "closed": 0,
-  "beat_spy": 8,
-  "beat_ew": 7,
+  "beat_spy": 9,
+  "beat_ew": 9,
   "by_kind": {
    "company": {
-    "n": 11,
-    "avg_vs_ew_pct": -0.19
+    "n": 12,
+    "avg_vs_ew_pct": 1.63
    }
   }
  }
