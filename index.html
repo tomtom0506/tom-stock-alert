@@ -1108,12 +1108,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.16.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.17.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.17.0", date: "2026-10-16", items: [
+    "🎯 מסך הפעולה עובד עכשיו בדיוק כמו התיקים שנבדקו (backend 5.25.0): מספר קבוע של מניות (A: 10, B: 20), וקנייה רק כשמשבצת מתפנה - הטובה ביותר קודם. עד עכשיו הוצגו עד 3 קניות כל יום בלי תקרה, כך שהתיק היה גדל בלי סוף. מוצג גם כמה משבצות תפוסות, ואילו אותות דולגו כי אין מקום.",
+    "💲 גודל עסקה: אפשר להזין סכום למסחר קצר (נשמר רק בטלפון), ולכל קנייה מוצג סכום בדולרים וכמה מניות. אזהרה כשהעמלה המינימלית ($8) עוברת 0.2% מהעסקה.",
+    "📊 שורת '3 ההמלצות' ירדה מטבלת הביצועים - התיקים של A ו-B הם המדד.",
+  ]},
   { version: "6.16.0", date: "2026-10-16", items: [
     "🕴 מעבדה › אנשי פנים (backend 5.24.0): מעקב קדימה אחרי אשכולות קנייה של אנשי פנים - האות היחיד ממחקרי 16.10 שהחזיק מול פלצבו בשתי התקופות. אותות מ-45 הימים האחרונים, ותיק נייר 'רק חזקים' (20 משבצות, שנה לכל אחת) מול ה-S&P. נתונים ישירות מדיווחי Form 4 ל-SEC, כל ערב. שורה בהודעת הטלגרם היומית רק כשיש אות חזק חדש. הכרעה ב-15.4.2027.",
   ]},
@@ -3220,12 +3225,27 @@ function exitTestBlock(t, col, compact) {
 function renderActionScreen(data) {
   const el = document.getElementById("actionBody");
   if (!el) return;
+  window.__lastActionData = data;
   const pk = data.picks || {};
   const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
   const usd = v => v == null ? "—" : `$${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
-  const buys = pk.short_buy || [];
-  const sells = pk.short_sell_due || [];
-  const held = (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
+  // v6.17.0: the screen mirrors the tested A/B books - fixed slots, a buy only when a slot is free
+  const ba = pk.book_actions;
+  const buys = ba ? [...(ba.A || {}).buys || [], ...(ba.B || {}).buys || []] : (pk.short_buy || []);
+  const sells = ba ? [...(ba.A || {}).sell_due || [], ...(ba.B || {}).sell_due || []] : (pk.short_sell_due || []);
+  const held = ba ? [...(ba.A || {}).holdings || [], ...(ba.B || {}).holdings || []]
+                  : (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
+  const cap = Number(localStorage.getItem("shortCapital") || 0);
+  const sizeOf = key => { const a = (ba || {})[key]; return (cap && a) ? cap / 2 / a.slots : null; };
+  const feeOf = usdAmt => Math.min(Math.max(usdAmt * 0.001, 8), 500);
+  const sizing = b => {
+    const amt = sizeOf(b.strategy);
+    const w = ((ba || {})[b.strategy] || {}).weight_pct;
+    if (!amt) return `<div><div class="lbl">כמה</div><b>${w ? (w / 2).toFixed(1) + "%" : "—"}</b> מהסכום למסחר קצר</div>`;
+    const sh = b.ref_price ? Math.floor(amt / b.ref_price) : null;
+    const fp = feeOf(amt) / amt * 100;
+    return `<div><div class="lbl">כמה</div><b class="mono">${usd(amt)}</b>${sh ? ` · כ-${sh} מניות` : ""}${fp > 0.2 ? `<div style="font-size:11px; color:var(--down);">עמלה ${fp.toFixed(2)}% לצד - גבוה. כדאי לפחות $4,000 לעסקה</div>` : ""}</div>`;
+  };
   const tech = p => (p.tech_target || p.tech_stop) ? `<div class="act-tech">🧪 רמות טכניות (ניסוי): ${p.tech_target ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${p.tech_target && p.tech_stop ? " · " : ""}${p.tech_stop ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
   let h = renderExposureLine(data) + `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:10px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום ${TAG_HTML.proven}</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`;
   if (buys.length || sells.length) {
@@ -3244,7 +3264,12 @@ function renderActionScreen(data) {
         <div><div class="lbl">שער ייחוס (סגירה אחרונה)</div><b class="mono">${usd(b.ref_price)}</b></div>
         <div><div class="lbl">מכירה (הכלל שנבדק)</div><b>בסגירה של ${fmtDateIL(b.exit_estimate)}</b></div>
         <div><div class="lbl">פער פתיחה חריג אם מחוץ ל-</div><span class="mono">${usd(b.gap_lo)} – ${usd(b.gap_hi)}</span></div>
+        ${sizing(b)}
       </div>${tech(b)}</div>`).join("");
+  if (ba) {
+    const line = k => { const a = ba[k] || {}; return a.slots ? `${a.label}: ${a.open}/${a.slots} משבצות תפוסות${a.skipped && a.skipped.length ? ` · דולגו (אין משבצת): ${a.skipped.join(", ")}` : ""}` : ""; };
+    h += `<div style="font-size:11.5px; color:var(--text-faint); line-height:1.6; margin:2px 2px 8px;">${line("A")}<br>${line("B")}<br>כך בדיוק האסטרטגיות נבדקו: מספר קבוע של מניות, וקנייה רק כשמשבצת מתפנה.</div>`;
+  }
   h += sells.map(o => `<div class="act-row">
       <div class="head"><div class="tk" style="color:var(--down);">מכור ${o.ticker}</div><div class="mono" style="font-weight:700; color:${col(o.pnl_pct)};">${signedPct(o.pnl_pct, 1)}</div></div>
       <div class="act-grid">
@@ -3265,6 +3290,11 @@ function renderActionScreen(data) {
   }
   h += renderLongCompact(data);
   h += exitTestBlock(pk.exit_test, col, true);
+  h += `<div class="act-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px;">
+      <div style="font-size:12.5px; flex:1; min-width:160px;">סכום למסחר קצר (חצי ל-A, חצי ל-B). לא נשמר בשרת.</div>
+      <input id="shortCapitalInput" type="number" inputmode="numeric" placeholder="למשל 40000" value="${cap || ""}" style="width:120px; padding:8px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit;">
+      <button type="button" onclick="localStorage.setItem('shortCapital', document.getElementById('shortCapitalInput').value || ''); renderActionScreen(window.__lastActionData || {});" style="min-height:40px; padding:0 14px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit;">שמור</button></div>
+    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:4px 2px 0;">עמלה לפי המסלול שלך: 0.1% לעסקה, מינימום $8. מתחת ל-$4,000 לעסקה העמלה עוברת 0.2% לצד, וזה כבר אוכל חלק ניכר מהיתרון. כדי להריץ את שתי האסטרטגיות כמו שנבדקו בלי לשלם יותר מדי עמלות, צריך בערך $120,000. עם פחות, עדיף רק A (בערך $40,000).</div>`;
   h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. הקנייה והמכירה לפי זמן - כך נבדק. הרמות הטכניות 🧪 מוצגות כדי לבדוק אותן קדימה - במחקר על 26 שנה מכירה לפיהן הורידה את הרווח, ולכן הכלל המומלץ נשאר מכירה בתאריך. מידע בלבד, לא ייעוץ השקעות.</div>`;
   el.innerHTML = h;
 }

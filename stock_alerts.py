@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.24.0"
+BACKEND_VERSION = "5.25.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -4534,7 +4534,7 @@ def build_strategy_comparison(store):
                 row["sp500_same_window_pct"] = sb["spy_same_window_pct"]
                 row["vs_sp500_pct"] = round(row["return_pct"] - row["sp500_same_window_pct"], 2)
             rows.append(row)
-    ps = store.get("picks_short_sim") or {}
+    ps = {}   # v5.25.0: the uncapped 3-picks list left the screen; the books are the measure
     if ps.get("start_date") and ps.get("value"):
         row = {"key": "picks_short", "label": "3 ההמלצות לטווח קצר (מה שהוצג במסך)", "layer": "short",
                "start_date": ps["start_date"], "value": ps["value"], "return_pct": round((ps["value"] / 100000 - 1) * 100, 2)}
@@ -6695,8 +6695,43 @@ def build_picks_view(store):
         ex = sum(b["vs_spy_pct"] for b in elig) / len(elig)
         thumbs = "up" if ex > 0 else "down"
         why = f"ההמלצות {'מקדימות' if ex > 0 else 'מפגרות אחרי'} את ה-S&P 500 ב-{abs(ex):.2f}% באותם ימים"
+    # v5.25.0 (Tomer, 16.10.2026: "every day 3 more stocks, the portfolio just
+    # grows"): the action screen now mirrors the TESTED books exactly - fixed
+    # slots (A 10, B 20), a buy only when a slot is free, best-ranked first,
+    # size = 1/slots of that strategy's capital. That's what the research and
+    # the results table measure; the uncapped "3 picks" list is no longer
+    # what the screen tells you to do.
+    book_actions = {}
+    for key in ("A", "B"):
+        b = book.get(key) or {}
+        cfg = BOOK_STRATEGIES[key]
+        holdings = b.get("holdings") or []
+        free = max(cfg["slots"] - len(holdings), 0)
+        held = {h["ticker"] for h in holdings}
+        pend = sorted([x for x in (b.get("pending") or []) if not x.get("already_held") and x["ticker"] not in held],
+                      key=lambda x: -(x.get("rank") or 0))
+        buys = []
+        for x in pend[:free]:
+            ref = x.get("close")
+            buys.append({"ticker": x["ticker"], "strategy": key, "strategy_label": cfg["label"], "ref_price": ref,
+                         "gap_hi": round(ref * (1 + GAP_WARN_PCT / 100), 2) if ref else None,
+                         "gap_lo": round(ref * (1 - GAP_WARN_PCT / 100), 2) if ref else None,
+                         "exit_estimate": _add_sessions(session, cfg["hold"]) if session else None,
+                         "why": (f"ירדה {round((x.get('rank') or 0) * 100, 1)}% ב-5 ימים, במגמה עולה" if key == "A"
+                                 else f"קפיצת פתיחה בווליום פי {round(x.get('rank') or 0, 1)}"),
+                         **_chart_levels(snap, x["ticker"], ref)})
+        sells = [{**h, "strategy": key, "strategy_label": cfg["label"],
+                  "pnl_pct": round((h["last"] / h["entry"] - 1) * 100, 2) if h.get("entry") else None,
+                  "exit_estimate": _add_sessions(session, h.get("sessions_left") or 0) if session else None,
+                  **_chart_levels(snap, h["ticker"], h.get("last"))}
+                 for h in holdings]
+        book_actions[key] = {"label": cfg["label"], "slots": cfg["slots"], "open": len(holdings), "free": free,
+                             "weight_pct": round(100 / cfg["slots"], 2), "buys": buys,
+                             "skipped": [x["ticker"] for x in pend[free:]],
+                             "sell_due": [h for h in sells if (h.get("sessions_left") or 0) <= 1],
+                             "holdings": [h for h in sells if (h.get("sessions_left") or 0) > 1]}
     store["picks"] = {
-        "updated_at": datetime.now(timezone.utc).isoformat(), "session": session,
+        "updated_at": datetime.now(timezone.utc).isoformat(), "session": session, "book_actions": book_actions,
         "short_buy": buys, "short_open": short_sim.get("open") or [], "short_sell_due": sells_due,
         "short_pending_entry": short_sim.get("pending_entry") or [],
         "long": lp.get("holdings") or [], "long_closed_recent": (lp.get("closed") or [])[-5:],
@@ -6722,12 +6757,15 @@ def send_picks_digest(store):
         if p.get("tech_stop"):
             bits.append(f"סטופ ${p['tech_stop']}")
         return (" · 🧪 " + " / ".join(bits)) if bits else ""
-    L += [f"• {p['ticker']} ({p['strategy_label']}): {p['why']} · ייחוס ${p['close']} · קנייה בפתיחה · "
+    L += [f"• {p['ticker']} ({p['strategy_label']}): {p['why']} · ייחוס ${p.get('ref_price') or p.get('close')} · קנייה בפתיחה · "
           f"מכירה בסגירה ~{fmt_date_il(p['exit_estimate'])}{_lv(p)}"
-          for p in pk.get("short_buy") or []] or ["• אין אות היום"]
-    if pk.get("short_sell_due"):
+          for p in ([b for k in ("A", "B") for b in ((pk.get("book_actions") or {}).get(k) or {}).get("buys", [])]
+                    if pk.get("book_actions") else (pk.get("short_buy") or []))] or ["• אין קנייה היום (אין אות, או שכל המשבצות תפוסות)"]
+    due = ([h for k in ("A", "B") for h in ((pk.get("book_actions") or {}).get(k) or {}).get("sell_due", [])]
+           if pk.get("book_actions") else (pk.get("short_sell_due") or []))
+    if due:
         L.append("🔴 טווח קצר - למכור בסגירה של יום המסחר הבא:")
-        L += [f"• {p['ticker']} ({p['pnl_pct']:+.1f}% עד עכשיו)" for p in pk["short_sell_due"] if p.get("pnl_pct") is not None]
+        L += [f"• {p['ticker']} ({p['pnl_pct']:+.1f}% עד עכשיו)" for p in due if p.get("pnl_pct") is not None]
     L.append("🏛 טווח ארוך (🧪 עוד לא מוכח):")
     L += [f"• {h['ticker']} - נכנסה {fmt_date_il(h['entry_date'])} · {((h['last_price'] / h['entry_price'] - 1) * 100):+.1f}%"
           for h in pk.get("long") or []] or ["• אין כרגע מניה שעומדת בתנאים"]
