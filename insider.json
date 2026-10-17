@@ -1,0 +1,947 @@
+{
+ "started": "2026-10-17",
+ "purchases": [
+  {
+   "owner": "0001227454",
+   "value": 193558.5,
+   "title": "",
+   "issuer_cik": "0001562401",
+   "symbol": "AMH",
+   "ticker": "AMH",
+   "filing_date": "2026-09-14",
+   "accession": "0001227454-26-000014.txt"
+  },
+  {
+   "owner": "0001194106",
+   "value": 437529.5,
+   "title": "",
+   "issuer_cik": "0001334036",
+   "symbol": "CROX",
+   "ticker": "CROX",
+   "filing_date": "2026-09-14",
+   "accession": "0001194106-26-000012.txt"
+  },
+  {
+   "owner": "0001555889",
+   "value": 199876.04,
+   "title": "PRESIDENT AND CEO",
+   "issuer_cik": "0001090012",
+   "symbol": "DVN",
+   "ticker": "DVN",
+   "filing_date": "2026-09-14",
+   "accession": "0001090012-26-000124.txt"
+  },
+  {
+   "owner": "0001197193",
+   "value": 120700.0,
+   "title": "",
+   "issuer_cik": "0001825088",
+   "symbol": "DFH",
+   "ticker": "DFH",
+   "filing_date": "2026-09-14",
+   "accession": "0000897069-26-001778.txt"
+  },
+  {
+   "owner": "0001336007",
+   "value": 1020797.61,
+   "title": "",
+   "issuer_cik": "0000031462",
+   "symbol": "ECL",
+   "ticker": "ECL",
+   "filing_date": "2026-09-14",
+   "accession": "0001628280-26-061859.txt"
+  },
+  {
+   "owner": "0001774270",
+   "value": 109057.68,
+   "title": "",
+   "issuer_cik": "0001756262",
+   "symbol": "TMDX",
+   "ticker": "TMDX",
+   "filing_date": "2026-09-14",
+   "accession": "0001193125-26-390650.txt"
+  },
+  {
+   "owner": "0001158390",
+   "value": 61716.0,
+   "title": "",
+   "issuer_cik": "0001590895",
+   "symbol": "CZR",
+   "ticker": "CZR",
+   "filing_date": "2026-09-14",
+   "accession": "0001158390-26-000007.txt"
+  },
+  {
+   "owner": "0001216955",
+   "value": 248400.0,
+   "title": "Executive Chairman",
+   "issuer_cik": "0001035443",
+   "symbol": "ARE",
+   "ticker": "ARE",
+   "filing_date": "2026-09-15",
+   "accession": "0001216955-26-000021.txt"
+  },
+  {
+   "owner": "0001352090",
+   "value": 539150.0,
+   "title": "",
+   "issuer_cik": "0000711404",
+   "symbol": "COO",
+   "ticker": "COO",
+   "filing_date": "2026-09-15",
+   "accession": "0001352090-26-000007.txt"
+  },
+  {
+   "owner": "0001413087",
+   "value": 541640.0,
+   "title": "",
+   "issuer_cik": "0000711404",
+   "symbol": "COO",
+   "ticker": "COO",
+   "filing_date": "2026-09-15",
+   "accession": "0001413087-26-000007.txt"
+  },
+  {
+   "owner": "0001626337",
+   "value": 249999.98,
+   "title": "",
+   "issuer_cik": "0000711404",
+   "symbol": "COO",
+   "ticker": "COO",
+   "filing_date": "2026-09-15",
+   "accession": "0001626337-26-000011.txt"
+  },
+  {
+   "owner": "0001889279",
+   "value": 1000200.0,
+   "title": "",
+   "issuer_cik": "0001341766",
+   "symbol": "CELH",
+   "ticker": "CELH",
+   "filing_date": "2026-09-15",
+   "accession": "0001628280-26-062057.txt"
+  },
+  {
+   "owner": "0002048488",
+   "value": 133610.89,
+   "title": "",
+   "issuer_cik": "0001711269",
+   "symbol": "EVRG",
+   "ticker": "EVRG",
+   "filing_date": "2026-09-15",
+   "accession": "0001711269-26-000102.txt"
+  },
+  {
+   "owner": "0001007772",
+   "value": 1117600.0,
+   "title": "CEO",
+   "issuer_cik": "0000821002",
+   "symbol": "GIII",
+   "ticker": "GIII",
+   "filing_date": "2026-09-15",
+   "accession": "0000821002-26-000041.txt"
+  },
+  {
+   "owner": "0001402603",
+   "value": 19990.0,
+   "title": "",
+   "issuer_cik": "0000063296",
+   "symbol": "MATW",
+   "ticker": "MATW",
+   "filing_date": "2026-09-15",
+   "accession": "0000063296-26-000096.txt"
+  },
+  {
+   "owner": "0001887897",
+   "value": 74660.0,
+   "title": "",
+   "issuer_cik": "0000824142",
+   "symbol": "AAON",
+   "ticker": "AAON",
+   "filing_date": "2026-09-16",
+   "accession": "0001887897-26-000003.txt"
+  },
+  {
+   "owner": "0001221359",
+   "value": 1082500.0,
+   "title": "Executive Chairman",
+   "issuer_cik": "0001500217",
+   "symbol": "AAT",
+   "ticker": "AAT",
+   "filing_date": "2026-09-16",
+   "accession": "0001221359-26-000057.txt"
+  },
+  {
+   "owner": "0001019438",
+   "value": 49960.0,
+   "title": "CLO & Secretary",
+   "issuer_cik": "0001639438",
+   "symbol": "CAVA",
+   "ticker": "CAVA",
+   "filing_date": "2026-09-16",
+   "accession": "0001628280-26-062235.txt"
+  },
+  {
+   "owner": "0001685649",
+   "value": 336000.0,
+   "title": "",
+   "issuer_cik": "0001341766",
+   "symbol": "CELH",
+   "ticker": "CELH",
+   "filing_date": "2026-09-16",
+   "accession": "0001628280-26-062134.txt"
+  },
+  {
+   "owner": "0001194106",
+   "value": 75813.2,
+   "title": "",
+   "issuer_cik": "0001334036",
+   "symbol": "CROX",
+   "ticker": "CROX",
+   "filing_date": "2026-09-16",
+   "accession": "0001194106-26-000014.txt"
+  },
+  {
+   "owner": "0001247154",
+   "value": 99227.53,
+   "title": "",
+   "issuer_cik": "0001334036",
+   "symbol": "CROX",
+   "ticker": "CROX",
+   "filing_date": "2026-09-16",
+   "accession": "0001247154-26-000005.txt"
+  },
+  {
+   "owner": "0002138842",
+   "value": 14837.13,
+   "title": "",
+   "issuer_cik": "0000811589",
+   "symbol": "FBNC",
+   "ticker": "FBNC",
+   "filing_date": "2026-09-16",
+   "accession": "0000811589-26-000157.txt"
+  },
+  {
+   "owner": "0001242818",
+   "value": 10274977.02,
+   "title": "Executive Chair, CEO",
+   "issuer_cik": "0001754301",
+   "symbol": "FOX",
+   "ticker": "FOXA",
+   "filing_date": "2026-09-16",
+   "accession": "0001628280-26-062330.txt"
+  },
+  {
+   "owner": "0001241671",
+   "value": 64920.0,
+   "title": "",
+   "issuer_cik": "0001611647",
+   "symbol": "FRPT",
+   "ticker": "FRPT",
+   "filing_date": "2026-09-16",
+   "accession": "0000929638-26-003553.txt"
+  },
+  {
+   "owner": "0001842402",
+   "value": 119259.02,
+   "title": "",
+   "issuer_cik": "0001637207",
+   "symbol": "PLNT",
+   "ticker": "PLNT",
+   "filing_date": "2026-09-16",
+   "accession": "0001842402-26-000005.txt"
+  },
+  {
+   "owner": "0001348490",
+   "value": 500921.6,
+   "title": "PRESIDENT & CEO",
+   "issuer_cik": "0000917251",
+   "symbol": "ADC",
+   "ticker": "ADC",
+   "filing_date": "2026-09-17",
+   "accession": "0001348490-26-000006.txt"
+  },
+  {
+   "owner": "0001528153",
+   "value": 1375600.0,
+   "title": "",
+   "issuer_cik": "0000917251",
+   "symbol": "ADC",
+   "ticker": "ADC",
+   "filing_date": "2026-09-17",
+   "accession": "0001528153-26-000015.txt"
+  },
+  {
+   "owner": "0001352090",
+   "value": 549320.0,
+   "title": "",
+   "issuer_cik": "0000711404",
+   "symbol": "COO",
+   "ticker": "COO",
+   "filing_date": "2026-09-17",
+   "accession": "0001352090-26-000008.txt"
+  },
+  {
+   "owner": "0002054316",
+   "value": 10117.25,
+   "title": "",
+   "issuer_cik": "0002040127",
+   "symbol": "KRMN",
+   "ticker": "KRMN",
+   "filing_date": "2026-09-18",
+   "accession": "0001193125-26-395095.txt"
+  },
+  {
+   "owner": "0001791724",
+   "value": 18719.95,
+   "title": "",
+   "issuer_cik": "0002040127",
+   "symbol": "KRMN",
+   "ticker": "KRMN",
+   "filing_date": "2026-09-18",
+   "accession": "0001193125-26-395097.txt"
+  },
+  {
+   "owner": "0002054639",
+   "value": 1007648.1,
+   "title": "",
+   "issuer_cik": "0002040127",
+   "symbol": "KRMN",
+   "ticker": "KRMN",
+   "filing_date": "2026-09-18",
+   "accession": "0001193125-26-395098.txt"
+  },
+  {
+   "owner": "0001534574",
+   "value": 1015576.8,
+   "title": "President & CEO",
+   "issuer_cik": "0000092230",
+   "symbol": "TFC",
+   "ticker": "TFC",
+   "filing_date": "2026-09-18",
+   "accession": "0001534574-26-000016.txt"
+  },
+  {
+   "owner": "0001767470",
+   "value": 26393722.5,
+   "title": "President, CEO and Chairman",
+   "issuer_cik": "0001326380",
+   "symbol": "GME",
+   "ticker": "GME",
+   "filing_date": "2026-09-21",
+   "accession": "0000921895-26-002608.txt"
+  },
+  {
+   "owner": "0001840485",
+   "value": 401957.5,
+   "title": "",
+   "issuer_cik": "0001326380",
+   "symbol": "GME",
+   "ticker": "GME",
+   "filing_date": "2026-09-21",
+   "accession": "0001840485-26-000008.txt"
+  },
+  {
+   "owner": "0002077892",
+   "value": 999450.85,
+   "title": "",
+   "issuer_cik": "0001108524",
+   "symbol": "CRM",
+   "ticker": "CRM",
+   "filing_date": "2026-09-21",
+   "accession": "0001108524-26-000212.txt"
+  },
+  {
+   "owner": "0002154478",
+   "value": 12593.92,
+   "title": "Group Vice President",
+   "issuer_cik": "0000851520",
+   "symbol": "EXPO",
+   "ticker": "EXPO",
+   "filing_date": "2026-09-22",
+   "accession": "0000851520-26-000101.txt"
+  },
+  {
+   "owner": "0001620833",
+   "value": 132500.0,
+   "title": "",
+   "issuer_cik": "0001571123",
+   "symbol": "SAIC",
+   "ticker": "SAIC",
+   "filing_date": "2026-09-22",
+   "accession": "0001571123-26-000145.txt"
+  },
+  {
+   "owner": "0002136615",
+   "value": 28965.0,
+   "title": "",
+   "issuer_cik": "0001662991",
+   "symbol": "SEZL",
+   "ticker": "SEZL",
+   "filing_date": "2026-09-22",
+   "accession": "0001662991-26-000158.txt"
+  },
+  {
+   "owner": "0001747962",
+   "value": 67550.0,
+   "title": "CHIEF GROWTH OFFICER",
+   "issuer_cik": "0000917251",
+   "symbol": "ADC",
+   "ticker": "ADC",
+   "filing_date": "2026-09-23",
+   "accession": "0001747962-26-000007.txt"
+  },
+  {
+   "owner": "0001191569",
+   "value": 208250.4,
+   "title": "",
+   "issuer_cik": "0000097134",
+   "symbol": "TNC",
+   "ticker": "TNC",
+   "filing_date": "2026-09-23",
+   "accession": "0001191569-26-000012.txt"
+  },
+  {
+   "owner": "0001226186",
+   "value": 19833.3,
+   "title": "",
+   "issuer_cik": "0001261654",
+   "symbol": "UTI",
+   "ticker": "UTI",
+   "filing_date": "2026-09-23",
+   "accession": "0001193125-26-399888.txt"
+  },
+  {
+   "owner": "0001772409",
+   "value": 999983.25,
+   "title": "EVP, Chief Financial Officer",
+   "issuer_cik": "0001089063",
+   "symbol": "DKS",
+   "ticker": "DKS",
+   "filing_date": "2026-09-24",
+   "accession": "0001772409-26-000009.txt"
+  },
+  {
+   "owner": "0001817293",
+   "value": 244906.2,
+   "title": "",
+   "issuer_cik": "0001089063",
+   "symbol": "DKS",
+   "ticker": "DKS",
+   "filing_date": "2026-09-24",
+   "accession": "0001817293-26-000006.txt"
+  },
+  {
+   "owner": "0001919348",
+   "value": 98217.0,
+   "title": "",
+   "issuer_cik": "0000067215",
+   "symbol": "DY",
+   "ticker": "DY",
+   "filing_date": "2026-09-24",
+   "accession": "0001919348-26-000002.txt"
+  },
+  {
+   "owner": "0001705859",
+   "value": 29025.0,
+   "title": "",
+   "issuer_cik": "0001793659",
+   "symbol": "RSI",
+   "ticker": "RSI",
+   "filing_date": "2026-09-25",
+   "accession": "0001705859-26-000006.txt"
+  },
+  {
+   "owner": "0001212852",
+   "value": 78625.74,
+   "title": "",
+   "issuer_cik": "0001156375",
+   "symbol": "CME",
+   "ticker": "CME",
+   "filing_date": "2026-09-28",
+   "accession": "0001212852-26-000005.txt"
+  },
+  {
+   "owner": "0001767470",
+   "value": 10563796.1,
+   "title": "President, CEO and Chairman",
+   "issuer_cik": "0001326380",
+   "symbol": "GME",
+   "ticker": "GME",
+   "filing_date": "2026-09-29",
+   "accession": "0000921895-26-002670.txt"
+  },
+  {
+   "owner": "0002016863",
+   "value": 10084.75,
+   "title": "Co-Chief Investment Officer",
+   "issuer_cik": "0001428205",
+   "symbol": "ARR",
+   "ticker": "ARR",
+   "filing_date": "2026-09-30",
+   "accession": "0002016863-26-000011.txt"
+  },
+  {
+   "owner": "0001919136",
+   "value": 100118.9,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-09-30",
+   "accession": "0001225208-26-008011.txt"
+  },
+  {
+   "owner": "0001566398",
+   "value": 99984.54,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-09-30",
+   "accession": "0001225208-26-008012.txt"
+  },
+  {
+   "owner": "0001832403",
+   "value": 99984.32,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-09-30",
+   "accession": "0001225208-26-008013.txt"
+  },
+  {
+   "owner": "0001275967",
+   "value": 98820.0,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-09-30",
+   "accession": "0001225208-26-008014.txt"
+  },
+  {
+   "owner": "0001017427",
+   "value": 100160.2,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-09-30",
+   "accession": "0001225208-26-008015.txt"
+  },
+  {
+   "owner": "0001226186",
+   "value": 19677.5,
+   "title": "",
+   "issuer_cik": "0001261654",
+   "symbol": "UTI",
+   "ticker": "UTI",
+   "filing_date": "2026-09-30",
+   "accession": "0001193125-26-409200.txt"
+  },
+  {
+   "owner": "0002100573",
+   "value": 499868.98,
+   "title": "President - Foot Locker Intl",
+   "issuer_cik": "0001089063",
+   "symbol": "DKS",
+   "ticker": "DKS",
+   "filing_date": "2026-10-01",
+   "accession": "0002100573-26-000006.txt"
+  },
+  {
+   "owner": "0002092680",
+   "value": 22997.65,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-10-01",
+   "accession": "0001225208-26-008045.txt"
+  },
+  {
+   "owner": "0001382452",
+   "value": 99250.0,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-10-01",
+   "accession": "0001225208-26-008046.txt"
+  },
+  {
+   "owner": "0001822293",
+   "value": 254540.46,
+   "title": "",
+   "issuer_cik": "0001326380",
+   "symbol": "GME",
+   "ticker": "GME",
+   "filing_date": "2026-10-01",
+   "accession": "0001822293-26-000002.txt"
+  },
+  {
+   "owner": "0001142624",
+   "value": 3483800.0,
+   "title": "",
+   "issuer_cik": "0001341439",
+   "symbol": "ORCL",
+   "ticker": "ORCL",
+   "filing_date": "2026-10-01",
+   "accession": "0001341439-26-000099.txt"
+  },
+  {
+   "owner": "0001483963",
+   "value": 91500.0,
+   "title": "",
+   "issuer_cik": "0001004980",
+   "symbol": "PCG",
+   "ticker": "PCG",
+   "filing_date": "2026-10-01",
+   "accession": "0001628280-26-064255.txt"
+  },
+  {
+   "owner": "0001123485",
+   "value": 13180.7,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001123485-26-000010.txt"
+  },
+  {
+   "owner": "0001189793",
+   "value": 74420.26,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001189793-26-000014.txt"
+  },
+  {
+   "owner": "0001199045",
+   "value": 47044.96,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001199045-26-000010.txt"
+  },
+  {
+   "owner": "0001210982",
+   "value": 97334.4,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001210982-26-000010.txt"
+  },
+  {
+   "owner": "0001272064",
+   "value": 40353.22,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001272064-26-000012.txt"
+  },
+  {
+   "owner": "0001340262",
+   "value": 45017.16,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001340262-26-000013.txt"
+  },
+  {
+   "owner": "0001464273",
+   "value": 70973.0,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001464273-26-000010.txt"
+  },
+  {
+   "owner": "0001709407",
+   "value": 42178.24,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001709407-26-000012.txt"
+  },
+  {
+   "owner": "0001898688",
+   "value": 17844.64,
+   "title": "",
+   "issuer_cik": "0001063761",
+   "symbol": "SPG",
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "accession": "0001898688-26-000011.txt"
+  },
+  {
+   "owner": "0001767470",
+   "value": 17084270.0,
+   "title": "President, CEO and Chairman",
+   "issuer_cik": "0001326380",
+   "symbol": "GME",
+   "ticker": "GME",
+   "filing_date": "2026-10-02",
+   "accession": "0000921895-26-002719.txt"
+  },
+  {
+   "owner": "0001552809",
+   "value": 44610.0,
+   "title": "",
+   "issuer_cik": "0000063754",
+   "symbol": "MKC",
+   "ticker": "MKC",
+   "filing_date": "2026-10-05",
+   "accession": "0000063754-26-000331.txt"
+  },
+  {
+   "owner": "0001636187",
+   "value": 201049.2,
+   "title": "See Remarks",
+   "issuer_cik": "0001620393",
+   "symbol": "NXRT",
+   "ticker": "NXRT",
+   "filing_date": "2026-10-05",
+   "accession": "0001437749-26-032065.txt"
+  },
+  {
+   "owner": "0001088011",
+   "value": 1544981.37,
+   "title": "",
+   "issuer_cik": "0001690820",
+   "symbol": "CVNA",
+   "ticker": "CVNA",
+   "filing_date": "2026-10-05",
+   "accession": "0001088011-26-000008.txt"
+  },
+  {
+   "owner": "0001531376",
+   "value": 201000.0,
+   "title": "",
+   "issuer_cik": "0000048465",
+   "symbol": "HRL",
+   "ticker": "HRL",
+   "filing_date": "2026-10-06",
+   "accession": "0001531376-26-000014.txt"
+  },
+  {
+   "owner": "0001033284",
+   "value": 500000.0,
+   "title": "",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-10-08",
+   "accession": "0001225208-26-008325.txt"
+  },
+  {
+   "owner": "0002012616",
+   "value": 29927.45,
+   "title": "",
+   "issuer_cik": "0001350593",
+   "symbol": "MWA",
+   "ticker": "MWA",
+   "filing_date": "2026-10-09",
+   "accession": "0001225208-26-008364.txt"
+  },
+  {
+   "owner": "0001767470",
+   "value": 22774727.5,
+   "title": "President, CEO and Chairman",
+   "issuer_cik": "0001326380",
+   "symbol": "GME",
+   "ticker": "GME",
+   "filing_date": "2026-10-13",
+   "accession": "0000921895-26-002784.txt"
+  },
+  {
+   "owner": "0001298786",
+   "value": 1000000.0,
+   "title": "EXECUTIVE CHAIRMAN",
+   "issuer_cik": "0001677576",
+   "symbol": "IIPR",
+   "ticker": "IIPR",
+   "filing_date": "2026-10-13",
+   "accession": "0000897069-26-001838.txt"
+  },
+  {
+   "owner": "0001164644",
+   "value": 850500.0,
+   "title": "",
+   "issuer_cik": "0001569345",
+   "symbol": "CXM",
+   "ticker": "CXM",
+   "filing_date": "2026-10-15",
+   "accession": "0001164644-26-000008.txt"
+  }
+ ],
+ "processed": [
+  "2026-09-14",
+  "2026-09-15",
+  "2026-09-16",
+  "2026-09-17",
+  "2026-09-18",
+  "2026-09-21",
+  "2026-09-22",
+  "2026-09-23",
+  "2026-09-24",
+  "2026-09-25",
+  "2026-09-28",
+  "2026-09-29",
+  "2026-09-30",
+  "2026-10-01",
+  "2026-10-02",
+  "2026-10-05",
+  "2026-10-06",
+  "2026-10-07",
+  "2026-10-08",
+  "2026-10-09",
+  "2026-10-13",
+  "2026-10-14",
+  "2026-10-15"
+ ],
+ "positions": [],
+ "closed": [],
+ "note": "ניסוי. בהיסטוריה פחות ממחצית האותות ניצחו את SPY; הרווח הגיע ממיעוט מנצחות גדולות.",
+ "signals": [
+  {
+   "ticker": "SPG",
+   "filing_date": "2026-10-01",
+   "insiders": 9,
+   "ceo_cfo": false,
+   "value": 448347,
+   "score": 9.57,
+   "strong": true,
+   "tier": "large",
+   "liquid": true,
+   "dd_from_high_pct": -13.2
+  },
+  {
+   "ticker": "FUL",
+   "filing_date": "2026-09-30",
+   "insiders": 5,
+   "ceo_cfo": false,
+   "value": 499068,
+   "score": 5.57,
+   "strong": true,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -22.6
+  },
+  {
+   "ticker": "GME",
+   "filing_date": "2026-09-21",
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 26795680,
+   "score": 4.74,
+   "strong": true,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": 0.0
+  },
+  {
+   "ticker": "ADC",
+   "filing_date": "2026-09-17",
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 1876522,
+   "score": 4.63,
+   "strong": true,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -17.0
+  },
+  {
+   "ticker": "DKS",
+   "filing_date": "2026-09-24",
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 1244889,
+   "score": 4.61,
+   "strong": true,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -40.6
+  },
+  {
+   "ticker": "COO",
+   "filing_date": "2026-09-15",
+   "insiders": 3,
+   "ceo_cfo": false,
+   "value": 1330790,
+   "score": 3.61,
+   "strong": true,
+   "tier": "large",
+   "liquid": true,
+   "dd_from_high_pct": -31.9
+  },
+  {
+   "ticker": "KRMN",
+   "filing_date": "2026-09-18",
+   "insiders": 3,
+   "ceo_cfo": false,
+   "value": 1036485,
+   "score": 3.6,
+   "strong": true,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -70.6
+  },
+  {
+   "ticker": "CELH",
+   "filing_date": "2026-09-16",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 1336200,
+   "score": 2.61,
+   "strong": false,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -56.6
+  },
+  {
+   "ticker": "CROX",
+   "filing_date": "2026-09-16",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 612570,
+   "score": 2.58,
+   "strong": false,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -11.6
+  }
+ ],
+ "portfolio": {
+  "value": 100000.0,
+  "ret_pct": 0.0,
+  "spy_pct": 0.0,
+  "open": 0,
+  "closed": 0,
+  "since": "2026-10-17"
+ },
+ "sanity": {
+  "strong_last_30d": 6,
+  "expected_per_month": 9,
+  "warning": false
+ },
+ "updated_at": "2026-10-17T00:58:06.027700+00:00"
+}

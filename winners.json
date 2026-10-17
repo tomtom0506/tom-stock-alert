@@ -69,7 +69,7 @@
    "last_price": 178.81,
    "ret_pct": -3.03,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -140,7 +140,7 @@
    "last_price": 124.0,
    "ret_pct": 3.56,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -211,7 +211,7 @@
    "last_price": 330.17,
    "ret_pct": 9.25,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -282,7 +282,7 @@
    "last_price": 38.32,
    "ret_pct": 2.94,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -353,7 +353,7 @@
    "last_price": 138.77,
    "ret_pct": -0.88,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -424,7 +424,7 @@
    "last_price": 267.22,
    "ret_pct": 2.57,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -495,7 +495,7 @@
    "last_price": 161.26,
    "ret_pct": 8.09,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -566,7 +566,7 @@
    "last_price": 36.13,
    "ret_pct": 2.99,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -637,7 +637,7 @@
    "last_price": 45.71,
    "ret_pct": 1.83,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -708,7 +708,7 @@
    "last_price": 499.63,
    "ret_pct": 2.68,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -779,7 +779,7 @@
    "last_price": 134.47,
    "ret_pct": -4.14,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   },
@@ -850,7 +850,7 @@
    "last_price": 45.19,
    "ret_pct": 3.18,
    "spy_pct": -0.8,
-   "ew_pct": 0.79,
+   "ew_pct": 0.77,
    "sessions_left": 250,
    "exit_estimate": "2027-09-30"
   }
@@ -1445,7 +1445,7 @@
  },
  "research_note": "במחקר 2011-2026 (רשימת S&P לפי ההרכב בכל תאריך): +10% לעסקה מעל ממוצע כל המניות באותם ימים, אבל t=0.31 - כלומר לא מובהק, ורוב העודף הגיע מ-2025 ו-2016. לכן זה ניסוי שנמדד מהיום.",
  "candidates_date": "2026-10-15",
- "updated_at": "2026-10-16T00:44:52.696386+00:00",
+ "updated_at": "2026-10-17T00:43:02.529418+00:00",
  "series": [
   {
    "date": "2026-10-14",
@@ -1458,14 +1458,14 @@
    "date": "2026-10-15",
    "port": 102.51,
    "spy": 99.2,
-   "ew": 100.79,
+   "ew": 100.77,
    "n": 12
   }
  ],
  "stats": {
   "port_pct": 2.51,
   "spy_pct": -0.8,
-  "ew_pct": 0.79,
+  "ew_pct": 0.77,
   "since": "2026-10-14",
   "daily_pct": 2.93,
   "trades": 12,
@@ -1475,7 +1475,7 @@
   "by_kind": {
    "company": {
     "n": 12,
-    "avg_vs_ew_pct": 1.63
+    "avg_vs_ew_pct": 1.65
    }
   }
  }
