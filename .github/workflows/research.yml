@@ -11,6 +11,7 @@ on:
         type: choice
         default: insider_parity_check
         options:
+          - a_reason_research
           - insider_parity_check
           - exit_research
           - dip_research
