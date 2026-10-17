@@ -89,10 +89,22 @@ def main():
         if (k + 1) % 100 == 0:
             print(f"  fetched {k + 1}/{len(cand)}", flush=True)
     L_set = {(int(r_["ticker"]), r_["owner"], r_["filing_date"], round(float(r_["value"]))) for r_ in L_rows}
-    both, either = R_set & L_set, R_set | L_set
-    pct = round(len(both) / max(len(either), 1) * 100, 1)
-    diffs = [{"only": "research", "row": list(x)} for x in sorted(R_set - L_set)][:30] + \
-            [{"only": "live", "row": list(x)} for x in sorted(L_set - R_set)][:30]
+    # match with the documented 1% value tolerance (the quarterly TSV rounds shares/prices)
+    def close(a, b):
+        return a[0] == b[0] and a[2] == b[2] and abs(a[3] - b[3]) <= 0.01 * max(a[3], 1)
+    matched, other_owner, used = 0, 0, set()
+    for a in R_set:
+        hit = next((b for b in L_set if b not in used and close(a, b) and a[1] == b[1]), None)
+        if hit:
+            matched += 1; used.add(hit); continue
+        hit = next((b for b in L_set if b not in used and close(a, b)), None)
+        if hit:
+            other_owner += 1; used.add(hit)
+    either = len(R_set) + len(L_set - used)
+    pct = round(matched / max(either, 1) * 100, 1)
+    diffs = [{"only": "research", "row": list(x)} for x in sorted(R_set)
+             if not any(close(x, b) for b in L_set)][:30] + \
+            [{"only": "live", "row": list(x)} for x in sorted(L_set - used)][:30]
     # cluster level, same shared function on both parses
     rd = pd.DataFrame([{"ticker": str(c), "owner": o, "filing_date": pd.Timestamp(d), "value": v, "title": ""} for c, o, d, v in R_set])
     ld = pd.DataFrame([{**r_, "filing_date": pd.Timestamp(r_["filing_date"]), "title": ""} for r_ in L_rows])
@@ -104,12 +116,12 @@ def main():
     checked = len(cand)
     rep = ["# 🔁 התאמת אנשי פנים - קוד חי מול מקור המחקר", "",
            f"רבעון {QUARTER} · {checked} דיווחים במדגם · {len(R_set)} קניות כשרות לפי המחקר · {len(L_set)} לפי הקוד החי", "",
-           f"**התאמה ברמת הקנייה: {pct}%** ({'✅ עובר' if pct >= 95 else '❌ לא עובר'}, יעד 95%)",
+           f"**התאמה ברמת הקנייה: {pct}%** ({'✅ עובר' if pct >= 95 else '❌ לא עובר'}, יעד 95%) · עוד {other_owner} אותה קנייה עם איש פנים אחר (דיווח משותף)",
            f"**התאמה ברמת האשכול: {cpct}%** ({len(ck_r)} אשכולות במחקר, {len(ck_l)} בקוד החי)", "",
            "## דוגמאות לפערים (מנפיק, איש פנים, תאריך, סכום)", *[f"- רק ב{'מחקר' if d['only'] == 'research' else 'קוד החי'}: {d['row']}" for d in diffs[:20]]]
     (OUT / "report.md").write_text("\n".join(rep))
     (OUT / "summary.json").write_text(json.dumps({"generated_at": datetime.now(timezone.utc).isoformat(), "quarter": QUARTER,
-                                                  "checked": checked, "agree_pct": pct, "cluster_agree_pct": cpct, "diffs": diffs}, ensure_ascii=False, indent=1))
+                                                  "checked": checked, "agree_pct": pct, "same_purchase_other_owner": other_owner, "cluster_agree_pct": cpct, "diffs": diffs}, ensure_ascii=False, indent=1))
     print("\n".join(rep[:6]))
 
 
