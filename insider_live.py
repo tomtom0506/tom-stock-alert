@@ -89,14 +89,19 @@ def parse_form4(xml_text):
     # also flagged as a 10% owner (the fund entity) - else the first
     # qualifying one. Parity run 16.10: taking the plain first owner chose
     # the fund for every filing, so 3 directors buying counted as 1 insider.
-    owners = []
+    # v5.26.0: keep ALL reporting owners (owners_all); the filing counts if any
+    # of them is a director/officer. research.canonical_owners() then gives
+    # one identity per co-filing group - the same rule the research now uses.
+    everyone, qual = [], []
     for o in root.findall("reportingOwner"):
+        cik = _txt(o, "reportingOwnerId/rptOwnerCik").lstrip("0")
+        if cik:
+            everyone.append(cik)
         r_ = o.find("reportingOwnerRelationship")
         if r_ is not None and (_flag(r_, "isDirector") or _flag(r_, "isOfficer")):
-            owners.append((o, r_))
-    if not owners:
+            qual.append((cik, _txt(r_, "officerTitle")))
+    if not qual:
         return None
-    owner, rel = next(((o, r_) for o, r_ in owners if not _flag(r_, "isTenPercentOwner")), owners[0])
     value = 0.0
     for tx in root.findall("nonDerivativeTable/nonDerivativeTransaction"):
         if _txt(tx, "transactionCoding/transactionCode") != "P":
@@ -111,9 +116,10 @@ def parse_form4(xml_text):
         value += sh * px
     if value < R.MIN_TX_VALUE:
         return None
-    return {"owner": _txt(owner, "reportingOwnerId/rptOwnerCik"), "value": round(value, 2),
-            "title": _txt(rel, "officerTitle"), "issuer_cik": _txt(root, "issuer/issuerCik"),
-            "symbol": _txt(root, "issuer/issuerTradingSymbol").upper()}
+    owners_all = "|".join(sorted(set(everyone)))
+    return {"owner": sorted(set(everyone))[0] if everyone else qual[0][0], "owners_all": owners_all,
+            "value": round(value, 2), "title": " / ".join(t for _, t in qual if t),
+            "issuer_cik": _txt(root, "issuer/issuerCik"), "symbol": _txt(root, "issuer/issuerTradingSymbol").upper()}
 
 
 def extract_xml(full_txt):
@@ -184,6 +190,10 @@ def clusters_from(purchases):
     df = pd.DataFrame(purchases)
     df["filing_date"] = pd.to_datetime(df["filing_date"])
     df = df.drop_duplicates("accession")
+    if "owners_all" not in df.columns:
+        df["owners_all"] = df["owner"].astype(str)
+    df["owners_all"] = df["owners_all"].fillna(df["owner"].astype(str)).astype(str)
+    df = R.canonical_owners(df, key="ticker")
     return R.find_clusters(df[["ticker", "owner", "filing_date", "value", "title"]])
 
 
