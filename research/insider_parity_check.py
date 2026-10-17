@@ -70,6 +70,7 @@ def main():
     # compare as sets of (issuer, owner, filing date, value) - parse_insider_zip drops the accession number
     def norm_owner(o):
         return str(o).split(".")[0].lstrip("0")
+    part = R.canonical_owners(part, key="cik")
     R_set = {(int(r_.cik), norm_owner(r_.owner), r_.filing_date.strftime("%Y-%m-%d"), round(float(r_.value))) for r_ in part.itertuples()}
     L_rows = []
     for k, rr in enumerate(cand.itertuples()):
@@ -85,9 +86,14 @@ def main():
         p = L.parse_form4(x) if x else None
         if p:
             d = pd.to_datetime(rr.FILING_DATE, format="mixed").strftime("%Y-%m-%d")
-            L_rows.append({"ticker": str(cik), "owner": norm_owner(p["owner"]), "filing_date": d, "value": p["value"], "title": p["title"]})
+            L_rows.append({"ticker": str(cik), "owner": norm_owner(p["owner"]), "owners_all": p.get("owners_all", p["owner"]),
+                           "filing_date": d, "value": p["value"], "title": p["title"]})
         if (k + 1) % 100 == 0:
             print(f"  fetched {k + 1}/{len(cand)}", flush=True)
+    if L_rows:
+        lc = R.canonical_owners(pd.DataFrame([{**r_, "filing_date": pd.Timestamp(r_["filing_date"])} for r_ in L_rows]), key="ticker")
+        L_rows = [{**r_, "owner": norm_owner(o)} for r_, o in zip(lc.drop(columns=["owner"]).to_dict("records"), lc["owner"])]
+        L_rows = [{**r_, "filing_date": pd.Timestamp(r_["filing_date"]).strftime("%Y-%m-%d")} for r_ in L_rows]
     L_set = {(int(r_["ticker"]), r_["owner"], r_["filing_date"], round(float(r_["value"]))) for r_ in L_rows}
     # match with the documented 1% value tolerance (the quarterly TSV rounds shares/prices)
     def close(a, b):

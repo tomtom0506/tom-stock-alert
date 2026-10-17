@@ -422,17 +422,32 @@ def parse_insider_zip(raw: bytes) -> pd.DataFrame:
         tx = tx[tx["TRANS_ACQUIRED_DISP_CD"].astype(str).str.strip() == "A"]
     tx["value"] = pd.to_numeric(tx["TRANS_SHARES"], errors="coerce") * pd.to_numeric(tx["TRANS_PRICEPERSHARE"], errors="coerce")
     tx = tx.groupby("ACCESSION_NUMBER", as_index=False).agg(value=("value", "sum"))
-    own = own.drop_duplicates("ACCESSION_NUMBER")      # הגשה משותפת: בעלים ראשון בלבד (שמרני)
-    rel = own["RPTOWNER_RELATIONSHIP"].astype(str)
-    own = own[rel.str.contains("Director|Officer", case=False, regex=True)]
-    cols = ["ACCESSION_NUMBER", "RPTOWNERCIK", "RPTOWNER_RELATIONSHIP"] + (["RPTOWNER_TITLE"] if "RPTOWNER_TITLE" in own.columns else [])
+    # v2 (17.10.2026, parity check): a joint filing lists several reporting
+    # owners (a fund + its people). v1 kept the "first" row, but the TSV row
+    # order isn't stable, so one group filing 3 times became 3 "insiders".
+    # Now: keep ALL owners of the filing (owners_all); the filing qualifies if
+    # any owner is a director/officer; canonical_owners() below then gives
+    # filings of the same group one identity. Same rule as insider_live.py.
+    own = own.copy()
+    own["RPTOWNERCIK"] = own["RPTOWNERCIK"].astype(str).str.split(".").str[0].str.lstrip("0")
+    own["_q"] = own["RPTOWNER_RELATIONSHIP"].astype(str).str.contains("Director|Officer", case=False, regex=True)
+    if "RPTOWNER_TITLE" not in own.columns:
+        own["RPTOWNER_TITLE"] = ""
+    agg = own.groupby("ACCESSION_NUMBER").apply(lambda g: pd.Series({
+        "qual": bool(g["_q"].any()),
+        "owners_all": "|".join(sorted(set(g["RPTOWNERCIK"]))),
+        "RPTOWNER_TITLE": " / ".join(t for t in g.loc[g["_q"], "RPTOWNER_TITLE"].fillna("").astype(str) if t),
+    })).reset_index()
+    agg = agg[agg["qual"]]
     df = tx.merge(sub[["ACCESSION_NUMBER", "FILING_DATE", "ISSUERCIK", "ISSUERTRADINGSYMBOL"]], on="ACCESSION_NUMBER") \
-           .merge(own[cols], on="ACCESSION_NUMBER")
+           .merge(agg, on="ACCESSION_NUMBER")
+    df["RPTOWNERCIK"] = df["owners_all"].str.split("|").str[0]
     df = df[df["value"] >= MIN_TX_VALUE]
     out = pd.DataFrame({
         "cik": pd.to_numeric(df["ISSUERCIK"], errors="coerce"),
         "symbol": df["ISSUERTRADINGSYMBOL"].astype(str).str.upper().str.strip(),
         "owner": df["RPTOWNERCIK"].astype(str),
+        "owners_all": df["owners_all"].astype(str),
         "filing_date": pd.to_datetime(df["FILING_DATE"], errors="coerce", format="mixed"),
         "value": df["value"],
         "title": df.get("RPTOWNER_TITLE", pd.Series("", index=df.index)).fillna("").astype(str),
@@ -449,7 +464,7 @@ def fetch_insider_purchases(ua: str, first_year: int = INSIDER_FIRST_YEAR) -> pd
         for q in range(1, 5):
             if y == now.year and (q - 1) * 3 + 1 > now.month:
                 break
-            cache = os.path.join(CACHE_DIR, f"insider_P_{y}q{q}.csv")
+            cache = os.path.join(CACHE_DIR, f"insider_P_v2_{y}q{q}.csv")   # v2: joint filings kept whole
             if os.path.exists(cache):
                 frames.append(pd.read_csv(cache, parse_dates=["filing_date"]))
                 continue
@@ -466,7 +481,36 @@ def fetch_insider_purchases(ua: str, first_year: int = INSIDER_FIRST_YEAR) -> pd
             except Exception as e:  # noqa: BLE001
                 log(f"  {y}q{q}: שגיאה {e}")
             time.sleep(0.5)
-    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+    if not frames:
+        return pd.DataFrame()
+    return canonical_owners(pd.concat(frames, ignore_index=True), key="cik")
+
+
+def canonical_owners(df: pd.DataFrame, key: str = "cik", window_days: int = 30) -> pd.DataFrame:
+    """One identity per buying group: per issuer, in filing-date order, a
+    filing whose owners overlap a filing of the last `window_days` days takes
+    that filing's identity; otherwise its identity is its lowest owner CIK.
+    So a fund + director co-filing three times counts once, while two
+    directors who each file alone stay two insiders. Shared with
+    insider_live.py so live == research."""
+    if df.empty or "owners_all" not in df.columns:
+        return df
+    df = df.sort_values([key, "filing_date"]).copy()
+    ids = []
+    last = {}            # (issuer, owner cik) -> (identity, date)
+    for issuer, d, owners in zip(df[key], df["filing_date"], df["owners_all"].astype(str)):
+        os_ = [o for o in owners.split("|") if o]
+        hit = None
+        for o in os_:
+            prev = last.get((issuer, o))
+            if prev and (d - prev[1]).days <= window_days:
+                hit = prev[0] if hit is None else min(hit, prev[0])
+        ident = hit if hit is not None else (min(os_, key=lambda x: int(x) if x.isdigit() else 0) if os_ else "")
+        for o in os_:
+            last[(issuer, o)] = (ident, d)
+        ids.append(ident)
+    df["owner"] = ids
+    return df
 
 
 def map_tickers(purch: pd.DataFrame, ua: str | None) -> pd.DataFrame:
