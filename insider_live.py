@@ -84,12 +84,19 @@ def parse_form4(xml_text):
         root = ET.fromstring(xml_text)
     except ET.ParseError:
         return None
-    owner = root.find("reportingOwner")                 # first reporting owner only
-    if owner is None:
+    # Joint filings (a fund + its directors) list several reporting owners.
+    # v5.24.1: pick the qualifying INDIVIDUAL - a director/officer who is not
+    # also flagged as a 10% owner (the fund entity) - else the first
+    # qualifying one. Parity run 16.10: taking the plain first owner chose
+    # the fund for every filing, so 3 directors buying counted as 1 insider.
+    owners = []
+    for o in root.findall("reportingOwner"):
+        r_ = o.find("reportingOwnerRelationship")
+        if r_ is not None and (_flag(r_, "isDirector") or _flag(r_, "isOfficer")):
+            owners.append((o, r_))
+    if not owners:
         return None
-    rel = owner.find("reportingOwnerRelationship")
-    if rel is None or not (_flag(rel, "isDirector") or _flag(rel, "isOfficer")):
-        return None
+    owner, rel = next(((o, r_) for o, r_ in owners if not _flag(r_, "isTenPercentOwner")), owners[0])
     value = 0.0
     for tx in root.findall("nonDerivativeTable/nonDerivativeTransaction"):
         if _txt(tx, "transactionCoding/transactionCode") != "P":
