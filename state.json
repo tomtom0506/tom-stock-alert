@@ -1534,5 +1534,7 @@
   "US_SLS_bigmove_2026-10-20": true,
   "US_RCUS_bigmove_2026-10-20": true,
   "US_HAS_bigmove_2026-10-20": true,
-  "US_DPC_bigmove_2026-10-20": true
+  "US_DPC_bigmove_2026-10-20": true,
+  "US_EQPT_bigmove_2026-10-20": true,
+  "US_NESR_bigmove_2026-10-20": true
 }
