@@ -1191,7 +1191,7 @@
   "US_WDC_bigmove_2026-10-02": true,
   "US_RXO_bigmove_2026-10-02": true,
   "US_MAAS_bigmove_2026-10-02": true,
-  "ZVRA_below_10": true,
+  "ZVRA_below_10": false,
   "US_MXL_bigmove_2026-10-05": true,
   "US_IMOS_bigmove_2026-10-05": true,
   "US_SYNA_bigmove_2026-10-05": true,
