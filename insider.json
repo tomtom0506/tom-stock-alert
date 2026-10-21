@@ -812,6 +812,28 @@
    "ticker": "PEP",
    "filing_date": "2026-10-16",
    "accession": "0001061272-26-000004.txt"
+  },
+  {
+   "owner": "1621150",
+   "owners_all": "1621150",
+   "value": 25000.0,
+   "title": "Senior VP, BAS",
+   "issuer_cik": "0000039368",
+   "symbol": "FUL",
+   "ticker": "FUL",
+   "filing_date": "2026-10-19",
+   "accession": "0001225208-26-008441.txt"
+  },
+  {
+   "owner": "1934884",
+   "owners_all": "1934884",
+   "value": 11942.02,
+   "title": "EVP Chief Prod & Strat Officer",
+   "issuer_cik": "0001428336",
+   "symbol": "HQY",
+   "ticker": "HQY",
+   "filing_date": "2026-10-19",
+   "accession": "0001934884-26-000007.txt"
   }
  ],
  "processed": [
@@ -838,7 +860,8 @@
   "2026-10-13",
   "2026-10-14",
   "2026-10-15",
-  "2026-10-16"
+  "2026-10-16",
+  "2026-10-19"
  ],
  "positions": [],
  "closed": [],
@@ -854,7 +877,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -12.3
+   "dd_from_high_pct": -13.5
   },
   {
    "ticker": "FUL",
@@ -866,7 +889,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -22.9
+   "dd_from_high_pct": -23.3
   },
   {
    "ticker": "GME",
@@ -878,7 +901,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -4.3
+   "dd_from_high_pct": -5.6
   },
   {
    "ticker": "ADC",
@@ -890,7 +913,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -16.4
+   "dd_from_high_pct": -18.0
   },
   {
    "ticker": "DKS",
@@ -902,7 +925,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -39.1
+   "dd_from_high_pct": -39.3
   },
   {
    "ticker": "COO",
@@ -914,7 +937,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -31.3
+   "dd_from_high_pct": -31.0
   },
   {
    "ticker": "KRMN",
@@ -926,7 +949,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -69.9
+   "dd_from_high_pct": -70.6
   },
   {
    "ticker": "CELH",
@@ -938,7 +961,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -56.5
+   "dd_from_high_pct": -54.2
   },
   {
    "ticker": "CROX",
@@ -950,13 +973,13 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -12.8
+   "dd_from_high_pct": -14.9
   }
  ],
  "portfolio": {
   "value": 100000.0,
   "ret_pct": 0.0,
-  "spy_pct": 0.0,
+  "spy_pct": 0.42,
   "open": 0,
   "closed": 0,
   "since": "2026-10-17"
@@ -966,5 +989,5 @@
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-20T01:11:24.009819+00:00"
+ "updated_at": "2026-10-21T00:49:53.824362+00:00"
 }
