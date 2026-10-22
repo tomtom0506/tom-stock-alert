@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.26.0"
+BACKEND_VERSION = "5.27.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -246,6 +246,15 @@ def run_watchlist_alerts(state, prediction_store=None):
         ] + [h["ticker"] for h in ((prediction_store.get("live_portfolio") or {}).get("holdings") or [])] + [
             h["ticker"] for k in ("A", "B") for h in (((prediction_store.get("strategy_book") or {}).get(k) or {}).get("holdings") or [])
         ]  # v5.15.0: unusual-move alerts need a live price for every list the user follows
+        # v5.27.0 (P0, 22.10.2026 - MRNA showed yesterday's close as "now"):
+        # EVERY open or about-to-open position on any screen gets a live price
+        book = prediction_store.get("strategy_book") or {}
+        curated_tickers += [x["ticker"] for k in ("A", "B") for x in ((book.get(k) or {}).get("pending") or [])]
+        curated_tickers += [h["ticker"] for h in ((prediction_store.get("picks_long") or {}).get("holdings") or [])]
+        curated_tickers += [h.get("ticker") for h in (load_json(MY_PORTFOLIO_FILE, []) or []) if h.get("ticker")]
+        for fname, keys in (("winners.json", ("positions", "pending")), ("insider.json", ("positions",))):
+            side = load_json(BASE_DIR / fname, {}) or {}
+            curated_tickers += [x["ticker"] for k in keys for x in (side.get(k) or []) if x.get("ticker")]
     crypto_exposed_tickers = load_json(CRYPTO_EXPOSED_FILE, [])
     # keeps the dynamic predictions list's price/% line fresh every 15 min,
     # same as the manual watchlist - without re-running the full daily engine
@@ -6653,12 +6662,12 @@ def _chart_levels(snap_by_ticker, ticker, price):
     out = {}
     for k in ("resistance", "year_high"):
         v = e.get(k)
-        if isinstance(v, (int, float)) and not isinstance(v, bool) and v > price * 1.005:
+        if isinstance(v, (int, float)) and not isinstance(v, bool) and price * 1.005 < v <= price * 1.4:
             out["tech_target"] = round(float(v), 2)
             out["tech_target_pct"] = round((v / price - 1) * 100, 1)
             break
     v = e.get("support")
-    if isinstance(v, (int, float)) and not isinstance(v, bool) and v < price * 0.995:
+    if isinstance(v, (int, float)) and not isinstance(v, bool) and price * 0.6 <= v < price * 0.995:   # v5.27.0: >40% away = not a usable level
         out["tech_stop"] = round(float(v), 2)
         out["tech_stop_pct"] = round((v / price - 1) * 100, 1)
     return out
@@ -6720,7 +6729,7 @@ def build_picks_view(store):
                          "why": (f"ירדה {round((x.get('rank') or 0) * 100, 1)}% ב-5 ימים, במגמה עולה" if key == "A"
                                  else f"קפיצת פתיחה בווליום פי {round(x.get('rank') or 0, 1)}"),
                          **_chart_levels(snap, x["ticker"], ref)})
-        sells = [{**h, "strategy": key, "strategy_label": cfg["label"],
+        sells = [{**h, "strategy": key, "strategy_label": cfg["label"], "last_session": session,
                   "pnl_pct": round((h["last"] / h["entry"] - 1) * 100, 2) if h.get("entry") else None,
                   "exit_estimate": _add_sessions(session, h.get("sessions_left") or 0) if session else None,
                   **_chart_levels(snap, h["ticker"], h.get("last"))}
@@ -6931,6 +6940,14 @@ def main():
     state = load_json(STATE_FILE, {})
     prediction_store = load_prediction_store()
     ensure_formula_blend_initialized(prediction_store)
+
+    # v5.27.0: the app triggers this when its prices are stale (>15 min in US
+    # hours) - live prices only, ~1-2 minutes, nothing else recomputed
+    if os.environ.get("PRICES_ONLY", "").lower() == "true":
+        run_watchlist_alerts(state, prediction_store)
+        save_json(STATE_FILE, state)
+        print("Prices-only run done")
+        return
 
     if not is_market_trading_day():
         # Still refresh watchlist/live prices for display on off days, but

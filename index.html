@@ -1108,12 +1108,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.17.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.18.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.18.0", date: "2026-10-22", items: [
+    "🛠️ תיקון אמינות (backend 5.27.0): בכל כרטיס, ה'עכשיו' וה-% נלקחים מהמחיר החי כשהוא חדש יותר מנתוני המנוע. ליד כל מחיר כתוב 'נכון ל-HH:MM', ובשעות המסחר בארה\"ב מחיר ישן מ-20 דקות מקבל תג כתום 'לא עדכני'. כשאין מחיר חי: 'סגירה אחרונה (תאריך)'.",
+    "🔄 בפתיחת האפליקציה המחירים נקראים מחדש. אם הם ישנים מ-15 דקות בשעות המסחר, האפליקציה מפעילה בעצמה עדכון מחירים מהיר (לא יותר מפעם ב-10 דקות) ומתעדכנת כשהוא מסתיים.",
+    "📋 כל מניה פתוחה או ממתינה בכל תיק (A/B, טווח ארוך, מניות מנצחות, אנשי פנים, התיק שלך) נכללת בעדכון המחירים. יעד או סטופ טכני שרחוק יותר מ-40% מהמחיר מוסתר.",
+  ]},
   { version: "6.17.0", date: "2026-10-16", items: [
     "🎯 מסך הפעולה עובד עכשיו בדיוק כמו התיקים שנבדקו (backend 5.25.0): מספר קבוע של מניות (A: 10, B: 20), וקנייה רק כשמשבצת מתפנה - הטובה ביותר קודם. עד עכשיו הוצגו עד 3 קניות כל יום בלי תקרה, כך שהתיק היה גדל בלי סוף. מוצג גם כמה משבצות תפוסות, ואילו אותות דולגו כי אין מקום.",
     "💲 גודל עסקה: אפשר להזין סכום למסחר קצר (נשמר רק בטלפון), ולכל קנייה מוצג סכום בדולרים וכמה מניות. אזהרה כשהעמלה המינימלית ($8) עוברת 0.2% מהעסקה.",
@@ -1535,6 +1540,7 @@ function safeUrl(u) {
 let owner = "", repo = "", token = "", sha = null, rows = [];
 let latestPredictionsByTicker = {};
 let currentPrices = {};
+let currentPricesAt = null;
 let editingId = null;
 
 /* ---------- storage / config ---------- */
@@ -1577,7 +1583,9 @@ async function loadCurrentPrices() {
     if (!res.ok) return;
     const data = await safeJson(res);
     currentPrices = data.prices || {};
+    currentPricesAt = data.updated_at || null;
     renderMarketIndices(data.indices || {});
+    if (window.__lastActionData) { try { renderActionScreen(window.__lastActionData); } catch (e) {} }
   } catch (e) {
     currentPrices = {};
   }
@@ -3121,6 +3129,66 @@ function renderInsider(d) {
   el.innerHTML = h;
 }
 
+// ---------- v6.18.0 (P0, 22.10.2026): live prices on every card + auto refresh ----------
+function nyNow() {
+  const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
+  const g = t => (p.find(x => x.type === t) || {}).value;
+  return { wd: g("weekday"), mins: Number(g("hour")) % 24 * 60 + Number(g("minute")) };
+}
+function usMarketOpen() {
+  const n = nyNow();
+  return !["Sat", "Sun"].includes(n.wd) && n.mins >= 570 && n.mins < 960;
+}
+function hhmm(iso) {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+// The engine's "last" is the close of its session; current_prices.json is newer whenever
+// it was written after that close - then it wins. Otherwise: "last close (date)".
+function priceNow(ticker, engineLast, engineSession) {
+  const info = currentPrices[(ticker || "").trim()];
+  const sessClose = engineSession ? Date.parse(engineSession + "T20:00:00Z") : 0;
+  if (info && info.price != null && currentPricesAt && Date.parse(currentPricesAt) > sessClose) {
+    const ageMin = (Date.now() - Date.parse(currentPricesAt)) / 60000;
+    return { price: Number(info.price), live: true, at: currentPricesAt, stale: usMarketOpen() && ageMin > 20 };
+  }
+  return { price: engineLast != null ? Number(engineLast) : null, live: false, session: engineSession };
+}
+function priceTag(pn) {
+  if (pn.price == null) return "";
+  const usdv = `$${pn.price.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+  if (pn.live) return `עכשיו <b class="mono">${usdv}</b> · נכון ל-${hhmm(pn.at)}${pn.stale ? ' <span class="tag" style="border-color:#e08a2e; color:#e08a2e;">לא עדכני</span>' : ""}`;
+  return `סגירה אחרונה <b class="mono">${usdv}</b>${pn.session ? ` (${fmtDateIL(pn.session)})` : ""}`;
+}
+let autoPriceTimer = null;
+async function maybeAutoRefreshPrices() {
+  if (!owner || !repo || !token || !usMarketOpen() || !currentPricesAt) return;
+  const ageMin = (Date.now() - Date.parse(currentPricesAt)) / 60000;
+  const last = Number(localStorage.getItem("autoPriceTrigger") || 0);
+  if (ageMin <= 15 || Date.now() - last < 10 * 60000) return;
+  localStorage.setItem("autoPriceTrigger", String(Date.now()));
+  const before = currentPricesAt;
+  window.__priceRefreshing = true;
+  if (window.__lastActionData) { try { renderActionScreen(window.__lastActionData); } catch (e) {} }
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/check%20prices.yml/dispatches`, {
+      method: "POST",
+      headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
+      body: JSON.stringify({ ref: "main", inputs: { prices_only: "true" } }),
+    });
+    if (res.status !== 204) { window.__priceRefreshing = false; return; }
+  } catch (e) { window.__priceRefreshing = false; return; }
+  let tries = 0;
+  autoPriceTimer = setInterval(async () => {
+    tries++;
+    await loadCurrentPrices();
+    if (currentPricesAt !== before || tries > 18) {      // ~6 minutes max
+      clearInterval(autoPriceTimer); autoPriceTimer = null; window.__priceRefreshing = false;
+      if (window.__lastActionData) { try { renderActionScreen(window.__lastActionData); } catch (e) {} }
+    }
+  }, 20000);
+}
+
 // ---------- v6.15.0: results tab, lab exit tab, fast first paint from today.json ----------
 const TAG_HTML = { proven: '<span class="tag proven">מוכח</span>', experiment: '<span class="tag exp">ניסוי</span>',
                    benchmark: '<span class="tag info">ייחוס</span>', mine: '<span class="tag mine">שלך</span>', info: '<span class="tag info">מידע</span>' };
@@ -3174,8 +3242,9 @@ function renderLongCompact(data) {
   const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
   return `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:16px 2px 6px;">טווח ארוך ${TAG_HTML.experiment}</div>
     <div class="act-row" style="padding:4px 14px;">` + longs.map(l => {
-      const ch = l.entry_price ? (l.last_price / l.entry_price - 1) * 100 : null;
-      return `<div class="picks-row"><div><b>${l.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">${l.company_name || ""} · מ-${fmtDateIL(l.entry_date)}</span></div><div class="mono" style="color:${col(ch)};">${signedPct(ch, 1)}</div></div>`;
+      const pn = priceNow(l.ticker, l.last_price, pk.session);
+      const ch = (l.entry_price && pn.price) ? (pn.price / l.entry_price - 1) * 100 : null;
+      return `<div class="picks-row"><div><b>${l.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">${l.company_name || ""} · מ-${fmtDateIL(l.entry_date)}</span><div style="font-size:11px; color:var(--text-faint);">${priceTag(pn)}</div></div><div class="mono" style="color:${col(ch)};">${signedPct(ch, 1)}</div></div>`;
     }).join("") + `</div><div style="font-size:11px; color:var(--text-faint); margin:4px 2px 0;">לא נבדק במחקר. נמדד במעבדה מול ה-S&amp;P.</div>`;
 }
 
@@ -3246,8 +3315,11 @@ function renderActionScreen(data) {
     const fp = feeOf(amt) / amt * 100;
     return `<div><div class="lbl">כמה</div><b class="mono">${usd(amt)}</b>${sh ? ` · כ-${sh} מניות` : ""}${fp > 0.2 ? `<div style="font-size:11px; color:var(--down);">עמלה ${fp.toFixed(2)}% לצד - גבוה. כדאי לפחות $4,000 לעסקה</div>` : ""}</div>`;
   };
-  const tech = p => (p.tech_target || p.tech_stop) ? `<div class="act-tech">🧪 רמות טכניות (ניסוי): ${p.tech_target ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${p.tech_target && p.tech_stop ? " · " : ""}${p.tech_stop ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
-  let h = renderExposureLine(data) + `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:10px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום ${TAG_HTML.proven}</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`;
+  // v6.18.0: a level farther than 40% from the price is not a usable level - hide it
+  const okLv = (v, pct) => v && pct != null && Math.abs(pct) <= 40;
+  const tech = p => (okLv(p.tech_target, p.tech_target_pct) || okLv(p.tech_stop, p.tech_stop_pct)) ? `<div class="act-tech">🧪 רמות טכניות (ניסוי): ${okLv(p.tech_target, p.tech_target_pct) ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${okLv(p.tech_target, p.tech_target_pct) && okLv(p.tech_stop, p.tech_stop_pct) ? " · " : ""}${okLv(p.tech_stop, p.tech_stop_pct) ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
+  let h = (window.__priceRefreshing ? `<div class="act-row" style="font-size:12px; color:#e08a2e;">המחירים ישנים מ-15 דקות - מעדכן עכשיו (כ-2 דקות)...</div>` : "")
+    + renderExposureLine(data) + `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:10px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום ${TAG_HTML.proven}</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`;
   if (buys.length || sells.length) {
     const parts = [];
     if (buys.length) parts.push(`לקנות ${buys.length === 1 ? "מניה אחת" : buys.length + " מניות"} בפתיחה`);
@@ -3270,17 +3342,18 @@ function renderActionScreen(data) {
     const line = k => { const a = ba[k] || {}; return a.slots ? `${a.label}: ${a.open}/${a.slots} משבצות תפוסות${a.skipped && a.skipped.length ? ` · דולגו (אין משבצת): ${a.skipped.join(", ")}` : ""}` : ""; };
     h += `<div style="font-size:11.5px; color:var(--text-faint); line-height:1.6; margin:2px 2px 8px;">${line("A")}<br>${line("B")}<br>כך בדיוק האסטרטגיות נבדקו: מספר קבוע של מניות, וקנייה רק כשמשבצת מתפנה.</div>`;
   }
-  h += sells.map(o => `<div class="act-row">
-      <div class="head"><div class="tk" style="color:var(--down);">מכור ${o.ticker}</div><div class="mono" style="font-weight:700; color:${col(o.pnl_pct)};">${signedPct(o.pnl_pct, 1)}</div></div>
+  const withNow = o => { const pn = priceNow(o.ticker, o.last, o.last_session || pk.session); return { pn, pnl: (pn.price && o.entry) ? (pn.price / o.entry - 1) * 100 : o.pnl_pct }; };
+  h += sells.map(o => { const w = withNow(o); return `<div class="act-row">
+      <div class="head"><div class="tk" style="color:var(--down);">מכור ${o.ticker}</div><div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>
       <div class="act-grid">
         <div><div class="lbl">מכירה</div><b>בסגירה של ${fmtDateIL(o.exit_estimate)}</b> (פקודת שוק)</div>
-        <div><div class="lbl">שער נוכחי / קנייה</div><span class="mono">${usd(o.last)} / ${usd(o.entry)}</span></div>
-      </div>${tech(o)}</div>`).join("");
+        <div><div class="lbl">נקנתה ב-</div><span class="mono">${usd(o.entry)}</span></div>
+      </div><div style="font-size:12px; margin-top:6px;">${priceTag(w.pn)}</div>${tech(o)}</div>`; }).join("");
   if (held.length) {
     h += `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:14px 2px 6px;">מוחזקות · אין מה לעשות איתן היום</div>`;
-    h += held.map(o => `<div class="act-row">
-      <div class="head"><div><span class="tk" style="font-size:15px;">${o.ticker}</span> <span style="font-size:11.5px; color:var(--text-faint);">למכור בסגירה של ${fmtDateIL(o.exit_estimate)}</span></div><div class="mono" style="font-weight:700; color:${col(o.pnl_pct)};">${signedPct(o.pnl_pct, 1)}</div></div>
-      <div style="font-size:11.5px; color:var(--text-faint); margin-top:2px;">נקנתה ${usd(o.entry)} · עכשיו ${usd(o.last)}</div>${tech(o)}</div>`).join("");
+    h += held.map(o => { const w = withNow(o); return `<div class="act-row">
+      <div class="head"><div><span class="tk" style="font-size:15px;">${o.ticker}</span> <span style="font-size:11.5px; color:var(--text-faint);">למכור בסגירה של ${fmtDateIL(o.exit_estimate)}</span></div><div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>
+      <div style="font-size:11.5px; color:var(--text-faint); margin-top:2px;">נקנתה ${usd(o.entry)} · ${priceTag(w.pn)}</div>${tech(o)}</div>`; }).join("");
   }
   const b = (pk.boxes || {}).short || {};
   if (b.days) {
@@ -3800,11 +3873,12 @@ function renderBookCard(b, desc) {
   const cssDown = getComputedStyle(document.body).getPropertyValue("--down").trim() || "#e07668";
   const gap = b.spy_same_window_pct != null && ret != null ? ret - b.spy_same_window_pct : null;
   const rows = (b.holdings || []).length ? b.holdings.map(h => {
-    const pct = h.last && h.entry ? (h.last / h.entry - 1) * 100 : null;
+    const pn = priceNow(h.ticker, h.last, b.session || (window.__lastActionData && (window.__lastActionData.picks || {}).session));
+    const pct = pn.price && h.entry ? (pn.price / h.entry - 1) * 100 : null;
     return `<div class="pf-row">
       <div><span class="pf-tk">${h.ticker}</span><span class="pf-tag short">עוד ${h.sessions_left} ימי מסחר</span></div>
       <div class="pf-pnl" style="color:${pct == null ? "var(--text-faint)" : (pct >= 0 ? "var(--up)" : "var(--down)")};">${pct != null ? signedPct(pct, 2) : "—"}<small>${h.shares} מניות</small></div>
-      <div class="pf-meta">נקנתה ${fmtDateIL(h.entry_date)} ב-${fmtUsd(h.entry, 2)} · סגירה אחרונה ${fmtUsd(h.last, 2)}</div>
+      <div class="pf-meta">נקנתה ${fmtDateIL(h.entry_date)} ב-${fmtUsd(h.entry, 2)} · ${priceTag(pn)}</div>
     </div>`;
   }).join("") : `<div class="pf-empty">אין כרגע פוזיציות פתוחות - מחכים לאות.</div>`;
   const trades = (b.trades || []).slice().reverse();
@@ -5708,6 +5782,7 @@ if (cfg && cfg.owner && cfg.repo && cfg.token) {
   document.getElementById("cfgToken").value = token;
   loadWatchlist().then(() => { ensureUids(); render(); });
   loadToday();
+  loadCurrentPrices().then(maybeAutoRefreshPrices);
   loadPredictions();
   loadStarred();
   loadMyHoldings();
