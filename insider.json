@@ -834,6 +834,17 @@
    "ticker": "HQY",
    "filing_date": "2026-10-19",
    "accession": "0001934884-26-000007.txt"
+  },
+  {
+   "owner": "1813477",
+   "owners_all": "1813477",
+   "value": 22069.36,
+   "title": "",
+   "issuer_cik": "0001144215",
+   "symbol": "AYI",
+   "ticker": "AYI",
+   "filing_date": "2026-10-20",
+   "accession": "0001813477-26-000008.txt"
   }
  ],
  "processed": [
@@ -861,7 +872,8 @@
   "2026-10-14",
   "2026-10-15",
   "2026-10-16",
-  "2026-10-19"
+  "2026-10-19",
+  "2026-10-20"
  ],
  "positions": [],
  "closed": [],
@@ -877,7 +889,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -13.5
+   "dd_from_high_pct": -11.6
   },
   {
    "ticker": "FUL",
@@ -889,7 +901,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -23.3
+   "dd_from_high_pct": -24.1
   },
   {
    "ticker": "GME",
@@ -901,7 +913,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -5.6
+   "dd_from_high_pct": -5.5
   },
   {
    "ticker": "ADC",
@@ -913,7 +925,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -18.0
+   "dd_from_high_pct": -16.4
   },
   {
    "ticker": "DKS",
@@ -925,7 +937,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -39.3
+   "dd_from_high_pct": -39.6
   },
   {
    "ticker": "COO",
@@ -937,7 +949,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -31.0
+   "dd_from_high_pct": -29.9
   },
   {
    "ticker": "KRMN",
@@ -949,7 +961,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -70.6
+   "dd_from_high_pct": -69.6
   },
   {
    "ticker": "CELH",
@@ -961,7 +973,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -54.2
+   "dd_from_high_pct": -53.5
   },
   {
    "ticker": "CROX",
@@ -973,21 +985,21 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -14.9
+   "dd_from_high_pct": -14.0
   }
  ],
  "portfolio": {
   "value": 100000.0,
   "ret_pct": 0.0,
-  "spy_pct": 0.42,
+  "spy_pct": 0.76,
   "open": 0,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 4,
+  "strong_last_30d": 3,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-21T00:49:53.824362+00:00"
+ "updated_at": "2026-10-22T00:51:34.765125+00:00"
 }
