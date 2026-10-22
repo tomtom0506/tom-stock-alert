@@ -83,9 +83,9 @@ def levels(lab, i, j, entry):
     try:
         f = live.compute_technical_factors(lab.C[t].iloc[sl], lab.V[t].iloc[sl], lab.H[t].iloc[sl], lab.L[t].iloc[sl])
     except Exception:
-        return None, None
+        return None, None, None
     if not f:
-        return None, None
+        return None, None, None
     tgt = None
     for k in ("resistance", "year_high"):
         v = f.get(k)
