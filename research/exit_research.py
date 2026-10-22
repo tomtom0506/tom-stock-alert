@@ -92,22 +92,24 @@ def levels(lab, i, j, entry):
         if v and v > entry * 1.005:
             tgt = float(v)
             break
+    far = f.get("year_high")
+    far = float(far) if isinstance(far, (int, float)) and not isinstance(far, bool) and entry * 1.005 < far <= entry * 1.4 else tgt
     stop = None
     for k in ("support",):
         v = f.get(k)
         if v and v < entry * 0.995:
             stop = float(v)
             break
-    return tgt, stop
+    return tgt, stop, far
 
 
-def run_exits(lab, ents, use_target, use_stop, lv):
+def run_exits(lab, ents, use_target, use_stop, lv, far=False):
     C, O, H, L = lab.C.values, lab.O.values, lab.H.values, lab.L.values
     rows = []
-    for (i, j, e, x), (tgt, stop) in zip(ents, lv):
+    for (i, j, e, x), (tgt, stop, far_t) in zip(ents, lv):
         entry = O[e, j]
         px, xi, why = C[x, j], x, "time"
-        tg = tgt if use_target else None
+        tg = (far_t if far else tgt) if use_target else None
         st = stop if use_stop else None
         if tg or st:
             for k in range(e, x + 1):
@@ -167,15 +169,16 @@ def main():
         ents = entries(lab, sig, hold)
         log(f"{name}: {len(ents)} entries, computing chart levels...")
         lv = [levels(lab, i, j, O.values[e, j]) for (i, j, e, x) in ents]
-        cov = {"with_target": sum(1 for a, b in lv if a), "with_stop": sum(1 for a, b in lv if b)}
+        cov = {"with_target": sum(1 for a, b, c in lv if a), "with_stop": sum(1 for a, b, c in lv if b),
+               "with_far": sum(1 for a, b, c in lv if c)}
         res = {}
         if not ents:
             out[name] = {"coverage": cov, "results": {}}
             log(f"{name}: no entries")
             continue
         base = run_exits(lab, ents, False, False, lv)
-        for rule, ut, us in (("TIME", False, False), ("TARGET", True, False), ("STOP", False, True), ("FIRST", True, True)):
-            df = base if rule == "TIME" else run_exits(lab, ents, ut, us, lv)
+        for rule, ut, us in (("TIME", False, False), ("TARGET", True, False), ("STOP", False, True), ("FIRST", True, True), ("FAR", True, True)):
+            df = base if rule == "TIME" else run_exits(lab, ents, ut, us, lv, far=(rule == "FAR"))
             d = S3.describe(lab, df[["ret", "excess", "days"]], name, {"exit": rule}, with_placebo=(rule == "FIRST"))
             d["exit_reasons_pct"] = {k: round(v * 100, 1) for k, v in df["why"].value_counts(normalize=True).items()}
             d["avg_days"] = round(float(df["days"].mean()), 1)
@@ -199,7 +202,7 @@ def main():
           f"{meta['tickers']} מניות S&P 500 · {meta['first']} עד {meta['last']} · אותן כניסות בדיוק לכל כלל יציאה · {meta['runtime_sec']} ש'", "",
           "**כלל ההחלטה (נקבע מראש):** כלל יציאה מאומץ רק אם השיפור שלו מול 'זמן בלבד' חיובי עם t ≥ 2 על פני השנים, "
           "חיובי גם מ-2017, והאסטרטגיה איתו עדיין עוברת את הרף (עודף > 0, t ≥ 2).", ""]
-    lab_names = {"TIME": "זמן בלבד (הכלל הנוכחי)", "TARGET": "יעד (התנגדות) או זמן", "STOP": "סטופ (תמיכה) או זמן", "FIRST": "יעד, סטופ או זמן - הראשון"}
+    lab_names = {"TIME": "זמן בלבד (הכלל הנוכחי)", "TARGET": "יעד (התנגדות) או זמן", "STOP": "סטופ (תמיכה) או זמן", "FIRST": "יעד, סטופ או זמן - הראשון", "FAR": "סטופ קרוב + יעד רחוק (שיא שנתי) - שיטת החבר"}
     for name in ("A", "B"):
         o = out[name]
         if not o["results"]:
@@ -208,7 +211,7 @@ def main():
         Lr += [f"## אסטרטגיה {name}", f"רמות: יעד נמצא ל-{o['coverage']['with_target']}, סטופ ל-{o['coverage']['with_stop']} מתוך {o['results']['TIME']['n']} עסקאות", "",
                "| יציאה | עודף ממוצע | חציון | הצלחה | t | ימים | שיפור מול זמן | t שיפור | מ-2017 | סיבות יציאה | |",
                "|---|---|---|---|---|---|---|---|---|---|---|"]
-        for rule in ("TIME", "TARGET", "STOP", "FIRST"):
+        for rule in ("TIME", "TARGET", "STOP", "FIRST", "FAR"):
             d = o["results"][rule]
             v = d.get("vs_time") or {}
             reasons = " ".join(f"{k}:{p}%" for k, p in d["exit_reasons_pct"].items())
