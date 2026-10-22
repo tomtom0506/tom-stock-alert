@@ -1108,12 +1108,15 @@
 </div>
 
 <script>
-const APP_VERSION = "6.18.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.19.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.19.0", date: "2026-10-22", items: [
+    "🚀 מבחן היציאה קדימה מקבל עמודה שלישית (backend 5.28.0): השיטה של החבר - סטופ בקו התמיכה הקרוב, יעד רחוק בשיא השנתי (אם הוא עד 40% מעל, אחרת ההתנגדות הקרובה), ואם אף אחד לא נגע - מכירה בתאריך. הרמות ננעלות ביום האות. מתחיל מההמלצות הבאות. הכרעה: 30 עסקאות סגורות, לא לפני 15.1.",
+  ]},
   { version: "6.18.0", date: "2026-10-22", items: [
     "🛠️ תיקון אמינות (backend 5.27.0): בכל כרטיס, ה'עכשיו' וה-% נלקחים מהמחיר החי כשהוא חדש יותר מנתוני המנוע. ליד כל מחיר כתוב 'נכון ל-HH:MM', ובשעות המסחר בארה\"ב מחיר ישן מ-20 דקות מקבל תג כתום 'לא עדכני'. כשאין מחיר חי: 'סגירה אחרונה (תאריך)'.",
     "🔄 בפתיחת האפליקציה המחירים נקראים מחדש. אם הם ישנים מ-15 דקות בשעות המסחר, האפליקציה מפעילה בעצמה עדכון מחירים מהיר (לא יותר מפעם ב-10 דקות) ומתעדכנת כשהוא מסתיים.",
@@ -3284,8 +3287,9 @@ function exitTestBlock(t, col, compact) {
     : `<span style="font-size:11px; color:var(--text-faint);">פתוחה ${open != null ? `(${signedPct(open, 1)})` : ""}</span>`;
   const rows = (t.trades || []).slice().reverse().map(x => `<div class="picks-row" style="align-items:center;">
       <div><b>${x.ticker}</b> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(x.entry_date)}</span></div>
-      <div style="text-align:left; font-size:12px; line-height:1.6;">⏱ ${cell(x.time, x.open_pnl_pct)}<br>${x.price_exit ? why[x.price_exit] : "🎯/🛑"} ${cell(x.price, x.open_pnl_pct)}</div></div>`).join("");
-  const boxes = `<div class="picks-boxes">${box("⏱ לפי תאריך", t.time || {})}${box("🎯 לפי מחיר או תאריך", t.price || {})}</div>`;
+      <div style="text-align:left; font-size:12px; line-height:1.6;">⏱ ${cell(x.time, x.open_pnl_pct)}<br>${x.price_exit ? why[x.price_exit] : "🎯/🛑"} ${cell(x.price, x.open_pnl_pct)}${x.has_far ? `<br>🚀 ${x.far_exit ? why[x.far_exit] : ""} ${cell(x.far, x.open_pnl_pct)}` : ""}</div></div>`).join("");
+  const boxes = `<div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("⏱ לפי תאריך", t.time || {})}${box("🎯 יעד קרוב", t.price || {})}${box("🚀 יעד רחוק", t.far || {})}</div>
+    <div style="font-size:11px; color:var(--text-faint); line-height:1.5; margin:-4px 2px 6px;">בשתי שיטות המחיר הסטופ הוא קו התמיכה הקרוב. 'יעד קרוב' = ההתנגדות הקרובה. 'יעד רחוק' (השיטה של החבר) = השיא השנתי, אם הוא עד 40% מעל. אם לא נגעו - מוכרים בתאריך.</div>`;
   if (compact) return `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:16px 2px 6px;">מבחן יציאה: תאריך מול מחיר <span class="tag exp">ניסוי</span></div>${boxes}<div style="font-size:11px; color:var(--text-faint); margin:2px 2px 0;">פירוט כל עסקה: מעבדה › מבחן יציאה.</div>`;
   return head + boxes + `<div class="act-row" style="padding:6px 14px;">${rows}</div>`;
 }

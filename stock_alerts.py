@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.27.0"
+BACKEND_VERSION = "5.28.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -6377,6 +6377,7 @@ def update_short_picks_log(store):
     for p in picked:
         lv = _chart_levels(snap, p["ticker"], p.get("close"))
         p["tech_target"], p["tech_stop"] = lv.get("tech_target"), lv.get("tech_stop")
+        p["tech_target_far"] = _far_target(snap, p["ticker"], p.get("close"), lv.get("tech_target"))
         p["levels_frozen"] = True
     log[session] = picked
     # keep ~1 year of signal days
@@ -6514,10 +6515,25 @@ def compare_exits_forward(log, O, H, L, C, spy):
                     break
             if p_res is None and x <= last:
                 p_res, why = dict(t_res), "time"
+            # v5.28.0: the friend's exit - same stop, FAR target
+            far = pk.get("tech_target_far")
+            f_res, fwhy = None, None
+            if "tech_target_far" in pk:
+                for k in range(e, min(x, last) + 1):
+                    o, h, l = Ov[k, j], Hv[k, j], Lv[k, j]
+                    if stp and np.isfinite(l) and l <= stp:
+                        f_res, fwhy = res(k, min(o, stp) if k > e and np.isfinite(o) else stp), "stop"
+                        break
+                    if far and np.isfinite(h) and h >= far:
+                        f_res, fwhy = res(k, max(o, far) if k > e and np.isfinite(o) else far), "target"
+                        break
+                if f_res is None and x <= last:
+                    f_res, fwhy = dict(t_res), "time"
             now = (Cv[last, j] / entry - 1) * 100 if np.isfinite(Cv[last, j]) else None
             trades.append({"ticker": pk["ticker"], "strategy": pk["strategy"], "signal_date": sig_date,
                            "entry_date": idx[e].strftime("%Y-%m-%d"), "entry": round(float(entry), 2),
                            "target": tgt, "stop": stp, "time": t_res, "price": p_res, "price_exit": why,
+                           "target_far": far, "far": f_res, "far_exit": fwhy, "has_far": "tech_target_far" in pk,
                            "open_pnl_pct": round(now, 2) if now is not None else None})
 
     def summ(key):
@@ -6525,7 +6541,12 @@ def compare_exits_forward(log, O, H, L, C, spy):
         return {"closed": len(done), "sum_pct": round(sum(d["pnl_pct"] for d in done), 2),
                 "spy_sum_pct": round(sum(d["spy_pct"] for d in done), 2),
                 "wins": sum(1 for d in done if d["pnl_pct"] > 0)}
-    return {"updated_at": datetime.now(timezone.utc).isoformat(), "time": summ("time"), "price": summ("price"),
+    def summ_far():
+        done = [t["far"] for t in trades if t.get("has_far") and t.get("far")]
+        return {"closed": len(done), "sum_pct": round(sum(d["pnl_pct"] for d in done), 2),
+                "spy_sum_pct": round(sum(d["spy_pct"] for d in done), 2), "wins": sum(1 for d in done if d["pnl_pct"] > 0),
+                "tracked": sum(1 for t in trades if t.get("has_far"))}
+    return {"updated_at": datetime.now(timezone.utc).isoformat(), "time": summ("time"), "price": summ("price"), "far": summ_far(),
             "trades": trades[-60:], "both_closed": sum(1 for t in trades if t["time"] and t["price"])}
 
 
@@ -6671,6 +6692,17 @@ def _chart_levels(snap_by_ticker, ticker, price):
         out["tech_stop"] = round(float(v), 2)
         out["tech_stop_pct"] = round((v / price - 1) * 100, 1)
     return out
+
+
+def _far_target(snap_by_ticker, ticker, price, near):
+    """v5.28.0 - Tomer's friend's exit (22.10.2026): stop at the FIRST level
+    below, target at a FAR level above - the 52-week high when it's above the
+    price and within +40%, else the near resistance."""
+    e = snap_by_ticker.get(ticker) or {}
+    yh = e.get("year_high")
+    if price and isinstance(yh, (int, float)) and not isinstance(yh, bool) and price * 1.005 < yh <= price * 1.4:
+        return round(float(yh), 2)
+    return near
 
 
 def build_picks_view(store):
