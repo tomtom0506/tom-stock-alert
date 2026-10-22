@@ -16,6 +16,10 @@ on:
         description: "חפש מחדש חדשות לתנועות החריגות של הימים האחרונים"
         required: false
         default: "false"
+      prices_only:
+        description: "רק מחירים חיים (מהיר) - מופעל אוטומטית מהאפליקציה"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -46,6 +50,7 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           SEC_CONTACT_EMAIL: ${{ secrets.SEC_CONTACT_EMAIL }}
           NEWS_REFRESH: ${{ inputs.refresh_news == 'true' && 'true' || 'false' }}   # only ever "true"/"false" reaches the script
+          PRICES_ONLY: ${{ inputs.prices_only == 'true' && 'true' || 'false' }}
         run: python stock_alerts.py
 
       - name: Commit updated state (if changed)
