@@ -1191,7 +1191,7 @@
   "US_WDC_bigmove_2026-10-02": true,
   "US_RXO_bigmove_2026-10-02": true,
   "US_MAAS_bigmove_2026-10-02": true,
-  "ZVRA_below_10": true,
+  "ZVRA_below_10": false,
   "US_MXL_bigmove_2026-10-05": true,
   "US_IMOS_bigmove_2026-10-05": true,
   "US_SYNA_bigmove_2026-10-05": true,
@@ -1777,5 +1777,18 @@
   "US_PNR_bigmove_2026-10-27": true,
   "US_HWKN_bigmove_2026-10-27": true,
   "US_WEGZY_bigmove_2026-10-27": true,
-  "US_UNF_bigmove_2026-10-27": true
+  "US_UNF_bigmove_2026-10-27": true,
+  "US_CHRN_bigmove_2026-10-27": true,
+  "US_CTOS_bigmove_2026-10-27": true,
+  "US_USAR_bigmove_2026-10-27": true,
+  "US_CLS_bigmove_2026-10-27": true,
+  "US_EQPT_bigmove_2026-10-27": true,
+  "US_AEHR_bigmove_2026-10-27": true,
+  "US_NBIS_bigmove_2026-10-27": true,
+  "US_PII_bigmove_2026-10-27": true,
+  "US_IBRX_bigmove_2026-10-27": true,
+  "US_MXL_bigmove_2026-10-27": true,
+  "US_SDGR_bigmove_2026-10-27": true,
+  "US_LEU_bigmove_2026-10-27": true,
+  "US_XYL_bigmove_2026-10-27": true
 }
