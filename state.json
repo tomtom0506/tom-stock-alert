@@ -1770,5 +1770,12 @@
   "US_FICO_bigmove_2026-10-27": true,
   "US_TIMB_bigmove_2026-10-27": true,
   "US_VIV_bigmove_2026-10-27": true,
-  "US_RGC_bigmove_2026-10-27": true
+  "US_RGC_bigmove_2026-10-27": true,
+  "US_KNSA_bigmove_2026-10-27": true,
+  "US_HRI_bigmove_2026-10-27": true,
+  "US_SOFI_bigmove_2026-10-27": true,
+  "US_PNR_bigmove_2026-10-27": true,
+  "US_HWKN_bigmove_2026-10-27": true,
+  "US_WEGZY_bigmove_2026-10-27": true,
+  "US_UNF_bigmove_2026-10-27": true
 }
