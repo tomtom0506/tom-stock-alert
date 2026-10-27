@@ -867,6 +867,72 @@
    "ticker": "AMT",
    "filing_date": "2026-10-22",
    "accession": "0001053507-26-000151.txt"
+  },
+  {
+   "owner": "1234850",
+   "owners_all": "1234850",
+   "value": 23451.45,
+   "title": "",
+   "issuer_cik": "0000726854",
+   "symbol": "CHCO",
+   "ticker": "CHCO",
+   "filing_date": "2026-10-23",
+   "accession": "0000726854-26-000185.txt"
+  },
+  {
+   "owner": "2029548",
+   "owners_all": "2029548",
+   "value": 14213.0,
+   "title": "",
+   "issuer_cik": "0000726854",
+   "symbol": "CHCO",
+   "ticker": "CHCO",
+   "filing_date": "2026-10-23",
+   "accession": "0000726854-26-000186.txt"
+  },
+  {
+   "owner": "1880770",
+   "owners_all": "1880770",
+   "value": 13502.35,
+   "title": "",
+   "issuer_cik": "0000726854",
+   "symbol": "CHCO",
+   "ticker": "CHCO",
+   "filing_date": "2026-10-23",
+   "accession": "0000726854-26-000187.txt"
+  },
+  {
+   "owner": "1730666",
+   "owners_all": "1730666",
+   "value": 17055.6,
+   "title": "",
+   "issuer_cik": "0000726854",
+   "symbol": "CHCO",
+   "ticker": "CHCO",
+   "filing_date": "2026-10-23",
+   "accession": "0000726854-26-000188.txt"
+  },
+  {
+   "owner": "2093073",
+   "owners_all": "2093073",
+   "value": 99826.0,
+   "title": "",
+   "issuer_cik": "0000764065",
+   "symbol": "CLF",
+   "ticker": "CLF",
+   "filing_date": "2026-10-23",
+   "accession": "0000764065-26-000117.txt"
+  },
+  {
+   "owner": "1518692",
+   "owners_all": "1518692",
+   "value": 50129.16,
+   "title": "",
+   "issuer_cik": "0001003078",
+   "symbol": "MSM",
+   "ticker": "MSM",
+   "filing_date": "2026-10-23",
+   "accession": "0001003078-26-000112.txt"
   }
  ],
  "processed": [
@@ -897,7 +963,8 @@
   "2026-10-19",
   "2026-10-20",
   "2026-10-21",
-  "2026-10-22"
+  "2026-10-22",
+  "2026-10-23"
  ],
  "positions": [],
  "closed": [],
@@ -913,7 +980,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -9.5
+   "dd_from_high_pct": -9.2
   },
   {
    "ticker": "FUL",
@@ -925,7 +992,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -23.6
+   "dd_from_high_pct": -26.2
   },
   {
    "ticker": "GME",
@@ -937,7 +1004,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -9.4
+   "dd_from_high_pct": -14.7
   },
   {
    "ticker": "ADC",
@@ -949,7 +1016,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -16.4
+   "dd_from_high_pct": -16.0
   },
   {
    "ticker": "DKS",
@@ -961,7 +1028,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -37.2
+   "dd_from_high_pct": -39.0
   },
   {
    "ticker": "COO",
@@ -973,7 +1040,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -26.9
+   "dd_from_high_pct": -27.5
   },
   {
    "ticker": "KRMN",
@@ -985,7 +1052,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -70.0
+   "dd_from_high_pct": -67.9
   },
   {
    "ticker": "CELH",
@@ -997,7 +1064,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -55.2
+   "dd_from_high_pct": -55.6
   },
   {
    "ticker": "CROX",
@@ -1009,21 +1076,21 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -14.3
+   "dd_from_high_pct": -15.8
   }
  ],
  "portfolio": {
   "value": 100000.0,
   "ret_pct": 0.0,
-  "spy_pct": 0.09,
+  "spy_pct": 0.28,
   "open": 0,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 3,
+  "strong_last_30d": 2,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-24T00:58:49.239229+00:00"
+ "updated_at": "2026-10-27T01:36:17.952875+00:00"
 }
