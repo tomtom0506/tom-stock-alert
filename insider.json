@@ -933,6 +933,72 @@
    "ticker": "MSM",
    "filing_date": "2026-10-23",
    "accession": "0001003078-26-000112.txt"
+  },
+  {
+   "owner": "1368208",
+   "owners_all": "1368208",
+   "value": 104983.5,
+   "title": "",
+   "issuer_cik": "0001108134",
+   "symbol": "BBT",
+   "ticker": "BBT",
+   "filing_date": "2026-10-26",
+   "accession": "0001628280-26-067255.txt"
+  },
+  {
+   "owner": "1824971",
+   "owners_all": "1824971",
+   "value": 130000.0,
+   "title": "President & CEO",
+   "issuer_cik": "0000903129",
+   "symbol": "THRM",
+   "ticker": "THRM",
+   "filing_date": "2026-10-26",
+   "accession": "0001193125-26-432207.txt"
+  },
+  {
+   "owner": "1625756",
+   "owners_all": "1625756",
+   "value": 532600.0,
+   "title": "",
+   "issuer_cik": "0000903129",
+   "symbol": "THRM",
+   "ticker": "THRM",
+   "filing_date": "2026-10-26",
+   "accession": "0001193125-26-432218.txt"
+  },
+  {
+   "owner": "1341775",
+   "owners_all": "1341775",
+   "value": 94600.0,
+   "title": "",
+   "issuer_cik": "0000094344",
+   "symbol": "STC",
+   "ticker": "STC",
+   "filing_date": "2026-10-26",
+   "accession": "0001628280-26-067360.txt"
+  },
+  {
+   "owner": "1815639",
+   "owners_all": "1815639",
+   "value": 93640.0,
+   "title": "",
+   "issuer_cik": "0000094344",
+   "symbol": "STC",
+   "ticker": "STC",
+   "filing_date": "2026-10-26",
+   "accession": "0001628280-26-067362.txt"
+  },
+  {
+   "owner": "1356389",
+   "owners_all": "1356389",
+   "value": 95470.0,
+   "title": "",
+   "issuer_cik": "0000094344",
+   "symbol": "STC",
+   "ticker": "STC",
+   "filing_date": "2026-10-26",
+   "accession": "0001628280-26-067363.txt"
   }
  ],
  "processed": [
@@ -964,9 +1030,37 @@
   "2026-10-20",
   "2026-10-21",
   "2026-10-22",
-  "2026-10-23"
+  "2026-10-23",
+  "2026-10-26"
  ],
- "positions": [],
+ "positions": [
+  {
+   "ticker": "THRM",
+   "filing_date": "2026-10-26",
+   "entry_date": "2026-10-27",
+   "entry_price": 31.82,
+   "shares": 156.97674569156194,
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 662600,
+   "score": 4.58,
+   "last_price": 31.82,
+   "ret_pct": 0.0
+  },
+  {
+   "ticker": "STC",
+   "filing_date": "2026-10-26",
+   "entry_date": "2026-10-27",
+   "entry_price": 43.48,
+   "shares": 114.88040599328603,
+   "insiders": 3,
+   "ceo_cfo": false,
+   "value": 283710,
+   "score": 3.55,
+   "last_price": 43.48,
+   "ret_pct": 0.0
+  }
+ ],
  "closed": [],
  "note": "ניסוי. בהיסטוריה פחות ממחצית האותות ניצחו את SPY; הרווח הגיע ממיעוט מנצחות גדולות.",
  "signals": [
@@ -980,7 +1074,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -9.2
+   "dd_from_high_pct": -9.4
   },
   {
    "ticker": "FUL",
@@ -992,7 +1086,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -26.2
+   "dd_from_high_pct": -25.6
   },
   {
    "ticker": "GME",
@@ -1004,7 +1098,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -14.7
+   "dd_from_high_pct": -16.6
   },
   {
    "ticker": "ADC",
@@ -1016,7 +1110,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -16.0
+   "dd_from_high_pct": -16.5
   },
   {
    "ticker": "DKS",
@@ -1028,7 +1122,19 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -39.0
+   "dd_from_high_pct": -40.3
+  },
+  {
+   "ticker": "THRM",
+   "filing_date": "2026-10-26",
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 662600,
+   "score": 4.58,
+   "strong": true,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -25.7
   },
   {
    "ticker": "COO",
@@ -1040,7 +1146,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -27.5
+   "dd_from_high_pct": -29.0
   },
   {
    "ticker": "KRMN",
@@ -1052,7 +1158,19 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -67.9
+   "dd_from_high_pct": -67.3
+  },
+  {
+   "ticker": "STC",
+   "filing_date": "2026-10-26",
+   "insiders": 3,
+   "ceo_cfo": false,
+   "value": 283710,
+   "score": 3.55,
+   "strong": true,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -41.8
   },
   {
    "ticker": "CELH",
@@ -1064,7 +1182,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -55.6
+   "dd_from_high_pct": -55.0
   },
   {
    "ticker": "CROX",
@@ -1076,21 +1194,21 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -15.8
+   "dd_from_high_pct": -15.4
   }
  ],
  "portfolio": {
-  "value": 100000.0,
-  "ret_pct": 0.0,
-  "spy_pct": 0.28,
-  "open": 0,
+  "value": 99990.0,
+  "ret_pct": -0.01,
+  "spy_pct": 0.84,
+  "open": 2,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 2,
+  "strong_last_30d": 4,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-27T01:36:17.952875+00:00"
+ "updated_at": "2026-10-28T01:34:50.910712+00:00"
 }
