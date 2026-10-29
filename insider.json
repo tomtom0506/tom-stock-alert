@@ -999,6 +999,61 @@
    "ticker": "STC",
    "filing_date": "2026-10-26",
    "accession": "0001628280-26-067363.txt"
+  },
+  {
+   "owner": "1774337",
+   "owners_all": "1774337",
+   "value": 24698.4,
+   "title": "",
+   "issuer_cik": "0000036029",
+   "symbol": "FFIN",
+   "ticker": "FFIN",
+   "filing_date": "2026-10-27",
+   "accession": "0001193125-26-433039.txt"
+  },
+  {
+   "owner": "1008015",
+   "owners_all": "1008015",
+   "value": 28984169.74,
+   "title": "",
+   "issuer_cik": "0001003078",
+   "symbol": "MSM",
+   "ticker": "MSM",
+   "filing_date": "2026-10-27",
+   "accession": "0000950142-26-002870.txt"
+  },
+  {
+   "owner": "1261155",
+   "owners_all": "1261155",
+   "value": 133350.0,
+   "title": "Chief Executive Officer",
+   "issuer_cik": "0000094344",
+   "symbol": "STC",
+   "ticker": "STC",
+   "filing_date": "2026-10-27",
+   "accession": "0001628280-26-067616.txt"
+  },
+  {
+   "owner": "1814738",
+   "owners_all": "1814738",
+   "value": 43910.0,
+   "title": "",
+   "issuer_cik": "0000094344",
+   "symbol": "STC",
+   "ticker": "STC",
+   "filing_date": "2026-10-27",
+   "accession": "0001628280-26-067619.txt"
+  },
+  {
+   "owner": "1684185",
+   "owners_all": "1684185|2040262",
+   "value": 12178122.0,
+   "title": "",
+   "issuer_cik": "0001157408",
+   "symbol": "LRN",
+   "ticker": "LRN",
+   "filing_date": "2026-10-27",
+   "accession": "0001213900-26-113031.txt"
   }
  ],
  "processed": [
@@ -1031,7 +1086,8 @@
   "2026-10-21",
   "2026-10-22",
   "2026-10-23",
-  "2026-10-26"
+  "2026-10-26",
+  "2026-10-27"
  ],
  "positions": [
   {
@@ -1044,8 +1100,8 @@
    "ceo_cfo": true,
    "value": 662600,
    "score": 4.58,
-   "last_price": 31.82,
-   "ret_pct": 0.0
+   "last_price": 33.16,
+   "ret_pct": 4.21
   },
   {
    "ticker": "STC",
@@ -1057,8 +1113,8 @@
    "ceo_cfo": false,
    "value": 283710,
    "score": 3.55,
-   "last_price": 43.48,
-   "ret_pct": 0.0
+   "last_price": 44.3,
+   "ret_pct": 1.89
   }
  ],
  "closed": [],
@@ -1074,7 +1130,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -9.4
+   "dd_from_high_pct": -9.8
   },
   {
    "ticker": "FUL",
@@ -1086,7 +1142,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -25.6
+   "dd_from_high_pct": -25.9
   },
   {
    "ticker": "GME",
@@ -1098,7 +1154,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -16.6
+   "dd_from_high_pct": -16.7
   },
   {
    "ticker": "ADC",
@@ -1110,7 +1166,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -16.5
+   "dd_from_high_pct": -17.5
   },
   {
    "ticker": "DKS",
@@ -1122,7 +1178,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -40.3
+   "dd_from_high_pct": -42.5
   },
   {
    "ticker": "THRM",
@@ -1134,7 +1190,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -25.7
+   "dd_from_high_pct": -22.5
   },
   {
    "ticker": "COO",
@@ -1146,7 +1202,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -29.0
+   "dd_from_high_pct": -29.5
   },
   {
    "ticker": "KRMN",
@@ -1158,7 +1214,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -67.3
+   "dd_from_high_pct": -67.1
   },
   {
    "ticker": "STC",
@@ -1170,7 +1226,19 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -41.8
+   "dd_from_high_pct": -40.7
+  },
+  {
+   "ticker": "MSM",
+   "filing_date": "2026-10-27",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 29034299,
+   "score": 2.75,
+   "strong": false,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -7.7
   },
   {
    "ticker": "CELH",
@@ -1182,7 +1250,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -55.0
+   "dd_from_high_pct": -54.8
   },
   {
    "ticker": "CROX",
@@ -1194,13 +1262,13 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -15.4
+   "dd_from_high_pct": -15.2
   }
  ],
  "portfolio": {
-  "value": 99990.0,
-  "ret_pct": -0.01,
-  "spy_pct": 0.84,
+  "value": 100294.55,
+  "ret_pct": 0.29,
+  "spy_pct": 1.19,
   "open": 2,
   "closed": 0,
   "since": "2026-10-17"
@@ -1210,5 +1278,5 @@
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-28T01:34:50.910712+00:00"
+ "updated_at": "2026-10-29T01:55:51.327026+00:00"
 }
