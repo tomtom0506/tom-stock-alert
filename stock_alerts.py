@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.28.0"
+BACKEND_VERSION = "5.29.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -4534,15 +4534,33 @@ def build_strategy_comparison(store):
     # experiment / benchmark / mine - the frontend shows it as a badge.
     add("sp500", "S&P 500 - החזקה רגילה", "benchmark", "index_sim_sp500")
     add("core_exposure", "S&P 500 + כלל חשיפה", "core", "core_sim_sp500_exposure")
+    # v5.29.0 (30.10.2026): the book is re-simulated every session over a
+    # ROLLING 2-year window, so its "total since start" moved by itself as the
+    # start date slid (72.5% -> 86.6% in 4 days while live trades lost money).
+    # The results table now shows only what happened LIVE, from live_start,
+    # read from the book's own daily values, next to SPY over the same days.
+    book = store.get("strategy_book") or {}
+    live_start = book.get("live_start") or "2026-10-01"
+    spy_c = store.get("spy_closes") or {}
     for key in ("A", "B"):
-        sb = (store.get("strategy_book") or {}).get(key)
-        if sb and sb.get("start_date"):
-            row = {"key": f"book_{key}", "label": f"אסטרטגיה {key} - {sb['label']} (כל האותות, כולל עמלות)", "layer": "short",
-                   "start_date": sb["start_date"], "value": sb["value"], "return_pct": sb["total_return_pct"]}
-            if sb.get("spy_same_window_pct") is not None:   # starts before our own S&P sim - use the book's own SPY window
-                row["sp500_same_window_pct"] = sb["spy_same_window_pct"]
-                row["vs_sp500_pct"] = round(row["return_pct"] - row["sp500_same_window_pct"], 2)
-            rows.append(row)
+        sb = book.get(key) or {}
+        log = [r for r in (sb.get("daily_log") or []) if r.get("date")]
+        before = [r for r in log if r["date"] < live_start]
+        after = [r for r in log if r["date"] >= live_start]
+        if not after:
+            continue
+        base = float((before[-1] if before else after[0])["value"])
+        ret = round((float(after[-1]["value"]) / base - 1) * 100, 2) if base else None
+        closed = [t for t in (sb.get("trades") or []) if t.get("entry_date", "") >= live_start and t.get("exit_date")]
+        row = {"key": f"book_{key}", "layer": "short", "start_date": live_start, "value": after[-1]["value"], "return_pct": ret,
+               "label": (f"אסטרטגיה {key} - {sb.get('label', '')} · חי מאז {live_start[8:10]}.{live_start[5:7]} · "
+                         f"{len(closed)} עסקאות נסגרו, {sum(1 for t in closed if (t.get('pnl_pct') or 0) > 0)} ברווח")}
+        ds = sorted(spy_c)
+        b0 = [d for d in ds if d < live_start]
+        if ds and b0 and ret is not None:
+            row["sp500_same_window_pct"] = round((spy_c[ds[-1]] / spy_c[b0[-1]] - 1) * 100, 2)
+            row["vs_sp500_pct"] = round(ret - row["sp500_same_window_pct"], 2)
+        rows.append(row)
     ps = {}   # v5.25.0: the uncapped 3-picks list left the screen; the books are the measure
     if ps.get("start_date") and ps.get("value"):
         row = {"key": "picks_short", "label": "3 ההמלצות לטווח קצר (מה שהוצג במסך)", "layer": "short",

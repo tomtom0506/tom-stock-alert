@@ -1108,12 +1108,15 @@
 </div>
 
 <script>
-const APP_VERSION = "6.19.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.20.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.20.0", date: "2026-10-30", items: [
+    "📊 טבלת הביצועים מציגה את A ו-B רק בזמן אמת, מאז 1.10, מול ה-S&P באותם ימים, עם מספר העסקאות שנסגרו ובכמה רווח (backend 5.29.0). עד עכשיו הוצג מספר הסימולציה, שמחושב מחדש כל יום על חלון נע של שנתיים - ולכן קפץ מ-72.5% ל-86.6% בארבעה ימים שבהם העסקאות החיות הפסידו.",
+  ]},
   { version: "6.19.0", date: "2026-10-22", items: [
     "🚀 מבחן היציאה קדימה מקבל עמודה שלישית (backend 5.28.0): השיטה של החבר - סטופ בקו התמיכה הקרוב, יעד רחוק בשיא השנתי (אם הוא עד 40% מעל, אחרת ההתנגדות הקרובה), ואם אף אחד לא נגע - מכירה בתאריך. הרמות ננעלות ביום האות. מתחיל מההמלצות הבאות. הכרעה: 30 עסקאות סגורות, לא לפני 15.1.",
   ]},
@@ -3211,7 +3214,7 @@ function renderResults(data) {
       <td class="mono" style="color:var(--text-dim);">${signedPct(r.sp500_same_window_pct, 1)}</td>
       <td class="mono" style="font-weight:800; color:${col(r.vs_sp500_pct)};">${r.key === "sp500" ? "—" : signedPct(r.vs_sp500_pct, 1)}</td></tr>`).join("");
   h += `</tbody></table></div>
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:6px 2px 14px;">שורות A/B הן כל אותות האסטרטגיה מאוגוסט 2025 (סימולציה לפי הכללים, כולל עמלות). "3 ההמלצות" הן רק מה שהוצג לך במסך, מהיום שהמסך עלה.</div>`;
+    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:6px 2px 14px;">שורות A/B מראות רק מה שקרה בזמן אמת, מאז שהאסטרטגיות עלו (1.10), כולל עמלות. הפירוט למטה כולל גם את הסימולציה על השנה האחרונה - היא מחושבת מחדש כל יום על חלון נע, ולכן המספר הכולל שלה זז גם בלי עסקאות.</div>`;
   const sb = data.strategy_book || data.book || {};
   if (typeof renderBookCard === "function" && (sb.A || sb.B)) {
     h += `<div class="section-title">פירוט האסטרטגיות <span class="tag proven">מוכח</span></div>`;
