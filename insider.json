@@ -1054,6 +1054,226 @@
    "ticker": "LRN",
    "filing_date": "2026-10-27",
    "accession": "0001213900-26-113031.txt"
+  },
+  {
+   "owner": "1369240",
+   "owners_all": "1369240",
+   "value": 199847.76,
+   "title": "",
+   "issuer_cik": "0001467373",
+   "symbol": "ACN",
+   "ticker": "ACN",
+   "filing_date": "2026-10-28",
+   "accession": "0001369240-26-000014.txt"
+  },
+  {
+   "owner": "1487630",
+   "owners_all": "1487630",
+   "value": 3001041.24,
+   "title": "Chair and CEO",
+   "issuer_cik": "0001467373",
+   "symbol": "ACN",
+   "ticker": "ACN",
+   "filing_date": "2026-10-28",
+   "accession": "0001487630-26-000022.txt"
+  },
+  {
+   "owner": "1589930",
+   "owners_all": "1589930",
+   "value": 10123.33,
+   "title": "",
+   "issuer_cik": "0001108134",
+   "symbol": "BBT",
+   "ticker": "BBT",
+   "filing_date": "2026-10-28",
+   "accession": "0001628280-26-067740.txt"
+  },
+  {
+   "owner": "1973576",
+   "owners_all": "1973576",
+   "value": 21168.0,
+   "title": "",
+   "issuer_cik": "0001108134",
+   "symbol": "BBT",
+   "ticker": "BBT",
+   "filing_date": "2026-10-28",
+   "accession": "0001628280-26-067904.txt"
+  },
+  {
+   "owner": "1965457",
+   "owners_all": "1965457",
+   "value": 30680.0,
+   "title": "",
+   "issuer_cik": "0001108134",
+   "symbol": "BBT",
+   "ticker": "BBT",
+   "filing_date": "2026-10-28",
+   "accession": "0001628280-26-067923.txt"
+  },
+  {
+   "owner": "1649471",
+   "owners_all": "1649471",
+   "value": 101400.0,
+   "title": "",
+   "issuer_cik": "0000910073",
+   "symbol": "NYSE:FLG",
+   "ticker": "FLG",
+   "filing_date": "2026-10-28",
+   "accession": "0001649471-26-000006.txt"
+  },
+  {
+   "owner": "1319629",
+   "owners_all": "1319629",
+   "value": 242010.0,
+   "title": "",
+   "issuer_cik": "0000717605",
+   "symbol": "HXL",
+   "ticker": "HXL",
+   "filing_date": "2026-10-28",
+   "accession": "0001193125-26-436418.txt"
+  },
+  {
+   "owner": "1213483",
+   "owners_all": "1213483",
+   "value": 253720.0,
+   "title": "",
+   "issuer_cik": "0000049196",
+   "symbol": "HBAN",
+   "ticker": "HBAN",
+   "filing_date": "2026-10-28",
+   "accession": "0001225208-26-008542.txt"
+  },
+  {
+   "owner": "1705702",
+   "owners_all": "1705702",
+   "value": 223300.0,
+   "title": "",
+   "issuer_cik": "0001694028",
+   "symbol": "LBRT",
+   "ticker": "LBRT",
+   "filing_date": "2026-10-28",
+   "accession": "0001628280-26-067906.txt"
+  },
+  {
+   "owner": "1561100",
+   "owners_all": "1561100",
+   "value": 902460.5,
+   "title": "",
+   "issuer_cik": "0001116942",
+   "symbol": "TTMI",
+   "ticker": "TTMI",
+   "filing_date": "2026-10-28",
+   "accession": "0001193125-26-436557.txt"
+  },
+  {
+   "owner": "1705520",
+   "owners_all": "1705520",
+   "value": 440350.0,
+   "title": "President and CEO",
+   "issuer_cik": "0001116942",
+   "symbol": "TTMI",
+   "ticker": "TTMI",
+   "filing_date": "2026-10-28",
+   "accession": "0001193125-26-436562.txt"
+  },
+  {
+   "owner": "2139609",
+   "owners_all": "2139609",
+   "value": 31492.0,
+   "title": "CEO Americas Kloeckner Metals",
+   "issuer_cik": "0001968487",
+   "symbol": "WS",
+   "ticker": "WS",
+   "filing_date": "2026-10-28",
+   "accession": "0001193125-26-436256.txt"
+  },
+  {
+   "owner": "1993894",
+   "owners_all": "1993894",
+   "value": 96672.0,
+   "title": "",
+   "issuer_cik": "0001108134",
+   "symbol": "BBT",
+   "ticker": "BBT",
+   "filing_date": "2026-10-29",
+   "accession": "0001628280-26-068056.txt"
+  },
+  {
+   "owner": "1207002",
+   "owners_all": "1207002",
+   "value": 1108000.0,
+   "title": "CEO",
+   "issuer_cik": "0001915657",
+   "symbol": "DINO",
+   "ticker": "DINO",
+   "filing_date": "2026-10-29",
+   "accession": "0001193125-26-438100.txt"
+  },
+  {
+   "owner": "1251487",
+   "owners_all": "1251487",
+   "value": 199834.5,
+   "title": "",
+   "issuer_cik": "0000049196",
+   "symbol": "HBAN",
+   "ticker": "HBAN",
+   "filing_date": "2026-10-29",
+   "accession": "0001225208-26-008552.txt"
+  },
+  {
+   "owner": "1219004",
+   "owners_all": "1219004",
+   "value": 991600.0,
+   "title": "",
+   "issuer_cik": "0002082866",
+   "symbol": "PNFP",
+   "ticker": "PNFP",
+   "filing_date": "2026-10-29",
+   "accession": "0001219004-26-000004.txt"
+  },
+  {
+   "owner": "1684185",
+   "owners_all": "1684185|2040262|2162829",
+   "value": 62187.84,
+   "title": "",
+   "issuer_cik": "0001157408",
+   "symbol": "LRN",
+   "ticker": "LRN",
+   "filing_date": "2026-10-29",
+   "accession": "0001213900-26-113987.txt"
+  },
+  {
+   "owner": "1534574",
+   "owners_all": "1534574",
+   "value": 1209050.0,
+   "title": "President & CEO",
+   "issuer_cik": "0000092230",
+   "symbol": "TFC",
+   "ticker": "TFC",
+   "filing_date": "2026-10-29",
+   "accession": "0001534574-26-000018.txt"
+  },
+  {
+   "owner": "1245377",
+   "owners_all": "1245377",
+   "value": 47015.64,
+   "title": "",
+   "issuer_cik": "0000933036",
+   "symbol": "UPBD",
+   "ticker": "UPBD",
+   "filing_date": "2026-10-29",
+   "accession": "0001193125-26-437864.txt"
+  },
+  {
+   "owner": "1190801",
+   "owners_all": "1190801",
+   "value": 985600.0,
+   "title": "",
+   "issuer_cik": "0001524472",
+   "symbol": "XYL",
+   "ticker": "XYL",
+   "filing_date": "2026-10-29",
+   "accession": "0001524472-26-000150.txt"
   }
  ],
  "processed": [
@@ -1087,7 +1307,9 @@
   "2026-10-22",
   "2026-10-23",
   "2026-10-26",
-  "2026-10-27"
+  "2026-10-27",
+  "2026-10-28",
+  "2026-10-29"
  ],
  "positions": [
   {
@@ -1100,8 +1322,8 @@
    "ceo_cfo": true,
    "value": 662600,
    "score": 4.58,
-   "last_price": 33.16,
-   "ret_pct": 4.21
+   "last_price": 32.2,
+   "ret_pct": 1.19
   },
   {
    "ticker": "STC",
@@ -1113,8 +1335,47 @@
    "ceo_cfo": false,
    "value": 283710,
    "score": 3.55,
-   "last_price": 44.3,
-   "ret_pct": 1.89
+   "last_price": 45.48,
+   "ret_pct": 4.6
+  },
+  {
+   "ticker": "ACN",
+   "filing_date": "2026-10-28",
+   "entry_date": "2026-10-29",
+   "entry_price": 247.22,
+   "shares": 20.204675897322584,
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 3200889,
+   "score": 4.65,
+   "last_price": 247.22,
+   "ret_pct": 0.0
+  },
+  {
+   "ticker": "TTMI",
+   "filing_date": "2026-10-28",
+   "entry_date": "2026-10-29",
+   "entry_price": 87.63,
+   "shares": 57.00102883211231,
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 1342810,
+   "score": 4.61,
+   "last_price": 87.63,
+   "ret_pct": 0.0
+  },
+  {
+   "ticker": "BBT",
+   "filing_date": "2026-10-28",
+   "entry_date": "2026-10-29",
+   "entry_price": 30.66,
+   "shares": 162.91585208281103,
+   "insiders": 4,
+   "ceo_cfo": false,
+   "value": 166955,
+   "score": 4.52,
+   "last_price": 30.66,
+   "ret_pct": 0.0
   }
  ],
  "closed": [],
@@ -1130,7 +1391,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -9.8
+   "dd_from_high_pct": -7.9
   },
   {
    "ticker": "FUL",
@@ -1142,7 +1403,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -25.9
+   "dd_from_high_pct": -25.4
   },
   {
    "ticker": "GME",
@@ -1154,7 +1415,19 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -16.7
+   "dd_from_high_pct": -14.3
+  },
+  {
+   "ticker": "ACN",
+   "filing_date": "2026-10-28",
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 3200889,
+   "score": 4.65,
+   "strong": true,
+   "tier": "large",
+   "liquid": true,
+   "dd_from_high_pct": -11.9
   },
   {
    "ticker": "ADC",
@@ -1166,7 +1439,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -17.5
+   "dd_from_high_pct": -15.7
   },
   {
    "ticker": "DKS",
@@ -1178,7 +1451,19 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -42.5
+   "dd_from_high_pct": -40.1
+  },
+  {
+   "ticker": "TTMI",
+   "filing_date": "2026-10-28",
+   "insiders": 2,
+   "ceo_cfo": true,
+   "value": 1342810,
+   "score": 4.61,
+   "strong": true,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -60.4
   },
   {
    "ticker": "THRM",
@@ -1190,7 +1475,19 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -22.5
+   "dd_from_high_pct": -24.8
+  },
+  {
+   "ticker": "BBT",
+   "filing_date": "2026-10-28",
+   "insiders": 4,
+   "ceo_cfo": false,
+   "value": 166955,
+   "score": 4.52,
+   "strong": true,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -6.0
   },
   {
    "ticker": "COO",
@@ -1202,7 +1499,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -29.5
+   "dd_from_high_pct": -28.4
   },
   {
    "ticker": "KRMN",
@@ -1214,7 +1511,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -67.1
+   "dd_from_high_pct": -63.8
   },
   {
    "ticker": "STC",
@@ -1226,7 +1523,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -40.7
+   "dd_from_high_pct": -39.2
   },
   {
    "ticker": "MSM",
@@ -1238,7 +1535,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -7.7
+   "dd_from_high_pct": -7.5
   },
   {
    "ticker": "CELH",
@@ -1250,7 +1547,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -54.8
+   "dd_from_high_pct": -54.1
   },
   {
    "ticker": "CROX",
@@ -1262,21 +1559,33 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -15.2
+   "dd_from_high_pct": 0.0
+  },
+  {
+   "ticker": "HBAN",
+   "filing_date": "2026-10-29",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 453554,
+   "score": 2.57,
+   "strong": false,
+   "tier": "large",
+   "liquid": true,
+   "dd_from_high_pct": -14.7
   }
  ],
  "portfolio": {
-  "value": 100294.55,
-  "ret_pct": 0.29,
-  "spy_pct": 1.19,
-  "open": 2,
+  "value": 100264.41,
+  "ret_pct": 0.26,
+  "spy_pct": 0.8,
+  "open": 5,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 4,
+  "strong_last_30d": 7,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-29T01:55:51.327026+00:00"
+ "updated_at": "2026-10-30T02:12:42.640052+00:00"
 }
