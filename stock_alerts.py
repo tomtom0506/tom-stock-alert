@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.29.0"
+BACKEND_VERSION = "5.30.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -6723,6 +6723,37 @@ def _far_target(snap_by_ticker, ticker, price, near):
     return near
 
 
+def screen_consistency_issues(book_actions, session):
+    """v5.30.0 - the screen's own sanity checks, run on every build and shown
+    as a red banner + sent by the daily QA. Anything here means the action
+    screen would tell the user something contradictory or impossible."""
+    issues = []
+    buys = [(k, b) for k in ("A", "B") for b in book_actions[k]["buys"] if not b.get("net")]
+    sells = [(k, h) for k in ("A", "B") for h in book_actions[k]["sell_due"] if not h.get("net")]
+    bt = {b["ticker"] for _, b in buys}
+    for k, h in sells:
+        if h["ticker"] in bt:
+            issues.append(f"{h['ticker']}: מופיעה גם בקנייה וגם במכירה")
+    held = {h["ticker"] for k in ("A", "B") for h in book_actions[k]["holdings"] + book_actions[k]["sell_due"]}
+    for k, b in buys:
+        if b["ticker"] in held:
+            issues.append(f"{b['ticker']}: המלצת קנייה למניה שכבר מוחזקת")
+        if not b.get("ref_price"):
+            issues.append(f"{b['ticker']}: המלצת קנייה בלי שער ייחוס")
+        if session and b.get("exit_estimate") and b["exit_estimate"] <= session:
+            issues.append(f"{b['ticker']}: תאריך מכירה לפני תאריך הקנייה")
+    for k in ("A", "B"):
+        a = book_actions[k]
+        if a["open"] > a["slots"]:
+            issues.append(f"{k}: {a['open']} מניות פתוחות מעל {a['slots']} משבצות")
+        if len([b for b in a["buys"] if not b.get("net")]) > a["free"]:
+            issues.append(f"{k}: יותר קניות ממשבצות פנויות")
+        for h in a["holdings"] + a["sell_due"]:
+            if not h.get("entry"):
+                issues.append(f"{h['ticker']}: אחזקה בלי מחיר קנייה")
+    return issues
+
+
 def build_picks_view(store):
     """Everything the main page and the digest need, in one place."""
     book = store.get("strategy_book") or {}
@@ -6769,10 +6800,10 @@ def build_picks_view(store):
         held = {h["ticker"] for h in holdings}
         pend = sorted([x for x in (b.get("pending") or []) if not x.get("already_held") and x["ticker"] not in held],
                       key=lambda x: -(x.get("rank") or 0))
-        buys = []
+        bk_buys = []
         for x in pend[:free]:
             ref = x.get("close")
-            buys.append({"ticker": x["ticker"], "strategy": key, "strategy_label": cfg["label"], "ref_price": ref,
+            bk_buys.append({"ticker": x["ticker"], "strategy": key, "strategy_label": cfg["label"], "ref_price": ref,
                          "gap_hi": round(ref * (1 + GAP_WARN_PCT / 100), 2) if ref else None,
                          "gap_lo": round(ref * (1 - GAP_WARN_PCT / 100), 2) if ref else None,
                          "exit_estimate": _add_sessions(session, cfg["hold"]) if session else None,
@@ -6785,10 +6816,36 @@ def build_picks_view(store):
                   **_chart_levels(snap, h["ticker"], h.get("last"))}
                  for h in holdings]
         book_actions[key] = {"label": cfg["label"], "slots": cfg["slots"], "open": len(holdings), "free": free,
-                             "weight_pct": round(100 / cfg["slots"], 2), "buys": buys,
+                             "weight_pct": round(100 / cfg["slots"], 2), "buys": bk_buys,
                              "skipped": [x["ticker"] for x in pend[free:]],
                              "sell_due": [h for h in sells if (h.get("sessions_left") or 0) <= 1],
                              "holdings": [h for h in sells if (h.get("sessions_left") or 0) > 1]}
+    # v5.30.0 (31.10.2026 - TWLO showed as "buy" in A and "sell" in B on the
+    # same screen): the two books are measured separately, but ONE person
+    # follows them, so the screen nets them per ticker:
+    #   * A buys what B sells the same day (or vice versa) -> "keep holding,
+    #     it moves from B to A" - no sell, no buy, no fees
+    #   * a book buys a ticker another book already holds -> "already held,
+    #     don't buy twice" (the book still records it, so research parity stays)
+    #   * both books buy the same ticker -> shown once
+    selling = {h["ticker"]: k for k in ("A", "B") for h in book_actions[k]["sell_due"]}
+    holding = {h["ticker"]: k for k in ("A", "B") for h in book_actions[k]["holdings"]}
+    seen = set()
+    for k in ("A", "B"):
+        for b in book_actions[k]["buys"]:
+            t = b["ticker"]
+            other = "B" if k == "A" else "A"
+            if selling.get(t) == other:
+                b["net"] = "transfer"; b["net_from"] = other
+            elif holding.get(t) == other:
+                b["net"] = "already_held"; b["net_from"] = other
+            elif t in seen:
+                b["net"] = "duplicate"
+            seen.add(t)
+        for h in book_actions[k]["sell_due"]:
+            other = "B" if k == "A" else "A"
+            if any(b["ticker"] == h["ticker"] for b in book_actions[other]["buys"]):
+                h["net"] = "transfer"; h["net_to"] = other
     store["picks"] = {
         "updated_at": datetime.now(timezone.utc).isoformat(), "session": session, "book_actions": book_actions,
         "short_buy": buys, "short_open": short_sim.get("open") or [], "short_sell_due": sells_due,
@@ -6797,6 +6854,7 @@ def build_picks_view(store):
         "warnings": (store.get("picks", {}).get("warnings") or [])[-20:],
         "boxes": boxes, "thumbs": thumbs, "thumbs_reason": why,
         "exit_test": store.get("exit_forward_test"),
+        "qa_issues": screen_consistency_issues(book_actions, session),
     }
     return store["picks"]
 
@@ -6818,9 +6876,15 @@ def send_picks_digest(store):
         return (" · 🧪 " + " / ".join(bits)) if bits else ""
     L += [f"• {p['ticker']} ({p['strategy_label']}): {p['why']} · ייחוס ${p.get('ref_price') or p.get('close')} · קנייה בפתיחה · "
           f"מכירה בסגירה ~{fmt_date_il(p['exit_estimate'])}{_lv(p)}"
-          for p in ([b for k in ("A", "B") for b in ((pk.get("book_actions") or {}).get(k) or {}).get("buys", [])]
+          for p in ([b for k in ("A", "B") for b in ((pk.get("book_actions") or {}).get(k) or {}).get("buys", []) if not b.get("net")]
                     if pk.get("book_actions") else (pk.get("short_buy") or []))] or ["• אין קנייה היום (אין אות, או שכל המשבצות תפוסות)"]
-    due = ([h for k in ("A", "B") for h in ((pk.get("book_actions") or {}).get(k) or {}).get("sell_due", [])]
+    keep = [b for k in ("A", "B") for b in ((pk.get("book_actions") or {}).get(k) or {}).get("buys", []) if b.get("net") == "transfer"]
+    if keep:
+        L.append("↔️ להמשיך להחזיק (אסטרטגיה אחת מוכרת והשנייה קונה - לא נוגעים):")
+        L += [f"• {b['ticker']} - עד {fmt_date_il(b['exit_estimate'])}" for b in keep]
+    if pk.get("qa_issues"):
+        L.append("⚠️ בדיקה עצמית מצאה סתירה במסך - לא לפעול עד תיקון: " + "; ".join(pk["qa_issues"]))
+    due = ([h for k in ("A", "B") for h in ((pk.get("book_actions") or {}).get(k) or {}).get("sell_due", []) if not h.get("net")]
            if pk.get("book_actions") else (pk.get("short_sell_due") or []))
     if due:
         L.append("🔴 טווח קצר - למכור בסגירה של יום המסחר הבא:")

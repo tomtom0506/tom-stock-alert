@@ -1108,12 +1108,16 @@
 </div>
 
 <script>
-const APP_VERSION = "6.20.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.21.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.21.0", date: "2026-10-31", items: [
+    "🐞 תוקן: אותה מניה הופיעה גם כ'קנה' וגם כ'מכור' (TWLO - אסטרטגיה B מכרה ו-A קנתה באותו יום). עכשיו המסך מאחד את שתי האסטרטגיות לכל מניה: כש-A קונה מה ש-B מוכרת (או להפך) - 'המשך להחזיק', בלי מכירה, בלי קנייה ובלי עמלות. כשמניה כבר מוחזקת באסטרטגיה השנייה - לא קונים פעם שנייה. מניה שמוחזקת בשתיהן מופיעה פעם אחת (backend 5.30.0).",
+    "🛡️ בדיקה עצמית: בכל בנייה של המסך נבדקות סתירות (אותה מניה בקנייה ובמכירה, קנייה של מניה מוחזקת, תאריך מכירה לפני קנייה, יותר מניות ממשבצות, אחזקה בלי מחיר). אם נמצאה בעיה - מופיע פס אדום 'אל תפעל לפי המסך', ובדיקת ה-QA היומית שולחת התראה.",
+  ]},
   { version: "6.20.0", date: "2026-10-30", items: [
     "📊 טבלת הביצועים מציגה את A ו-B רק בזמן אמת, מאז 1.10, מול ה-S&P באותם ימים, עם מספר העסקאות שנסגרו ובכמה רווח (backend 5.29.0). עד עכשיו הוצג מספר הסימולציה, שמחושב מחדש כל יום על חלון נע של שנתיים - ולכן קפץ מ-72.5% ל-86.6% בארבעה ימים שבהם העסקאות החיות הפסידו.",
   ]},
@@ -3307,10 +3311,17 @@ function renderActionScreen(data) {
   const usd = v => v == null ? "—" : `$${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   // v6.17.0: the screen mirrors the tested A/B books - fixed slots, a buy only when a slot is free
   const ba = pk.book_actions;
-  const buys = ba ? [...(ba.A || {}).buys || [], ...(ba.B || {}).buys || []] : (pk.short_buy || []);
-  const sells = ba ? [...(ba.A || {}).sell_due || [], ...(ba.B || {}).sell_due || []] : (pk.short_sell_due || []);
-  const held = ba ? [...(ba.A || {}).holdings || [], ...(ba.B || {}).holdings || []]
-                  : (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
+  // v6.21.0: one person follows both books - net them per ticker (backend marks b.net / h.net)
+  const allBuys = ba ? [...(ba.A || {}).buys || [], ...(ba.B || {}).buys || []] : (pk.short_buy || []);
+  const buys = allBuys.filter(b => !b.net);
+  const transfers = allBuys.filter(b => b.net === "transfer");
+  const alreadyHeld = allBuys.filter(b => b.net === "already_held");
+  const sells = (ba ? [...(ba.A || {}).sell_due || [], ...(ba.B || {}).sell_due || []] : (pk.short_sell_due || [])).filter(h => !h.net);
+  const heldRaw = ba ? [...(ba.A || {}).holdings || [], ...(ba.B || {}).holdings || []]
+                     : (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
+  const heldCount = {};
+  heldRaw.forEach(h => { heldCount[h.ticker] = (heldCount[h.ticker] || 0) + 1; });
+  const held = heldRaw.filter((h, i) => heldRaw.findIndex(x => x.ticker === h.ticker) === i);
   const cap = Number(localStorage.getItem("shortCapital") || 0);
   const sizeOf = key => { const a = (ba || {})[key]; return (cap && a) ? cap / 2 / a.slots : null; };
   const feeOf = usdAmt => Math.min(Math.max(usdAmt * 0.001, 8), 500);
@@ -3335,6 +3346,10 @@ function renderActionScreen(data) {
   } else {
     h += `<div class="act-status none"><div style="font-size:22px; font-weight:800;">אין מה לעשות היום</div><div style="font-size:13.5px; color:var(--text-dim); margin-top:6px; line-height:1.5;">אין אות קנייה חדש, ואף עסקה לא הגיעה ליום המכירה. זה המצב ברוב הימים, וזה תקין.</div></div>`;
   }
+  if ((pk.qa_issues || []).length) h += `<div class="act-row" style="border-color:var(--down); color:var(--down); font-size:12.5px;"><b>⚠️ בדיקה עצמית מצאה בעיה במסך - אל תפעל לפיו עד שזה מתוקן:</b><br>${pk.qa_issues.join("<br>")}</div>`;
+  h += transfers.map(b => `<div class="act-row"><div class="head"><div class="tk">המשך להחזיק ${b.ticker}</div><div style="font-size:11.5px; color:var(--text-dim);">לא קונים ולא מוכרים</div></div>
+      <div style="font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-top:4px;">אסטרטגיה ${b.net_from} מוכרת אותה בסגירה, ו-${b.strategy} קונה אותה מחדש בפתיחה (${b.why}). אצלך זו אותה מניה - פשוט ממשיכים להחזיק עד ${fmtDateIL(b.exit_estimate)}, וחוסכים שתי עמלות.</div></div>`).join("");
+  h += alreadyHeld.map(b => `<div class="act-row" style="font-size:12.5px; color:var(--text-dim);"><b>${b.ticker}</b>: אסטרטגיה ${b.strategy} קיבלה אות, אבל המניה כבר מוחזקת באסטרטגיה ${b.net_from}. לא קונים פעם שנייה.</div>`).join("");
   h += buys.map(b => `<div class="act-row">
       <div class="head"><div class="tk" style="color:var(--up);">קנה ${b.ticker}</div><div style="font-size:11.5px; color:var(--text-dim);">${b.strategy_label}</div></div>
       <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">${b.why}</div>
@@ -3359,7 +3374,7 @@ function renderActionScreen(data) {
   if (held.length) {
     h += `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:14px 2px 6px;">מוחזקות · אין מה לעשות איתן היום</div>`;
     h += held.map(o => { const w = withNow(o); return `<div class="act-row">
-      <div class="head"><div><span class="tk" style="font-size:15px;">${o.ticker}</span> <span style="font-size:11.5px; color:var(--text-faint);">למכור בסגירה של ${fmtDateIL(o.exit_estimate)}</span></div><div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>
+      <div class="head"><div><span class="tk" style="font-size:15px;">${o.ticker}</span> <span style="font-size:11.5px; color:var(--text-faint);">למכור בסגירה של ${fmtDateIL(o.exit_estimate)}${heldCount[o.ticker] > 1 ? " · מוחזקת בשתי האסטרטגיות - אצלך פוזיציה אחת" : ""}</span></div><div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>
       <div style="font-size:11.5px; color:var(--text-faint); margin-top:2px;">נקנתה ${usd(o.entry)} · ${priceTag(w.pn)}</div>${tech(o)}</div>`; }).join("");
   }
   const b = (pk.boxes || {}).short || {};
@@ -3481,21 +3496,10 @@ function renderPicks(data) {
     const boxes = pk.boxes || {};
     bx.innerHTML = box("🚀 3 ההמלצות - קצר", boxes.short) + box("🏛 3 ההמלצות - ארוך", boxes.long);
   }
+  // v6.21.0: the old uncapped "3 short picks" list could contradict the action screen
+  // (e.g. TWLO "buy" here while it was a hold-over there) - one source of truth only
   const sc = document.getElementById("picksShortCard");
-  if (sc) {
-    const buys = pk.short_buy || [];
-    const sells = pk.short_sell_due || [];
-    const open = (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
-    let h = `<div class="pc-title">🚀 לקנות עכשיו - טווח קצר <span style="font-size:11px; color:var(--text-faint); font-weight:400;">· אחרי המסחר של ${fmtDateIL(pk.session)}</span></div>`;
-    h += buys.length ? buys.map(b => `<div class="picks-row"><div style="min-width:0;"><div style="font-weight:800;">${b.ticker} <span style="font-size:11px; color:var(--text-dim); font-weight:400;">${b.strategy_label}</span></div>
-        <div style="font-size:11.5px; color:var(--text-dim);">${b.why}</div></div>
-        <div style="text-align:left; white-space:nowrap;"><div class="mono">$${b.close}</div><div style="font-size:11px; color:var(--text-faint);">לקנות בפתיחה · ${b.hold} ימי מסחר</div></div></div>`).join("")
-      : `<div style="font-size:13px; color:var(--text-dim); padding:6px 0;">אין אות היום - לא קונים כלום בטווח הקצר.</div>`;
-    if (sells.length) h += `<div style="font-size:13px; font-weight:800; color:var(--down); margin-top:8px;">🔴 למכור בסגירה של יום המסחר הבא</div>` + sells.map(o => `<div class="picks-row"><div style="font-weight:800;">${o.ticker}</div><div class="mono" style="color:${col(o.pnl_pct)};">${pct(o.pnl_pct, 1)}</div></div>`).join("");
-    if (open.length) h += `<div style="font-size:12px; color:var(--text-dim); margin-top:8px;">מוחזקות מהמלצות קודמות</div>` + open.map(o => `<div class="picks-row"><div><span style="font-weight:700;">${o.ticker}</span> <span style="font-size:11px; color:var(--text-faint);">עוד ${o.sessions_left} ימי מסחר · מכירה ~${fmtDateIL(o.exit_estimate)}</span></div><div class="mono" style="color:${col(o.pnl_pct)};">${pct(o.pnl_pct, 1)}</div></div>`).join("");
-    if ((pk.short_pending_entry || []).length) h += `<div style="font-size:11px; color:var(--text-faint); margin-top:6px;">ממתינות לפתיחה: ${pk.short_pending_entry.join(", ")}</div>`;
-    sc.innerHTML = h;
-  }
+  if (sc) sc.innerHTML = `<div class="pc-title">🚀 טווח קצר</div><div style="font-size:12.5px; color:var(--text-dim); line-height:1.6;">ההמלצות לקנייה ולמכירה בטווח הקצר מופיעות רק במסך 🎯 פעולה - שם הן מנוהלות לפי המשבצות שנבדקו, ושם הן מאוחדות בין A ל-B.</div>`;
   const lc = document.getElementById("picksLongCard");
   if (lc) {
     const longs = pk.long || [];

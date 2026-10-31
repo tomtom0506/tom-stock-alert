@@ -289,14 +289,20 @@ def check_data_suspect_flags(store, today_str, outliers_section):
     if not flagged:
         return
 
+    log = load_json(QA_OUTLIERS_LOG, [])
+    # v5.30.0: the same old event (e.g. ROBO.TA's split in May) re-flags every
+    # day while it's inside the 1-year window - report each (ticker, reason)
+    # once, so a NEW outlier isn't buried under yesterday's.
+    seen_reason = {(rec.get("ticker"), rec.get("reason")) for rec in log}
     for e in flagged:
+        if (e["ticker"], e.get("data_suspect_reason")) in seen_reason:
+            continue
         outliers_section.append(
             f"{e['ticker']}: {e.get('data_suspect_reason') or 'תנועת מחיר קיצונית לא מוסברת'} "
             f"- הוצא אוטומטית מ-Top10/תחזיות חזקות."
         )
-
-    log = load_json(QA_OUTLIERS_LOG, [])
-    existing_keys = {(rec.get("date"), rec.get("ticker")) for rec in log}
+    existing_keys = {(rec.get("date"), rec.get("ticker")) for rec in log} | {(today_str, t) for t, r in seen_reason
+                                                                               if any(e["ticker"] == t and e.get("data_suspect_reason") == r for e in flagged)}
     for e in flagged:
         key = (today_str, e["ticker"])
         if key in existing_keys:
@@ -345,6 +351,37 @@ def check_grading_flags(store, today_str, outliers_section, info):
             parts.append(f"{label}: {v['mean_ic']:+.3f}" + (f" (t={t})" if t is not None else ""))
     if parts:
         info.append("IC ממוצע (ציון מול תוצאה, כל היקום): " + " · ".join(parts))
+
+
+def check_screen_consistency(issues):
+    """v5.30.0 (31.10.2026, after TWLO showed as both buy and sell): checks the
+    ACTION SCREEN's own data (today.json), not just the engine - the thing the
+    user actually acts on."""
+    t = load_json(BASE_DIR / "today.json", {})
+    if not t:
+        issues.append("today.json חסר - המסך הראשי לא נטען מהקובץ המהיר")
+        return
+    pk = t.get("picks") or {}
+    for q in pk.get("qa_issues") or []:
+        issues.append(f"מסך הפעולה: {q}")
+    ba = pk.get("book_actions") or {}
+    buys = {b["ticker"] for k in ("A", "B") for b in (ba.get(k) or {}).get("buys", []) if not b.get("net")}
+    sells = {h["ticker"] for k in ("A", "B") for h in (ba.get(k) or {}).get("sell_due", []) if not h.get("net")}
+    for tk in sorted(buys & sells):
+        issues.append(f"מסך הפעולה: {tk} מופיעה גם בקנייה וגם במכירה")
+    cp = load_json(BASE_DIR / "current_prices.json", {}) or {}
+    prices = cp.get("prices") or {}
+    open_t = {h["ticker"] for k in ("A", "B") for h in ((ba.get(k) or {}).get("holdings", []) + (ba.get(k) or {}).get("sell_due", []))}
+    open_t |= {h["ticker"] for h in pk.get("long") or []}
+    missing = sorted(x for x in open_t if x not in prices)
+    if missing:
+        issues.append(f"אין מחיר חי למניות פתוחות: {', '.join(missing)}")
+    try:
+        age_h = (datetime.now(timezone.utc) - datetime.fromisoformat(t["generated_at"])).total_seconds() / 3600
+        if age_h > 30:
+            issues.append(f"today.json לא עודכן {age_h:.0f} שעות")
+    except Exception:
+        issues.append("today.json בלי זמן עדכון")
 
 
 # ---------------------------------------------------------------------------
@@ -631,6 +668,7 @@ def main():
     check_stagnation(prices_data, today_str, issues, info, prices_payload.get("updated_at"))
     check_accuracy_streak(store, issues)
     check_data_suspect_flags(store, today_str, outliers)
+    check_screen_consistency(issues)
     check_grading_flags(store, today_str, outliers, info)
 
     check_snapshot_freshness(store, issues, info)
