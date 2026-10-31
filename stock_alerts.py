@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.30.0"
+BACKEND_VERSION = "5.30.1"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -7099,6 +7099,12 @@ def main():
             "traded_today": False,
             "backend_version": BACKEND_VERSION,
         }
+        try:
+            # v5.30.1: rebuild the screen on quiet days too, so a fix to how the
+            # screen is built shows up at once instead of after the weekend
+            build_picks_view(prediction_store)
+        except Exception as e:
+            print(f"picks view rebuild failed: {type(e).__name__}: {e}")
         try:
             write_today_json(prediction_store)
         except Exception as e:
