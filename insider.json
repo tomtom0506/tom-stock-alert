@@ -1322,8 +1322,8 @@
    "ceo_cfo": true,
    "value": 662600,
    "score": 4.58,
-   "last_price": 32.2,
-   "ret_pct": 1.19
+   "last_price": 30.95,
+   "ret_pct": -2.73
   },
   {
    "ticker": "STC",
@@ -1335,8 +1335,8 @@
    "ceo_cfo": false,
    "value": 283710,
    "score": 3.55,
-   "last_price": 45.48,
-   "ret_pct": 4.6
+   "last_price": 44.5,
+   "ret_pct": 2.35
   },
   {
    "ticker": "ACN",
@@ -1348,8 +1348,8 @@
    "ceo_cfo": true,
    "value": 3200889,
    "score": 4.65,
-   "last_price": 247.22,
-   "ret_pct": 0.0
+   "last_price": 258.24,
+   "ret_pct": 4.46
   },
   {
    "ticker": "TTMI",
@@ -1361,8 +1361,8 @@
    "ceo_cfo": true,
    "value": 1342810,
    "score": 4.61,
-   "last_price": 87.63,
-   "ret_pct": 0.0
+   "last_price": 82.94,
+   "ret_pct": -5.35
   },
   {
    "ticker": "BBT",
@@ -1374,8 +1374,8 @@
    "ceo_cfo": false,
    "value": 166955,
    "score": 4.52,
-   "last_price": 30.66,
-   "ret_pct": 0.0
+   "last_price": 30.62,
+   "ret_pct": -0.13
   }
  ],
  "closed": [],
@@ -1391,7 +1391,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -7.9
+   "dd_from_high_pct": -7.0
   },
   {
    "ticker": "FUL",
@@ -1415,7 +1415,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -14.3
+   "dd_from_high_pct": -13.5
   },
   {
    "ticker": "ACN",
@@ -1427,7 +1427,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -11.9
+   "dd_from_high_pct": -7.9
   },
   {
    "ticker": "ADC",
@@ -1439,7 +1439,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -15.7
+   "dd_from_high_pct": -16.1
   },
   {
    "ticker": "DKS",
@@ -1451,7 +1451,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -40.1
+   "dd_from_high_pct": -39.3
   },
   {
    "ticker": "TTMI",
@@ -1463,7 +1463,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -60.4
+   "dd_from_high_pct": -62.6
   },
   {
    "ticker": "THRM",
@@ -1475,7 +1475,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -24.8
+   "dd_from_high_pct": -27.7
   },
   {
    "ticker": "BBT",
@@ -1487,19 +1487,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -6.0
-  },
-  {
-   "ticker": "COO",
-   "filing_date": "2026-09-15",
-   "insiders": 3,
-   "ceo_cfo": false,
-   "value": 1330790,
-   "score": 3.61,
-   "strong": true,
-   "tier": "large",
-   "liquid": true,
-   "dd_from_high_pct": -28.4
+   "dd_from_high_pct": -6.1
   },
   {
    "ticker": "KRMN",
@@ -1511,7 +1499,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -63.8
+   "dd_from_high_pct": -65.3
   },
   {
    "ticker": "STC",
@@ -1523,7 +1511,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -39.2
+   "dd_from_high_pct": -40.5
   },
   {
    "ticker": "MSM",
@@ -1535,7 +1523,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -7.5
+   "dd_from_high_pct": -8.9
   },
   {
    "ticker": "CELH",
@@ -1547,7 +1535,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -54.1
+   "dd_from_high_pct": -51.7
   },
   {
    "ticker": "CROX",
@@ -1571,21 +1559,21 @@
    "strong": false,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -14.7
+   "dd_from_high_pct": -15.7
   }
  ],
  "portfolio": {
-  "value": 100264.41,
-  "ret_pct": 0.26,
-  "spy_pct": 0.8,
+  "value": 99904.41,
+  "ret_pct": -0.1,
+  "spy_pct": -0.99,
   "open": 5,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 7,
+  "strong_last_30d": 6,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-30T02:12:42.640052+00:00"
+ "updated_at": "2026-10-31T01:45:39.094059+00:00"
 }
