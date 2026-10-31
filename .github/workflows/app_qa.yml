@@ -1,0 +1,36 @@
+name: 🧪 בדיקת אפליקציה מקצה לקצה
+
+# פותח את האפליקציה בדפדפן על הנתונים האמיתיים ובודק את מה שמוצג.
+# כל יום אחרי הריצות של הלילה, ובהפעלה ידנית. בכישלון - הודעה בטלגרם.
+on:
+  schedule:
+    - cron: "40 1 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install browser
+        run: |
+          pip install --upgrade pip
+          pip install playwright requests
+          python -m playwright install --with-deps chromium
+
+      - name: Run app QA
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python qa/app_qa.py .
