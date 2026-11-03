@@ -1274,6 +1274,127 @@
    "ticker": "XYL",
    "filing_date": "2026-10-29",
    "accession": "0001524472-26-000150.txt"
+  },
+  {
+   "owner": "1614143",
+   "owners_all": "1614143",
+   "value": 123490.0,
+   "title": "",
+   "issuer_cik": "0001101215",
+   "symbol": "BFH",
+   "ticker": "BFH",
+   "filing_date": "2026-10-30",
+   "accession": "0001614143-26-000006.txt"
+  },
+  {
+   "owner": "1901713",
+   "owners_all": "1901713",
+   "value": 10699.5,
+   "title": "",
+   "issuer_cik": "0001108134",
+   "symbol": "BBT",
+   "ticker": "BBT",
+   "filing_date": "2026-10-30",
+   "accession": "0001628280-26-068526.txt"
+  },
+  {
+   "owner": "1774246",
+   "owners_all": "1774246",
+   "value": 99816.2,
+   "title": "",
+   "issuer_cik": "0000036029",
+   "symbol": "FFIN",
+   "ticker": "FFIN",
+   "filing_date": "2026-10-30",
+   "accession": "0001193125-26-441381.txt"
+  },
+  {
+   "owner": "1200277",
+   "owners_all": "1200277",
+   "value": 99753.66,
+   "title": "CHAIRMAN AND CEO",
+   "issuer_cik": "0001169770",
+   "symbol": "BANC",
+   "ticker": "BANC",
+   "filing_date": "2026-11-02",
+   "accession": "0001200277-26-000006.txt"
+  },
+  {
+   "owner": "1965457",
+   "owners_all": "1965457",
+   "value": 39353.75,
+   "title": "",
+   "issuer_cik": "0000822818",
+   "symbol": "CLH",
+   "ticker": "CLH",
+   "filing_date": "2026-11-02",
+   "accession": "0001965457-26-000007.txt"
+  },
+  {
+   "owner": "1543777",
+   "owners_all": "1543777",
+   "value": 267514.0,
+   "title": "President & CEO",
+   "issuer_cik": "0001463101",
+   "symbol": "ENPH",
+   "ticker": "ENPH",
+   "filing_date": "2026-11-02",
+   "accession": "0001543777-26-000006.txt"
+  },
+  {
+   "owner": "1548409",
+   "owners_all": "1548409",
+   "value": 226072.0,
+   "title": "President and CEO",
+   "issuer_cik": "0001650132",
+   "symbol": "FCPT",
+   "ticker": "FCPT",
+   "filing_date": "2026-11-02",
+   "accession": "0001193125-26-443902.txt"
+  },
+  {
+   "owner": "1078543",
+   "owners_all": "1078543",
+   "value": 300000.0,
+   "title": "",
+   "issuer_cik": "0001158463",
+   "symbol": "JBLU",
+   "ticker": "JBLU",
+   "filing_date": "2026-11-02",
+   "accession": "0001078543-26-000003.txt"
+  },
+  {
+   "owner": "1653042",
+   "owners_all": "1653042",
+   "value": 714619.0,
+   "title": "President & CEO",
+   "issuer_cik": "0000853816",
+   "symbol": "LSTR",
+   "ticker": "LSTR",
+   "filing_date": "2026-11-02",
+   "accession": "0000853816-26-000069.txt"
+  },
+  {
+   "owner": "2033834",
+   "owners_all": "2033834",
+   "value": 39900.52,
+   "title": "",
+   "issuer_cik": "0000073124",
+   "symbol": "NTRS",
+   "ticker": "NTRS",
+   "filing_date": "2026-11-02",
+   "accession": "0002033834-26-000023.txt"
+  },
+  {
+   "owner": "1836156",
+   "owners_all": "1836156",
+   "value": 118310.0,
+   "title": "",
+   "issuer_cik": "0001793659",
+   "symbol": "RSI",
+   "ticker": "RSI",
+   "filing_date": "2026-11-02",
+   "accession": "0001836156-26-000008.txt"
   }
  ],
  "processed": [
@@ -1309,7 +1430,9 @@
   "2026-10-26",
   "2026-10-27",
   "2026-10-28",
-  "2026-10-29"
+  "2026-10-29",
+  "2026-10-30",
+  "2026-11-02"
  ],
  "positions": [
   {
@@ -1322,8 +1445,8 @@
    "ceo_cfo": true,
    "value": 662600,
    "score": 4.58,
-   "last_price": 30.95,
-   "ret_pct": -2.73
+   "last_price": 31.38,
+   "ret_pct": -1.38
   },
   {
    "ticker": "STC",
@@ -1335,8 +1458,8 @@
    "ceo_cfo": false,
    "value": 283710,
    "score": 3.55,
-   "last_price": 44.5,
-   "ret_pct": 2.35
+   "last_price": 45.73,
+   "ret_pct": 5.17
   },
   {
    "ticker": "ACN",
@@ -1348,8 +1471,8 @@
    "ceo_cfo": true,
    "value": 3200889,
    "score": 4.65,
-   "last_price": 258.24,
-   "ret_pct": 4.46
+   "last_price": 260.94,
+   "ret_pct": 5.55
   },
   {
    "ticker": "TTMI",
@@ -1361,8 +1484,8 @@
    "ceo_cfo": true,
    "value": 1342810,
    "score": 4.61,
-   "last_price": 82.94,
-   "ret_pct": -5.35
+   "last_price": 76.58,
+   "ret_pct": -12.61
   },
   {
    "ticker": "BBT",
@@ -1374,8 +1497,8 @@
    "ceo_cfo": false,
    "value": 166955,
    "score": 4.52,
-   "last_price": 30.62,
-   "ret_pct": -0.13
+   "last_price": 31.57,
+   "ret_pct": 2.97
   }
  ],
  "closed": [],
@@ -1391,7 +1514,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -7.0
+   "dd_from_high_pct": -5.3
   },
   {
    "ticker": "FUL",
@@ -1403,7 +1526,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -25.4
+   "dd_from_high_pct": -22.6
   },
   {
    "ticker": "GME",
@@ -1415,7 +1538,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -13.5
+   "dd_from_high_pct": -13.7
   },
   {
    "ticker": "ACN",
@@ -1427,19 +1550,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -7.9
-  },
-  {
-   "ticker": "ADC",
-   "filing_date": "2026-09-17",
-   "insiders": 2,
-   "ceo_cfo": true,
-   "value": 1876522,
-   "score": 4.63,
-   "strong": true,
-   "tier": "mid",
-   "liquid": true,
-   "dd_from_high_pct": -16.1
+   "dd_from_high_pct": -7.0
   },
   {
    "ticker": "DKS",
@@ -1451,7 +1562,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -39.3
+   "dd_from_high_pct": -40.0
   },
   {
    "ticker": "TTMI",
@@ -1463,7 +1574,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -62.6
+   "dd_from_high_pct": -65.4
   },
   {
    "ticker": "THRM",
@@ -1475,7 +1586,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -27.7
+   "dd_from_high_pct": -26.7
   },
   {
    "ticker": "BBT",
@@ -1487,19 +1598,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -6.1
-  },
-  {
-   "ticker": "KRMN",
-   "filing_date": "2026-09-18",
-   "insiders": 3,
-   "ceo_cfo": false,
-   "value": 1036485,
-   "score": 3.6,
-   "strong": true,
-   "tier": "small",
-   "liquid": true,
-   "dd_from_high_pct": -65.3
+   "dd_from_high_pct": -3.2
   },
   {
    "ticker": "STC",
@@ -1511,7 +1610,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -40.5
+   "dd_from_high_pct": -38.8
   },
   {
    "ticker": "MSM",
@@ -1523,31 +1622,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -8.9
-  },
-  {
-   "ticker": "CELH",
-   "filing_date": "2026-09-16",
-   "insiders": 2,
-   "ceo_cfo": false,
-   "value": 1336200,
-   "score": 2.61,
-   "strong": false,
-   "tier": "mid",
-   "liquid": true,
-   "dd_from_high_pct": -51.7
-  },
-  {
-   "ticker": "CROX",
-   "filing_date": "2026-09-16",
-   "insiders": 2,
-   "ceo_cfo": false,
-   "value": 612570,
-   "score": 2.58,
-   "strong": false,
-   "tier": "mid",
-   "liquid": true,
-   "dd_from_high_pct": 0.0
+   "dd_from_high_pct": -9.9
   },
   {
    "ticker": "HBAN",
@@ -1559,21 +1634,33 @@
    "strong": false,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -15.7
+   "dd_from_high_pct": -14.5
+  },
+  {
+   "ticker": "FFIN",
+   "filing_date": "2026-10-30",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 124515,
+   "score": 2.51,
+   "strong": false,
+   "tier": "mid",
+   "liquid": true,
+   "dd_from_high_pct": -13.3
   }
  ],
  "portfolio": {
-  "value": 99904.41,
-  "ret_pct": -0.1,
-  "spy_pct": -0.99,
+  "value": 99960.01,
+  "ret_pct": -0.04,
+  "spy_pct": -1.46,
   "open": 5,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 6,
+  "strong_last_30d": 5,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-10-31T01:45:39.094059+00:00"
+ "updated_at": "2026-11-03T03:41:18.998759+00:00"
 }
