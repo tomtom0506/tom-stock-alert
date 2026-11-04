@@ -2378,5 +2378,21 @@
   "US_CAMT_bigmove_2026-11-04": true,
   "US_TTMI_bigmove_2026-11-04": true,
   "US_SITM_bigmove_2026-11-04": true,
-  "US_DOCN_bigmove_2026-11-04": true
+  "US_DOCN_bigmove_2026-11-04": true,
+  "US_SKY_bigmove_2026-11-04": true,
+  "US_MOH_bigmove_2026-11-04": true,
+  "US_EVTC_bigmove_2026-11-04": true,
+  "US_VCEL_bigmove_2026-11-04": true,
+  "US_ALGT_bigmove_2026-11-04": true,
+  "US_LMND_bigmove_2026-11-04": true,
+  "US_PS_bigmove_2026-11-04": true,
+  "US_AGI_bigmove_2026-11-04": true,
+  "US_SYK_bigmove_2026-11-04": true,
+  "US_IAG_bigmove_2026-11-04": true,
+  "US_MRCY_bigmove_2026-11-04": true,
+  "US_MYRG_bigmove_2026-11-04": true,
+  "US_IOND_bigmove_2026-11-04": true,
+  "US_ETN_bigmove_2026-11-04": true,
+  "US_CIEN_bigmove_2026-11-04": true,
+  "US_NOG_bigmove_2026-11-04": true
 }
