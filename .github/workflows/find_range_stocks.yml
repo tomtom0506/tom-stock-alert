@@ -33,4 +33,9 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add watchlist.json
           git diff --quiet && git diff --staged --quiet || git commit -m "Add range-bound stock candidates to watchlist"
-          git push
+          # v5.30.2: several jobs push to main - retry with a fresh merge if another push won the race
+          for i in 1 2 3 4 5; do
+            git fetch origin main && git merge -X ours --no-edit origin/main && git push origin HEAD:main && exit 0
+            echo "push rejected (attempt $i) - retrying"; sleep $((RANDOM % 15 + 5))
+          done
+          exit 1
