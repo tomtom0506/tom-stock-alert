@@ -2651,7 +2651,7 @@
   "US_TEM_bigmove_2026-11-05": true,
   "US_CDNA_bigmove_2026-11-05": true,
   "US_GKOS_bigmove_2026-11-05": true,
-  "PLTR_below_160": true,
+  "PLTR_below_160": false,
   "US_FOUR_bigmove_2026-11-05": true,
   "US_XE_bigmove_2026-11-05": true,
   "US_HPE_bigmove_2026-11-05": true,
