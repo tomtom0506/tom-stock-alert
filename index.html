@@ -1108,12 +1108,15 @@
 </div>
 
 <script>
-const APP_VERSION = "6.21.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.22.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.22.0", date: "2026-11-09", items: [
+    "🐞 'בדוק מניה' נתקע על 'מחפש תוצאה' לאורך זמן כשהריצה בגיטהאב נכשלה (NVDA, תקלה אצל GitHub): ההמתנה נמדדת עכשיו בשעון ולא במספר בדיקות (בטלפון הספירה נעצרת כשהאפליקציה ברקע), נבדקת שוב מיד כשחוזרים לאפליקציה, ואחרי 7 דקות מוצגת הודעה ברורה - ואם יש בדיקה קודמת של אותה מניה, היא מוצגת עם התאריך והשעה שלה.",
+  ]},
   { version: "6.21.0", date: "2026-10-31", items: [
     "🐞 תוקן: אותה מניה הופיעה גם כ'קנה' וגם כ'מכור' (TWLO - אסטרטגיה B מכרה ו-A קנתה באותו יום). עכשיו המסך מאחד את שתי האסטרטגיות לכל מניה: כש-A קונה מה ש-B מוכרת (או להפך) - 'המשך להחזיק', בלי מכירה, בלי קנייה ובלי עמלות. כשמניה כבר מוחזקת באסטרטגיה השנייה - לא קונים פעם שנייה. מניה שמוחזקת בשתיהן מופיעה פעם אחת (backend 5.30.0).",
     "🛡️ בדיקה עצמית: בכל בנייה של המסך נבדקות סתירות (אותה מניה בקנייה ובמכירה, קנייה של מניה מוחזקת, תאריך מכירה לפני קנייה, יותר מניות ממשבצות, אחזקה בלי מחיר). אם נמצאה בעיה - מופיע פס אדום 'אל תפעל לפי המסך', ובדיקת ה-QA היומית שולחת התראה.",
@@ -2839,10 +2842,14 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
     }
     statusEl.innerHTML = `<div class="status">✓ הופעל! מחפש תוצאה כל כמה שניות (עד כ-6 דקות - ריצה בגיטהאב לפעמים לוקחת יותר זמן מהרגיל, בעיקר בפעם הראשונה)...</div>`;
 
-    let attempts = 0;
-    const maxAttempts = 36; // ~6 minutes at 10s intervals - was 2 min, too short: a GitHub Actions run can genuinely take a few minutes, especially early runs of a workflow
-    checkStockPollTimer = setInterval(async () => {
-      attempts++;
+    // v6.22.0: time the wait by the CLOCK, not by counted polls - on iOS the timer
+    // pauses while the app is in the background, so a failed GitHub run left
+    // "searching..." on screen for an hour (NVDA, 9.11.2026)
+    const deadline = Date.now() + 7 * 60000;
+    const pollOnce = () => { if (checkStockPollTimer) checkStockPollTick(); };
+    document.addEventListener("visibilitychange", pollOnce, { once: true });
+    let checkStockPollTick;
+    checkStockPollTimer = setInterval(checkStockPollTick = async () => {
       try {
         const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/stock_check_result.json?t=${Date.now()}`);
         if (r.ok) {
@@ -2859,10 +2866,20 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
           }
         }
       } catch (e) { /* keep polling */ }
-      if (attempts >= maxAttempts) {
+      if (Date.now() > deadline && checkStockPollTimer) {
         clearInterval(checkStockPollTimer);
         checkStockPollTimer = null;
-        statusEl.innerHTML = `<div class="status error">לא הגיעה תוצאה תוך כ-6 דקות - בדוק ב-Actions בגיטהאב אם הריצה הצליחה, ונסה "רענן תוצאה" בעוד רגע.</div>`;
+        // fall back to the last stored check of the same ticker, clearly dated
+        let note = "";
+        try {
+          const r2 = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/stock_check_result.json?t=${Date.now()}`);
+          const old = r2.ok ? await safeJson(r2) : null;
+          if (old && (old.ticker || "").toUpperCase() === ticker && old.checked_at && !old.error) {
+            renderCheckStockResult(old);
+            note = ` מוצגת הבדיקה הקודמת של ${ticker} מ-${fmtDateIL(old.checked_at.slice(0, 10))} ${new Date(old.checked_at).toTimeString().slice(0, 5)}.`;
+          }
+        } catch (e) {}
+        statusEl.innerHTML = `<div class="status error">הבדיקה החדשה לא הסתיימה תוך 7 דקות - כנראה הריצה בגיטהאב נכשלה (לפעמים תקלה אצלם).${note} אפשר לנסות שוב בעוד כמה דקות.</div>`;
       }
     }, 10000);
   } catch (e) {
