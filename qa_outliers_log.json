@@ -337,5 +337,19 @@
     "kind": "big_move",
     "pct": -70.27,
     "reason": null
+  },
+  {
+    "date": "2026-11-06",
+    "ticker": "FROG",
+    "kind": "big_move",
+    "pct": 44.97,
+    "reason": null
+  },
+  {
+    "date": "2026-11-06",
+    "ticker": "FRVO",
+    "kind": "big_move",
+    "pct": 46.08,
+    "reason": null
   }
 ]
