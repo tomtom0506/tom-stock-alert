@@ -2341,6 +2341,204 @@
    "ticker": "ADM",
    "filing_date": "2026-11-09",
    "accession": "0001225208-26-008771.txt"
+  },
+  {
+   "owner": "1189819",
+   "owners_all": "1189819",
+   "value": 100401.68,
+   "title": "",
+   "issuer_cik": "0001736946",
+   "symbol": "ARLO",
+   "ticker": "ARLO",
+   "filing_date": "2026-11-10",
+   "accession": "0001189819-26-000002.txt"
+  },
+  {
+   "owner": "1188586",
+   "owners_all": "1188586",
+   "value": 569700.0,
+   "title": "",
+   "issuer_cik": "0000849395",
+   "symbol": "CRH",
+   "ticker": "CRH",
+   "filing_date": "2026-11-10",
+   "accession": "0000849395-26-000017.txt"
+  },
+  {
+   "owner": "1523145",
+   "owners_all": "1523145",
+   "value": 49847.7,
+   "title": "Senior EVP, CFO",
+   "issuer_cik": "0001050441",
+   "symbol": "EGBN",
+   "ticker": "EGBN",
+   "filing_date": "2026-11-10",
+   "accession": "0001523145-26-000009.txt"
+  },
+  {
+   "owner": "1571482",
+   "owners_all": "1571482",
+   "value": 159989.03,
+   "title": "SVP, Regions & Chf SupChn Ofcr",
+   "issuer_cik": "0000915389",
+   "symbol": "EMN",
+   "ticker": "EMN",
+   "filing_date": "2026-11-10",
+   "accession": "0000915389-26-000174.txt"
+  },
+  {
+   "owner": "1393556",
+   "owners_all": "1393556",
+   "value": 49917.37,
+   "title": "",
+   "issuer_cik": "0001420800",
+   "symbol": "ENOV",
+   "ticker": "ENOV",
+   "filing_date": "2026-11-10",
+   "accession": "0001193125-26-455945.txt"
+  },
+  {
+   "owner": "1818810",
+   "owners_all": "1818810",
+   "value": 52200.0,
+   "title": "",
+   "issuer_cik": "0001136893",
+   "symbol": "FIS",
+   "ticker": "FIS",
+   "filing_date": "2026-11-10",
+   "accession": "0001628280-26-072763.txt"
+  },
+  {
+   "owner": "1762520",
+   "owners_all": "1762520",
+   "value": 49989.9,
+   "title": "",
+   "issuer_cik": "0000064996",
+   "symbol": "MCY",
+   "ticker": "MCY",
+   "filing_date": "2026-11-10",
+   "accession": "0001193125-26-455578.txt"
+  },
+  {
+   "owner": "1786877",
+   "owners_all": "1786877",
+   "value": 16983.9,
+   "title": "",
+   "issuer_cik": "0001520006",
+   "symbol": "MTDR",
+   "ticker": "MTDR",
+   "filing_date": "2026-11-10",
+   "accession": "0001786877-26-000007.txt"
+  },
+  {
+   "owner": "2160413",
+   "owners_all": "2160413",
+   "value": 199698.0,
+   "title": "President & COO",
+   "issuer_cik": "0001050377",
+   "symbol": "CNXN",
+   "ticker": "CNXN",
+   "filing_date": "2026-11-10",
+   "accession": "0002160413-26-000005.txt"
+  },
+  {
+   "owner": "1490816",
+   "owners_all": "1490816",
+   "value": 140750.0,
+   "title": "",
+   "issuer_cik": "0000088205",
+   "symbol": "SPXC",
+   "ticker": "SPXC",
+   "filing_date": "2026-11-10",
+   "accession": "0001490816-26-000004.txt"
+  },
+  {
+   "owner": "1201647",
+   "owners_all": "1201647",
+   "value": 90720.0,
+   "title": "Executive Chair",
+   "issuer_cik": "0001999001",
+   "symbol": "FUN",
+   "ticker": "FUN",
+   "filing_date": "2026-11-10",
+   "accession": "0001999001-26-000111.txt"
+  },
+  {
+   "owner": "1364501",
+   "owners_all": "1364501",
+   "value": 14929000.0,
+   "title": "",
+   "issuer_cik": "0001999001",
+   "symbol": "FUN",
+   "ticker": "FUN",
+   "filing_date": "2026-11-10",
+   "accession": "0001999001-26-000113.txt"
+  },
+  {
+   "owner": "1859730",
+   "owners_all": "1859730",
+   "value": 64750.0,
+   "title": "",
+   "issuer_cik": "0001013934",
+   "symbol": "STRA",
+   "ticker": "STRA",
+   "filing_date": "2026-11-10",
+   "accession": "0001859730-26-000004.txt"
+  },
+  {
+   "owner": "1945821",
+   "owners_all": "1945821",
+   "value": 98368.2,
+   "title": "",
+   "issuer_cik": "0001013934",
+   "symbol": "STRA",
+   "ticker": "STRA",
+   "filing_date": "2026-11-10",
+   "accession": "0001945821-26-000004.txt"
+  },
+  {
+   "owner": "2063388",
+   "owners_all": "2063388",
+   "value": 49940.63,
+   "title": "",
+   "issuer_cik": "0001375365",
+   "symbol": "SMCI",
+   "ticker": "SMCI",
+   "filing_date": "2026-11-10",
+   "accession": "0002063388-26-000006.txt"
+  },
+  {
+   "owner": "2156827",
+   "owners_all": "2156827",
+   "value": 150074.25,
+   "title": "EVP, Chief Operating Officer",
+   "issuer_cik": "0000933036",
+   "symbol": "UPBD",
+   "ticker": "UPBD",
+   "filing_date": "2026-11-10",
+   "accession": "0001193125-26-455581.txt"
+  },
+  {
+   "owner": "2026205",
+   "owners_all": "2026205",
+   "value": 200525.68,
+   "title": "",
+   "issuer_cik": "0001497770",
+   "symbol": "WD",
+   "ticker": "WD",
+   "filing_date": "2026-11-10",
+   "accession": "0001104659-26-125243.txt"
+  },
+  {
+   "owner": "1436496",
+   "owners_all": "1436496",
+   "value": 339435.0,
+   "title": "",
+   "issuer_cik": "0001720635",
+   "symbol": "NVT",
+   "ticker": "NVT",
+   "filing_date": "2026-11-10",
+   "accession": "0000897069-26-001913.txt"
   }
  ],
  "processed": [
@@ -2383,7 +2581,8 @@
   "2026-11-04",
   "2026-11-05",
   "2026-11-06",
-  "2026-11-09"
+  "2026-11-09",
+  "2026-11-10"
  ],
  "positions": [
   {
@@ -2396,8 +2595,8 @@
    "ceo_cfo": true,
    "value": 662600,
    "score": 4.58,
-   "last_price": 29.78,
-   "ret_pct": -6.41
+   "last_price": 29.58,
+   "ret_pct": -7.04
   },
   {
    "ticker": "STC",
@@ -2409,8 +2608,8 @@
    "ceo_cfo": false,
    "value": 283710,
    "score": 3.55,
-   "last_price": 44.81,
-   "ret_pct": 3.06
+   "last_price": 44.12,
+   "ret_pct": 1.47
   },
   {
    "ticker": "ACN",
@@ -2422,8 +2621,8 @@
    "ceo_cfo": true,
    "value": 3200889,
    "score": 4.65,
-   "last_price": 258.51,
-   "ret_pct": 4.57
+   "last_price": 253.66,
+   "ret_pct": 2.6
   },
   {
    "ticker": "TTMI",
@@ -2435,8 +2634,8 @@
    "ceo_cfo": true,
    "value": 1342810,
    "score": 4.61,
-   "last_price": 72.23,
-   "ret_pct": -17.57
+   "last_price": 78.7,
+   "ret_pct": -10.19
   },
   {
    "ticker": "BBT",
@@ -2448,8 +2647,8 @@
    "ceo_cfo": false,
    "value": 166955,
    "score": 4.52,
-   "last_price": 31.01,
-   "ret_pct": 1.14
+   "last_price": 30.94,
+   "ret_pct": 0.91
   },
   {
    "ticker": "ENPH",
@@ -2461,8 +2660,8 @@
    "ceo_cfo": true,
    "value": 298104,
    "score": 4.55,
-   "last_price": 29.08,
-   "ret_pct": -7.83
+   "last_price": 28.3,
+   "ret_pct": -10.3
   },
   {
    "ticker": "UPBD",
@@ -2474,8 +2673,8 @@
    "ceo_cfo": true,
    "value": 1290672,
    "score": 8.61,
-   "last_price": 24.66,
-   "ret_pct": -0.88
+   "last_price": 25.27,
+   "ret_pct": 1.57
   },
   {
    "ticker": "AN",
@@ -2487,8 +2686,8 @@
    "ceo_cfo": true,
    "value": 1431864,
    "score": 5.62,
-   "last_price": 184.14,
-   "ret_pct": -2.12
+   "last_price": 187.21,
+   "ret_pct": -0.48
   },
   {
    "ticker": "PRLB",
@@ -2500,8 +2699,8 @@
    "ceo_cfo": true,
    "value": 101230,
    "score": 4.5,
-   "last_price": 69.09,
-   "ret_pct": 9.61
+   "last_price": 69.11,
+   "ret_pct": 9.65
   },
   {
    "ticker": "BXMT",
@@ -2513,8 +2712,8 @@
    "ceo_cfo": true,
    "value": 1149642,
    "score": 4.61,
-   "last_price": 11.1,
-   "ret_pct": -0.54
+   "last_price": 11.01,
+   "ret_pct": -1.34
   },
   {
    "ticker": "LBRT",
@@ -2526,8 +2725,8 @@
    "ceo_cfo": true,
    "value": 645635,
    "score": 5.58,
-   "last_price": 12.93,
-   "ret_pct": 8.11
+   "last_price": 12.9,
+   "ret_pct": 7.86
   },
   {
    "ticker": "FBRT",
@@ -2539,8 +2738,8 @@
    "ceo_cfo": true,
    "value": 1024108,
    "score": 4.6,
-   "last_price": 6.4,
-   "ret_pct": 3.23
+   "last_price": 6.3,
+   "ret_pct": 1.61
   },
   {
    "ticker": "MTDR",
@@ -2552,8 +2751,8 @@
    "ceo_cfo": true,
    "value": 130900,
    "score": 4.51,
-   "last_price": 49.97,
-   "ret_pct": -0.87
+   "last_price": 52.08,
+   "ret_pct": 3.31
   },
   {
    "ticker": "WCC",
@@ -2565,8 +2764,8 @@
    "ceo_cfo": true,
    "value": 603430,
    "score": 4.58,
-   "last_price": 316.7,
-   "ret_pct": 0.0
+   "last_price": 327.24,
+   "ret_pct": 3.33
   },
   {
    "ticker": "KMT",
@@ -2578,7 +2777,20 @@
    "ceo_cfo": true,
    "value": 212368,
    "score": 4.53,
-   "last_price": 24.03,
+   "last_price": 24.59,
+   "ret_pct": 2.33
+  },
+  {
+   "ticker": "FUN",
+   "filing_date": "2026-11-10",
+   "entry_date": "2026-11-11",
+   "entry_price": 11.1,
+   "shares": 449.9999845350116,
+   "insiders": 3,
+   "ceo_cfo": false,
+   "value": 15066320,
+   "score": 3.72,
+   "last_price": 11.1,
    "ret_pct": 0.0
   }
  ],
@@ -2607,7 +2819,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -0.9
+   "dd_from_high_pct": 0.0
   },
   {
    "ticker": "AN",
@@ -2619,7 +2831,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -19.9
+   "dd_from_high_pct": -18.6
   },
   {
    "ticker": "LBRT",
@@ -2631,7 +2843,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -61.6
+   "dd_from_high_pct": -61.7
   },
   {
    "ticker": "FUL",
@@ -2643,7 +2855,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -23.7
+   "dd_from_high_pct": -23.9
   },
   {
    "ticker": "ACN",
@@ -2655,7 +2867,7 @@
    "strong": true,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -7.8
+   "dd_from_high_pct": -9.6
   },
   {
    "ticker": "BXMT",
@@ -2667,7 +2879,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -41.3
+   "dd_from_high_pct": -41.8
   },
   {
    "ticker": "TTMI",
@@ -2679,7 +2891,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -67.4
+   "dd_from_high_pct": -64.5
   },
   {
    "ticker": "FBRT",
@@ -2691,7 +2903,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -34.5
+   "dd_from_high_pct": -35.6
   },
   {
    "ticker": "THRM",
@@ -2703,7 +2915,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -30.4
+   "dd_from_high_pct": -30.9
   },
   {
    "ticker": "WCC",
@@ -2715,7 +2927,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -17.5
+   "dd_from_high_pct": -14.8
   },
   {
    "ticker": "LUMN",
@@ -2727,7 +2939,7 @@
    "strong": true,
    "tier": "small",
    "liquid": false,
-   "dd_from_high_pct": -57.1
+   "dd_from_high_pct": -59.5
   },
   {
    "ticker": "ENPH",
@@ -2739,7 +2951,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -59.8
+   "dd_from_high_pct": -60.9
   },
   {
    "ticker": "KMT",
@@ -2751,7 +2963,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -43.3
+   "dd_from_high_pct": -42.0
   },
   {
    "ticker": "BBT",
@@ -2763,7 +2975,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -3.9
+   "dd_from_high_pct": -4.1
   },
   {
    "ticker": "MTDR",
@@ -2775,7 +2987,7 @@
    "strong": true,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -22.5
+   "dd_from_high_pct": -18.6
   },
   {
    "ticker": "PRLB",
@@ -2790,6 +3002,18 @@
    "dd_from_high_pct": -30.0
   },
   {
+   "ticker": "FUN",
+   "filing_date": "2026-11-10",
+   "insiders": 3,
+   "ceo_cfo": false,
+   "value": 15066320,
+   "score": 3.72,
+   "strong": true,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -55.5
+  },
+  {
    "ticker": "STC",
    "filing_date": "2026-10-26",
    "insiders": 3,
@@ -2799,7 +3023,7 @@
    "strong": true,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -40.1
+   "dd_from_high_pct": -41.0
   },
   {
    "ticker": "LRN",
@@ -2811,7 +3035,7 @@
    "strong": false,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -24.7
+   "dd_from_high_pct": -24.4
   },
   {
    "ticker": "MSM",
@@ -2823,7 +3047,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -9.5
+   "dd_from_high_pct": -8.3
   },
   {
    "ticker": "BA",
@@ -2835,7 +3059,19 @@
    "strong": false,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -31.2
+   "dd_from_high_pct": -30.8
+  },
+  {
+   "ticker": "CRH",
+   "filing_date": "2026-11-10",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 758960,
+   "score": 2.59,
+   "strong": false,
+   "tier": "large",
+   "liquid": true,
+   "dd_from_high_pct": -25.9
   },
   {
    "ticker": "HGV",
@@ -2847,7 +3083,7 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -18.4
+   "dd_from_high_pct": -17.0
   },
   {
    "ticker": "JBLU",
@@ -2859,7 +3095,7 @@
    "strong": false,
    "tier": "small",
    "liquid": false,
-   "dd_from_high_pct": -38.1
+   "dd_from_high_pct": -37.8
   },
   {
    "ticker": "LKQ",
@@ -2871,7 +3107,7 @@
    "strong": false,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -40.0
+   "dd_from_high_pct": -40.6
   },
   {
    "ticker": "HBAN",
@@ -2883,7 +3119,7 @@
    "strong": false,
    "tier": "large",
    "liquid": true,
-   "dd_from_high_pct": -15.4
+   "dd_from_high_pct": -15.2
   },
   {
    "ticker": "NXRT",
@@ -2895,7 +3131,19 @@
    "strong": false,
    "tier": "small",
    "liquid": true,
-   "dd_from_high_pct": -47.0
+   "dd_from_high_pct": -48.1
+  },
+  {
+   "ticker": "STRA",
+   "filing_date": "2026-11-10",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 163118,
+   "score": 2.52,
+   "strong": false,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -37.6
   },
   {
    "ticker": "FFIN",
@@ -2907,21 +3155,45 @@
    "strong": false,
    "tier": "mid",
    "liquid": true,
-   "dd_from_high_pct": -15.6
+   "dd_from_high_pct": -16.3
+  },
+  {
+   "ticker": "FIS",
+   "filing_date": "2026-11-10",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 109894,
+   "score": 2.5,
+   "strong": false,
+   "tier": "large",
+   "liquid": true,
+   "dd_from_high_pct": -53.8
+  },
+  {
+   "ticker": "MCY",
+   "filing_date": "2026-11-10",
+   "insiders": 2,
+   "ceo_cfo": false,
+   "value": 112004,
+   "score": 2.5,
+   "strong": false,
+   "tier": "small",
+   "liquid": true,
+   "dd_from_high_pct": -22.2
   }
  ],
  "portfolio": {
-  "value": 99600.01,
-  "ret_pct": -0.4,
-  "spy_pct": -1.75,
-  "open": 15,
+  "value": 100184.16,
+  "ret_pct": 0.18,
+  "spy_pct": -0.45,
+  "open": 16,
   "closed": 0,
   "since": "2026-10-17"
  },
  "sanity": {
-  "strong_last_30d": 16,
+  "strong_last_30d": 17,
   "expected_per_month": 9,
   "warning": false
  },
- "updated_at": "2026-11-11T02:08:34.911067+00:00"
+ "updated_at": "2026-11-12T03:19:28.438796+00:00"
 }
