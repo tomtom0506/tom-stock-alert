@@ -28,5 +28,11 @@
     "name": "פלנטיר",
     "target_high": 185.5,
     "target_low": 160
+  },
+  {
+    "ticker": "NVDA",
+    "name": "אנבידיה",
+    "target_high": 175,
+    "target_low": 155
   }
 ]
