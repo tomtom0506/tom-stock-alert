@@ -2651,7 +2651,7 @@
   "US_TEM_bigmove_2026-11-05": true,
   "US_CDNA_bigmove_2026-11-05": true,
   "US_GKOS_bigmove_2026-11-05": true,
-  "PLTR_below_160": true,
+  "PLTR_below_160": false,
   "US_FOUR_bigmove_2026-11-05": true,
   "US_XE_bigmove_2026-11-05": true,
   "US_HPE_bigmove_2026-11-05": true,
@@ -3325,5 +3325,10 @@
   "US_ACM_bigmove_2026-11-17": true,
   "US_BILL_bigmove_2026-11-17": true,
   "NVDA_below_155": false,
-  "US_NXT_bigmove_2026-11-17": true
+  "US_NXT_bigmove_2026-11-17": true,
+  "US_SLS_bigmove_2026-11-18": true,
+  "US_BILL_bigmove_2026-11-18": true,
+  "US_ACM_bigmove_2026-11-18": true,
+  "US_NXT_bigmove_2026-11-18": true,
+  "IL_TSEM.TA_bigmove_2026-11-18": true
 }
