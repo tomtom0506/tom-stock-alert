@@ -124,6 +124,15 @@
   .res-table th { text-align:right; font-weight:600; color:var(--text-faint); font-size:11px; padding:6px 4px; border-bottom:1px solid var(--border); }
   .res-table td { padding:8px 4px; border-bottom:1px solid var(--border); vertical-align:top; }
   .fresh-stale { color: var(--down) !important; font-weight:700; }
+  /* v6.23.0 - run/status messages live in their own opaque layer, never over page text */
+  .toast-layer { position:fixed; bottom:88px; left:50%; transform:translateX(-50%); z-index:60; width:min(92vw, 420px);
+                 background:var(--panel-hi, #1c222a); border:1px solid var(--border-hi, #333c47); border-radius:14px;
+                 box-shadow:0 8px 28px rgba(0,0,0,.45); padding:2px 6px; }
+  .toast-layer:empty { display:none; }
+  .toast-layer .status { margin:6px 0; background:transparent; }
+  .wl-add { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 0 12px; }
+  .wl-add input { padding:10px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit; font-size:14px; min-height:44px; }
+  .wl-add .full { grid-column:1 / -1; }
   /* v6.13.0 - 🎯 action screen */
   .act-status { border-radius:18px; padding:18px; margin:4px 0 12px; }
   .act-status.buy { background: color-mix(in srgb, var(--up) 14%, transparent); }
@@ -1040,6 +1049,17 @@
     <div class="section-title" id="watchlistToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       המניות שלי <span id="watchlistArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
+    <button type="button" class="icon-btn" id="watchlistAddToggleBtn" style="min-height:44px; margin:2px 0 6px;">+ הוסף למעקב</button>
+    <div id="watchlistAddForm" class="hidden">
+      <div style="font-size:12px; color:var(--text-faint); line-height:1.5;">מעקב בלבד - בלי כמות, התיק לא משתנה. היעדים לא חובה: מקבלים התראת טלגרם כשהמחיר חוצה אותם.</div>
+      <div class="wl-add">
+        <input id="wlAddTicker" class="full" placeholder="טיקר (למשל NVDA או TEVA.TA)" autocapitalize="characters" autocomplete="off">
+        <input id="wlAddHigh" type="number" inputmode="decimal" placeholder="יעד עליון (לא חובה)">
+        <input id="wlAddLow" type="number" inputmode="decimal" placeholder="יעד תחתון (לא חובה)">
+        <button type="button" class="icon-btn full" id="wlAddSaveBtn" style="min-height:44px;">שמור במעקב</button>
+      </div>
+      <div id="wlAddStatus"></div>
+    </div>
     <div class="predictions-panel hidden" id="watchlistPanel">
       <div id="rowsContainer"></div>
       <div class="empty hidden" id="emptyMsg">אין עדיין מניות. הוסף אחת עם הכפתור למטה.</div>
@@ -1057,7 +1077,7 @@
 </div>
 
 <button class="add-btn hidden" id="contextActionBtn" title="">🔄 עדכן ניתוח</button>
-<div id="floatingRecomputeStatus" style="position:fixed; bottom:78px; left:50%; transform:translateX(-50%); z-index:10; max-width:90vw;"></div>
+<div id="floatingRecomputeStatus" class="toast-layer"></div>
 
 <div class="modal-overlay hidden" id="legalOverlay" style="z-index:200;">
   <div class="panel modal-box" id="legalPanel">
@@ -1108,12 +1128,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.22.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.23.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.23.0", date: "2026-11-16", items: [
+    "📊 מבחן היציאה (backend 5.31.0): הקוביות מציגות ממוצע לעסקה במקום סכום אחוזים (שירד מתחת ל-100%- ונראה כמו מחיקת תיק), את הפער הממוצע מול ה-S&P באותם ימים, מספר העסקאות, ותיק ניסיוני של $100,000 שעובר מעסקה לעסקה (ריבית דריבית).",
+    "🪟 הודעות הפעלה ('הופעל! מחכה לסיום') מופיעות בשכבה נפרדת עם רקע, ולא מעל טקסט אחר.",
+    "➕ 'המניות שלי' (לשונית התיק שלי): כפתור '+ הוסף למעקב' - טיקר ויעדים לא חובה, בלי כמות ובלי שינוי בתיק. האפשרות הזו הוסרה בעבר בטעות.",
+  ]},
   { version: "6.22.0", date: "2026-11-09", items: [
     "🐞 'בדוק מניה' נתקע על 'מחפש תוצאה' לאורך זמן כשהריצה בגיטהאב נכשלה (NVDA, תקלה אצל GitHub): ההמתנה נמדדת עכשיו בשעון ולא במספר בדיקות (בטלפון הספירה נעצרת כשהאפליקציה ברקע), נבדקת שוב מיד כשחוזרים לאפליקציה, ואחרי 7 דקות מוצגת הודעה ברורה - ואם יש בדיקה קודמת של אותה מניה, היא מוצגת עם התאריך והשעה שלה.",
   ]},
@@ -3300,12 +3325,21 @@ async function loadToday() {
 // ---------- v6.14.0: 🧪 forward test - time exit vs price exit, side by side ----------
 function exitTestBlock(t, col, compact) {
   const head = `<div style="font-size:14px; font-weight:800; margin:18px 2px 4px;">🧪 מבחן קדימה: מכירה לפי זמן מול לפי מחיר</div>
-    <div style="font-size:11.5px; color:var(--text-faint); line-height:1.5; margin:0 2px 8px;">כל המלצה משוחקת פעמיים על המחירים האמיתיים: פעם מוכרים בתאריך (הכלל שנבדק), ופעם ביעד/בסטופ - מה שקורה קודם. האחוזים של כל העסקאות שנסגרו מחוברים, מול ה-S&amp;P 500 באותם ימים. במחקר על 26 שנה המכירה לפי מחיר הורידה את הרווח - כאן בודקים אם זה נכון גם קדימה.</div>`;
+    <div style="font-size:11.5px; color:var(--text-faint); line-height:1.5; margin:0 2px 8px;">כל המלצה משוחקת על המחירים האמיתיים בכל שיטת יציאה. לכל שיטה: התוצאה הממוצעת לעסקה שנסגרה, הפער הממוצע מול ה-S&amp;P 500 באותם ימים, ומה היה קורה ל-$100,000. במחקר על 26 שנה המכירה לפי מחיר הורידה את הרווח - כאן בודקים אם זה נכון גם קדימה.</div>`;
   if (!t || !(t.trades || []).length) return compact ? "" : head + `<div class="act-row" style="font-size:12.5px; color:var(--text-dim);">מתחיל מההמלצות הבאות - הרמות נשמרות ביום האות, כך שאי אפשר לכוונן אותן בדיעבד.</div>`;
-  const box = (title, sm) => `<div class="picks-box"><div class="pb-label">${title}</div>
-    <div class="pb-big mono" style="font-size:24px; color:${col(sm.closed ? sm.sum_pct : null)};">${sm.closed ? signedPct(sm.sum_pct, 1) : "—"}</div>
-    <div class="pb-small">S&amp;P באותם ימים: <span style="color:${col(sm.closed ? sm.spy_sum_pct : null)};">${sm.closed ? signedPct(sm.spy_sum_pct, 1) : "—"}</span></div>
-    <div class="pb-small">${sm.closed ? `${sm.wins}/${sm.closed} ברווח` : "עוד אין עסקה שנסגרה"}</div></div>`;
+  // v6.23.0: average per trade (comparable across columns with different trade counts),
+  // average gap vs S&P over each trade's own days, and a chained $100,000 paper account
+  const usd0 = v => `$${Math.round(v).toLocaleString("en-US")}`;
+  const box = (title, sm) => {
+    const n = sm.closed || 0;
+    const avg = sm.avg_pct != null ? sm.avg_pct : (n ? sm.sum_pct / n : null);
+    const gap = sm.avg_vs_spy_pct != null ? sm.avg_vs_spy_pct : (n ? (sm.sum_pct - sm.spy_sum_pct) / n : null);
+    return `<div class="picks-box"><div class="pb-label">${title}</div>
+    <div class="pb-big mono" style="font-size:22px; color:${col(n ? avg : null)};">${n ? signedPct(avg, 1) : "—"}</div>
+    <div class="pb-small">${n ? "לעסקה בממוצע" : "עוד אין עסקה שנסגרה"}</div>
+    ${n ? `<div class="pb-small"><span style="color:${col(gap)};">${Math.abs(gap).toFixed(1)}% ${gap >= 0 ? "מעל" : "מתחת ל-"}S&amp;P</span> · ${n} עסקאות</div>` : ""}
+    ${n && sm.paper_value != null ? `<div class="pb-small">$100,000 ← <b class="mono" style="color:${col(sm.paper_value - 100000)};">${usd0(sm.paper_value)}</b></div>` : ""}</div>`;
+  };
   const why = { target: "🎯 יעד", stop: "🛑 סטופ", time: "⏱ תאריך" };
   const cell = (r, open) => r ? `<span class="mono" style="color:${col(r.pnl_pct)}; font-weight:700;">${signedPct(r.pnl_pct, 1)}</span> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(r.exit_date)}</span>`
     : `<span style="font-size:11px; color:var(--text-faint);">פתוחה ${open != null ? `(${signedPct(open, 1)})` : ""}</span>`;
@@ -3313,7 +3347,7 @@ function exitTestBlock(t, col, compact) {
       <div><b>${x.ticker}</b> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(x.entry_date)}</span></div>
       <div style="text-align:left; font-size:12px; line-height:1.6;">⏱ ${cell(x.time, x.open_pnl_pct)}<br>${x.price_exit ? why[x.price_exit] : "🎯/🛑"} ${cell(x.price, x.open_pnl_pct)}${x.has_far ? `<br>🚀 ${x.far_exit ? why[x.far_exit] : ""} ${cell(x.far, x.open_pnl_pct)}` : ""}</div></div>`).join("");
   const boxes = `<div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("⏱ לפי תאריך", t.time || {})}${box("🎯 יעד קרוב", t.price || {})}${box("🚀 יעד רחוק", t.far || {})}</div>
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.5; margin:-4px 2px 6px;">בשתי שיטות המחיר הסטופ הוא קו התמיכה הקרוב. 'יעד קרוב' = ההתנגדות הקרובה. 'יעד רחוק' (השיטה של החבר) = השיא השנתי, אם הוא עד 40% מעל. אם לא נגעו - מוכרים בתאריך.</div>`;
+    <div style="font-size:11px; color:var(--text-faint); line-height:1.5; margin:-4px 2px 6px;">ה-$100,000 הוא תיק ניסיוני שעובר מעסקה לעסקה לפי סדר הסגירה (ריבית דריבית) - פישוט: בפועל עסקאות חופפות בזמן, כך שהוא מגדיל גם רווחים וגם הפסדים. בשתי שיטות המחיר הסטופ הוא קו התמיכה הקרוב. 'יעד קרוב' = ההתנגדות הקרובה. 'יעד רחוק' (השיטה של החבר) = השיא השנתי, אם הוא עד 40% מעל. אם לא נגעו - מוכרים בתאריך.</div>`;
   if (compact) return `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:16px 2px 6px;">מבחן יציאה: תאריך מול מחיר <span class="tag exp">ניסוי</span></div>${boxes}<div style="font-size:11px; color:var(--text-faint); margin:2px 2px 0;">פירוט כל עסקה: מעבדה › מבחן יציאה.</div>`;
   return head + boxes + `<div class="act-row" style="padding:6px 14px;">${rows}</div>`;
 }
@@ -5206,6 +5240,27 @@ function renderMyPortfolio(snapshot, sim) {
 }
 
 /* ---------- watchlist load/save ---------- */
+// ---------- v6.23.0: add a stock to "המניות שלי" for WATCHING only (no quantity) ----------
+document.getElementById("watchlistAddToggleBtn").addEventListener("click", () => {
+  document.getElementById("watchlistAddForm").classList.toggle("hidden");
+});
+document.getElementById("wlAddSaveBtn").addEventListener("click", async () => {
+  const st = document.getElementById("wlAddStatus");
+  const ticker = (document.getElementById("wlAddTicker").value || "").trim().toUpperCase();
+  const hi = Number(document.getElementById("wlAddHigh").value) || null;
+  const lo = Number(document.getElementById("wlAddLow").value) || null;
+  if (!/^[A-Z0-9.\-^=]{1,15}$/.test(ticker)) { st.innerHTML = `<div class="status error">טיקר לא תקין</div>`; return; }
+  if (hi && lo && hi <= lo) { st.innerHTML = `<div class="status error">היעד העליון צריך להיות גבוה מהתחתון</div>`; return; }
+  if (rows.some(r => (r.ticker || "").toUpperCase() === ticker)) { st.innerHTML = `<div class="status error">${ticker} כבר במעקב</div>`; return; }
+  rows.push({ ticker, name: ticker, target_high: hi, target_low: lo, _uid: ticker + "-" + Date.now() });
+  st.innerHTML = `<div class="status">שומר...</div>`;
+  await saveWatchlist();
+  render();
+  document.getElementById("watchlistPanel").classList.remove("hidden");
+  st.innerHTML = `<div class="status">✓ ${ticker} נוסף למעקב. הניתוח הטכני שלו יופיע אחרי הריצה הבאה של הבוט.</div>`;
+  ["wlAddTicker", "wlAddHigh", "wlAddLow"].forEach(id => { document.getElementById(id).value = ""; });
+});
+
 async function loadWatchlist() {
   document.getElementById("loadingMsg").classList.remove("hidden");
   document.getElementById("watchlistSection").classList.add("hidden");

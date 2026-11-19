@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.30.1"
+BACKEND_VERSION = "5.31.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -6554,15 +6554,28 @@ def compare_exits_forward(log, O, H, L, C, spy):
                            "target_far": far, "far": f_res, "far_exit": fwhy, "has_far": "tech_target_far" in pk,
                            "open_pnl_pct": round(now, 2) if now is not None else None})
 
+    # v5.31.0 (16.11.2026): sums of trade %s fell below -100% and looked like a
+    # wiped-out portfolio, and columns with different trade counts couldn't be
+    # compared. Now: average per trade, average gap vs SPY over each trade's
+    # own days, and a $100,000 paper account chained trade after trade in
+    # exit-date order (a simplification - real trades overlap in time).
+    def _stats(done):
+        n = len(done)
+        if not n:
+            return {"closed": 0, "avg_pct": None, "avg_vs_spy_pct": None, "paper_value": 100000.0, "wins": 0,
+                    "sum_pct": 0, "spy_sum_pct": 0}
+        v = 100000.0
+        for d in sorted(done, key=lambda d: d["exit_date"]):
+            v *= 1 + d["pnl_pct"] / 100
+        return {"closed": n, "wins": sum(1 for d in done if d["pnl_pct"] > 0),
+                "avg_pct": round(sum(d["pnl_pct"] for d in done) / n, 2),
+                "avg_vs_spy_pct": round(sum(d["pnl_pct"] - d["spy_pct"] for d in done) / n, 2),
+                "paper_value": round(v, 0),
+                "sum_pct": round(sum(d["pnl_pct"] for d in done), 2), "spy_sum_pct": round(sum(d["spy_pct"] for d in done), 2)}
     def summ(key):
-        done = [t[key] for t in trades if t[key]]
-        return {"closed": len(done), "sum_pct": round(sum(d["pnl_pct"] for d in done), 2),
-                "spy_sum_pct": round(sum(d["spy_pct"] for d in done), 2),
-                "wins": sum(1 for d in done if d["pnl_pct"] > 0)}
+        return _stats([t[key] for t in trades if t[key]])
     def summ_far():
-        done = [t["far"] for t in trades if t.get("has_far") and t.get("far")]
-        return {"closed": len(done), "sum_pct": round(sum(d["pnl_pct"] for d in done), 2),
-                "spy_sum_pct": round(sum(d["spy_pct"] for d in done), 2), "wins": sum(1 for d in done if d["pnl_pct"] > 0),
+        return {**_stats([t["far"] for t in trades if t.get("has_far") and t.get("far")]),
                 "tracked": sum(1 for t in trades if t.get("has_far"))}
     return {"updated_at": datetime.now(timezone.utc).isoformat(), "time": summ("time"), "price": summ("price"), "far": summ_far(),
             "trades": trades[-60:], "both_closed": sum(1 for t in trades if t["time"] and t["price"])}
