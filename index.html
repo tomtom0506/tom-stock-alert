@@ -1128,12 +1128,16 @@
 </div>
 
 <script>
-const APP_VERSION = "6.23.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.24.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.24.0", date: "2026-11-20", items: [
+    "🐞 מחירים חיים חסרים (backend 5.32.0): מניות שנבחרו בריצה היומית אחרי שנשמרו המחירים (למשל AMD ו-SWKS בקנייה של אסטרטגיה A ב-19.11) נשארו בלי מחיר חי עד הרענון הבא. עכשיו בסוף כל ריצה נבדק שלכל מניה שמוצגת יש מחיר, ומה שחסר נמשך מיד.",
+    "🐞 התיק החודשי: כשאין מחיר חי מוצג 'אין מחיר עדכני' במקום מחיר הכניסה (שנראה כמו 0.0%), והמניה לא נכנסת לממוצע.",
+  ]},
   { version: "6.23.0", date: "2026-11-16", items: [
     "📊 מבחן היציאה (backend 5.31.0): הקוביות מציגות ממוצע לעסקה במקום סכום אחוזים (שירד מתחת ל-100%- ונראה כמו מחיקת תיק), את הפער הממוצע מול ה-S&P באותם ימים, מספר העסקאות, ותיק ניסיוני של $100,000 שעובר מעסקה לעסקה (ריבית דריבית).",
     "🪟 הודעות הפעלה ('הופעל! מחכה לסיום') מופיעות בשכבה נפרדת עם רקע, ולא מעל טקסט אחר.",
@@ -4552,9 +4556,9 @@ function renderMonthlyPortfolio(mp, prices) {
 
   const returns = mp.holdings
     .map(h => {
+      // v6.24.0: no live price -> left out of the average (was entry_price = fake 0.00%)
       const live = prices[h.ticker];
-      const current = live && live.price != null ? live.price : h.entry_price;
-      return h.entry_price ? (current - h.entry_price) / h.entry_price * 100 : null;
+      return live && live.price != null && h.entry_price ? (live.price - h.entry_price) / h.entry_price * 100 : null;
     })
     .filter(r => r != null);
   const avgPct = returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
@@ -4571,17 +4575,18 @@ function renderMonthlyPortfolio(mp, prices) {
   summary.innerHTML = `
     מחזור נוכחי: <b class="mono">${mp.start_date}</b> → רענון הבא: <b class="mono">${mp.next_refresh_date}</b> · ${mp.holdings.length} מניות
     <div style="margin-top:8px; font-size:14px;">
-      תשואה מצטברת של המחזור (ממוצע פשוט בין ההחזקות): <b class="mono ${avgCls}">${avgText}</b>
+      תשואה מצטברת של המחזור (ממוצע פשוט בין ההחזקות): <b class="mono ${avgCls}">${avgText}</b>${returns.length < mp.holdings.length ? `<span style="color:var(--text-faint);"> (${mp.holdings.length - returns.length} בלי מחיר עדכני - לא בממוצע)</span>` : ""}
       ${impliedIls != null ? `<span style="color:var(--text-faint);"> (≈ $${impliedIls.toLocaleString("en-US")} אם הושקעו $100,000 בחלוקה שווה בתחילת המחזור)</span>` : ""}
     </div>`;
 
   const list = document.getElementById("monthlyPortfolioList");
   list.innerHTML = mp.holdings.map(h => {
     const live = prices[h.ticker];
-    const current = live && live.price != null ? live.price : h.entry_price;
-    const pct = h.entry_price ? ((current - h.entry_price) / h.entry_price * 100) : null;
+    // v6.24.0: never show the entry price as "now" - that read as a fake 0.0%
+    const current = live && live.price != null ? live.price : null;
+    const pct = h.entry_price && current != null ? ((current - h.entry_price) / h.entry_price * 100) : null;
     const cls = pct == null ? "" : (pct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-    const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+    const pctText = pct == null ? (current == null ? "אין מחיר עדכני" : "—") : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
     const entryPriceText = h.entry_price != null ? h.entry_price.toFixed(2) : "—";
     const currentPriceText = current != null ? current.toFixed(2) : "—";
     const warnBadge = h.warned ? `<span class="track-outcome wrong">🚨 הופעלה אזהרה</span>` : "";

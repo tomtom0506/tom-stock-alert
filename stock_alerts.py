@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.31.0"
+BACKEND_VERSION = "5.32.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -224,7 +224,10 @@ def build_extra_price_tickers(watchlist_tickers, curated_tickers, starred, month
     ]
 
 
-def run_watchlist_alerts(state, prediction_store=None):
+def collect_price_tickers(prediction_store=None):
+    """Every ticker the app shows a live price for: (watchlist, extra_tickers).
+    v5.32.0: pulled out of run_watchlist_alerts so fill_missing_live_prices
+    (end of main) can re-collect AFTER the later steps picked new tickers."""
     watchlist = load_json(WATCHLIST_FILE, [])
     watchlist_tickers = {item["ticker"] for item in watchlist}
 
@@ -261,6 +264,58 @@ def run_watchlist_alerts(state, prediction_store=None):
     extra_tickers = build_extra_price_tickers(
         watchlist_tickers, curated_tickers, starred, monthly_tickers, crypto_exposed_tickers
     )
+    return watchlist, extra_tickers
+
+
+def missing_price_tickers(needed, prices):
+    """Pure: tickers from `needed` (order kept, no duplicates/blanks) that
+    have no usable price in `prices` (the current_prices.json "prices" map)."""
+    out = []
+    for t in dict.fromkeys(needed):
+        if not t:
+            continue
+        info = prices.get(t) if isinstance(prices, dict) else None
+        if not info or info.get("price") is None:
+            out.append(t)
+    return out
+
+
+def fill_missing_live_prices(prediction_store):
+    """v5.32.0 (backlog bug, 19.11.2026 - AMD/SWKS in strategy_book A pending
+    had no live price): run_watchlist_alerts writes current_prices.json in the
+    middle of main(), but manage_long_term_picks / run_strategy_book /
+    build_recommendations / run_picks pick new tickers AFTER that. This runs
+    last and fetches only the tickers that still have no price. No alerts,
+    no re-fetch of prices already written; updated_at is kept as is."""
+    data = load_json(CURRENT_PRICES_FILE, {}) or {}
+    prices = data.get("prices") or {}
+    watchlist, extra = collect_price_tickers(prediction_store)
+    missing = missing_price_tickers([w["ticker"] for w in watchlist] + list(extra), prices)
+    added = []
+    for ticker in missing:
+        try:
+            price, prev_close = get_price_and_prev_close(ticker)
+        except Exception as e:
+            print(f"Error fetching missing live price for {ticker}: {e}")
+            continue
+        if price is None:
+            continue
+        prices[ticker] = {
+            "price": price,
+            "prev_close": prev_close,
+            "pct_change": ((price - prev_close) / prev_close * 100) if prev_close else None,
+        }
+        added.append(ticker)
+    if added:
+        data["prices"] = prices
+        data.setdefault("updated_at", datetime.now(timezone.utc).isoformat())
+        save_json(CURRENT_PRICES_FILE, data)
+    print(f"Missing live prices: {len(missing)} needed, {len(added)} filled {added}")
+    return added
+
+
+def run_watchlist_alerts(state, prediction_store=None):
+    watchlist, extra_tickers = collect_price_tickers(prediction_store)
 
     current_prices = {}
     for item in watchlist:
@@ -7119,6 +7174,10 @@ def main():
         except Exception as e:
             print(f"picks view rebuild failed: {type(e).__name__}: {e}")
         try:
+            fill_missing_live_prices(prediction_store)
+        except Exception as e:
+            print(f"Missing live prices failed: {type(e).__name__}: {e}")
+        try:
             write_today_json(prediction_store)
         except Exception as e:
             print(f"today.json failed: {type(e).__name__}: {e}")
@@ -7226,6 +7285,11 @@ def main():
         "backend_version": BACKEND_VERSION,
     }
     retire_old_keys(prediction_store)
+    try:
+        # v5.32.0: tickers picked after run_watchlist_alerts get a live price too
+        fill_missing_live_prices(prediction_store)
+    except Exception as e:
+        print(f"Missing live prices failed: {type(e).__name__}: {e}")
     try:
         write_today_json(prediction_store)
     except Exception as e:

@@ -22,6 +22,30 @@ fails, notes, puts = [], [], []
 SHOTS = os.path.join(REPO, 'qa', 'screens'); os.makedirs(SHOTS, exist_ok=True)
 def check(cond, msg):
     (notes if cond else fails).append(("OK  " if cond else "FAIL") + " " + msg)
+# v6.24.0 (20.11.2026 - AMD/SWKS in strategy A's buy list had no live price):
+# every ticker on a screen must be in current_prices.json, or the app shows
+# an old close / the entry price instead of a price from today
+def _j(name, default):
+    raw = local(name)
+    try: return json.loads(raw) if raw else default
+    except ValueError: return default
+_store = _j("predictions.json", {}) or {}
+_prices = (_j("current_prices.json", {}) or {}).get("prices") or {}
+_need = {}
+def _add(src, items):
+    for x in items or []:
+        t = x if isinstance(x, str) else (x or {}).get("ticker")
+        if t: _need.setdefault(t, src)
+_book = _store.get("strategy_book") or {}
+for _k in ("A", "B"):
+    _add(f"book {_k}", (_book.get(_k) or {}).get("holdings")); _add(f"book {_k} pending", (_book.get(_k) or {}).get("pending"))
+_add("top_picks", (_store.get("top_picks") or {}).get("tickers"))
+_add("long_term", (_store.get("long_term_picks") or {}).get("picks"))
+_add("picks_long", (_store.get("picks_long") or {}).get("holdings"))
+_add("monthly", (_store.get("monthly_portfolio") or {}).get("holdings"))
+_add("watchlist", _j("watchlist.json", []))
+_miss = sorted(f"{t} ({s})" for t, s in _need.items() if (_prices.get(t) or {}).get("price") is None)
+check(not _miss, f"live price for every listed ticker ({len(_need)} tickers){' missing: ' + ', '.join(_miss) if _miss else ''}")
 with sync_playwright() as pw:
     b = pw.chromium.launch(); pg = b.new_page(viewport={"width": 390, "height": 844})
     errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
