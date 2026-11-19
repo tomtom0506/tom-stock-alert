@@ -3324,7 +3324,7 @@
   "US_SLS_bigmove_2026-11-17": true,
   "US_ACM_bigmove_2026-11-17": true,
   "US_BILL_bigmove_2026-11-17": true,
-  "NVDA_below_155": false,
+  "NVDA_below_155": true,
   "US_NXT_bigmove_2026-11-17": true,
   "US_SLS_bigmove_2026-11-18": true,
   "US_BILL_bigmove_2026-11-18": true,
