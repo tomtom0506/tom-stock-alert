@@ -8,7 +8,7 @@
   * אין שגיאות JavaScript
 רץ מ-.github/workflows/app_qa.yml כל יום ובהפעלה ידנית; בכישלון - טלגרם.
 """
-import os, re, sys, json
+import os, re, sys, json, base64
 if os.path.isdir("/opt/pw-browsers"):
     os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", "/opt/pw-browsers")
 from playwright.sync_api import sync_playwright
@@ -18,7 +18,8 @@ def local(name):
     for d in (DATA, REPO):
         p = os.path.join(d, name)
         if os.path.exists(p): return open(p, "rb").read()
-fails, notes = [], []
+fails, notes, puts = [], [], []
+SHOTS = os.path.join(REPO, 'qa', 'screens'); os.makedirs(SHOTS, exist_ok=True)
 def check(cond, msg):
     (notes if cond else fails).append(("OK  " if cond else "FAIL") + " " + msg)
 with sync_playwright() as pw:
@@ -28,6 +29,13 @@ with sync_playwright() as pw:
         u = r.request.url
         if "raw.githubusercontent.com" in u:
             body = local(u.split("/main/")[1].split("?")[0]); return r.fulfill(status=200 if body else 404, body=body or b"", content_type="application/json")
+        if "api.github.com" in u and "/contents/" in u:
+            name = u.split("/contents/")[-1].split("?")[0]
+            if r.request.method == "PUT":
+                puts.append(name); return r.fulfill(status=200, content_type="application/json", body=json.dumps({"content": {"sha": "y"}}))
+            body = local(name)
+            if body:
+                return r.fulfill(status=200, content_type="application/json", body=json.dumps({"content": base64.b64encode(body).decode(), "sha": "x"}))
         if "api.github.com" in u: return r.fulfill(status=404, body="{}")
         return r.continue_()
     pg.route("**/*", route)
@@ -53,6 +61,33 @@ with sync_playwright() as pw:
             check(not bad, f"{tab}/{sb or '-'}: no broken values {bad if bad else ''}")
             check("טוען..." not in txt, f"{tab}/{sb or '-'}: nothing stuck on 'loading'")
             check(len(txt) > 200, f"{tab}/{sb or '-'}: has content ({len(txt)} chars)")
+            # v5.31.0: values must be PLAUSIBLE, not just present - no percentage below -100%
+            pcts = [float(x) for x in re.findall(r"(?<![\d.])-(\d{3,}(?:\.\d+)?)%", txt) if float(x) > 100]
+            check(not pcts, f"{tab}/{sb or '-'}: no percentage below -100% {pcts[:3] if pcts else ''}")
+            pg.screenshot(path=os.path.join(SHOTS, f"{tab}_{sb or 'main'}.png"), full_page=True)
+    # v5.31.0: a floating message must sit on its own opaque layer, never on top of page text
+    pg.evaluate("() => { switchTab('mine'); document.getElementById('floatingRecomputeStatus').innerHTML = '<div class=\\'status\\'>✓ הופעל! מחכה לסיום</div>'; }")
+    pg.wait_for_timeout(300)
+    bg = pg.evaluate("() => getComputedStyle(document.getElementById('floatingRecomputeStatus')).backgroundColor")
+    check(bg not in ("rgba(0, 0, 0, 0)", "transparent"), f"run-status message has an opaque background ({bg})")
+    pg.evaluate("() => { document.getElementById('floatingRecomputeStatus').innerHTML = ''; }")
+    # v5.31.0: every user action that exists must still exist and respond
+    for tab, ids in (("mine", ["watchlistAddToggleBtn", "myPortfolioAddToggleBtn"]), ("home", ["contextActionBtn"]), ("lab", ["refreshBtn"])):
+        pg.evaluate(f"() => switchTab('{tab}')"); pg.wait_for_timeout(300)
+        for i in ids:
+            vis = pg.evaluate(f"() => {{ const e = document.getElementById('{i}'); return !!(e && (e.offsetParent !== null || getComputedStyle(e).position === 'fixed')); }}")
+            check(vis, f"action available: {i} on {tab}")
+    pg.evaluate("() => switchTab('check')"); pg.wait_for_timeout(300)
+    check(pg.evaluate("() => !!document.getElementById('checkStockInput') && !!document.getElementById('checkStockBtn')"), "action available: check-stock input + button")
+    pg.evaluate("() => switchTab('mine')"); pg.wait_for_timeout(300)
+    try:
+        pg.click("#watchlistAddToggleBtn", timeout=3000); pg.wait_for_timeout(200)
+        check(pg.evaluate("() => !document.getElementById('watchlistAddForm').classList.contains('hidden')"), "add-to-watchlist: form opens")
+        pg.fill("#wlAddTicker", "qatest", timeout=3000); pg.click("#wlAddSaveBtn", timeout=3000); pg.wait_for_timeout(1500)
+        added = pg.evaluate("() => rows.some(r => r.ticker === 'QATEST')")
+        check(added and "watchlist.json" in puts, f"add-to-watchlist: saves a watch-only stock (saved={puts})")
+    except Exception as e:
+        check(False, f"add-to-watchlist: works ({str(e).splitlines()[0][:80]})")
     check(not errs, f"no JS errors {errs[:2]}")
     b.close()
 report = "\n".join(fails + notes) + f"\n\n{len(fails)} failed / {len(fails) + len(notes)} checks"
