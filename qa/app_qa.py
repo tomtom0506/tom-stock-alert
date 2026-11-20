@@ -97,7 +97,7 @@ with sync_playwright() as pw:
     full = pg.inner_text("#homePicksSection")
     full_buys = set(re.findall(r"\n([A-Z][A-Z.\-]{0,5}) ", full)) & set(re.findall(r"[A-Z][A-Z.\-]{0,5}", "".join(re.findall(r"לקנות[^\n]*\n(?:[^\n]*\n){0,40}", full))))
     check("לקנות עכשיו - טווח קצר" not in full, "full screen: no second, competing short-term buy list")
-    for tab, subs in (("home", ["action", "full"]), ("mine", [None]), ("results", [None]), ("lab", ["top10", "longterm", "winners", "exit", "insider"])):
+    for tab, subs in (("home", ["action", "full"]), ("mine", [None]), ("results", [None]), ("lab", ["longterm", "winners", "exit", "insider"])):
         for sb in subs:
             pg.evaluate(f"() => {{ switchTab('{tab}'); {'switchSubtab(%r);' % sb if sb else ''} }}"); pg.wait_for_timeout(700)
             try: pg.wait_for_function("() => window.__predictionsLoaded === true", timeout=30000)
@@ -137,6 +137,14 @@ with sync_playwright() as pw:
         check(False, f"add-to-watchlist: works ({str(e).splitlines()[0][:80]})")
     check(not errs, f"no JS errors {errs[:2]}")
     check(not cerrs, f"no errors logged by the app {[c[:120] for c in cerrs[:2]]}")
+    # v6.26.0: Top10 was stopped 20.11.2026 - it must not come back on any screen
+    pg.evaluate("() => switchTab('lab')"); pg.wait_for_timeout(300)
+    check("top10" not in pg.evaluate("() => (SUBTABS.lab || []).map(s => s.id).join(',')"), "Top10: no lab sub-tab")
+    vis_top10 = pg.evaluate("() => [...document.querySelectorAll('[data-tab]')].filter(e => e.offsetParent !== null && /Top ?10/.test(e.innerText) && !/הופסק/.test(e.innerText)).map(e => e.id)")
+    for _t, _s in (("home", "full"), ("results", None), ("lab", "longterm")):
+        pg.evaluate(f"() => {{ switchTab('{_t}'); {'switchSubtab(%r);' % _s if _s else ''} }}"); pg.wait_for_timeout(400)
+        vis_top10 += pg.evaluate("() => [...document.querySelectorAll('[data-tab]')].filter(e => e.offsetParent !== null && /Top ?10/.test(e.innerText) && !/הופסק/.test(e.innerText)).map(e => e.id)")
+    check(not vis_top10, f"Top10: not shown on any screen {sorted(set(vis_top10))}")
     check(pg.evaluate("() => !document.getElementById('dataLoadError')"), "no 'could not read data file' banner")
     b.close()
 report = "\n".join(fails + notes) + f"\n\n{len(fails)} failed / {len(fails) + len(notes)} checks"
