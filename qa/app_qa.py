@@ -79,6 +79,11 @@ with sync_playwright() as pw:
     pg.evaluate("() => localStorage.setItem('gh-watchlist-config', JSON.stringify({owner:'o', repo:'r', token:'t'}))")
     pg.reload(); pg.wait_for_timeout(6000)
     pg.evaluate("() => { const o = document.getElementById('legalOverlay'); if (o) o.remove(); }")
+    # v6.25.0: home renders from today.json; predictions.json only when it can't (old today.json)
+    _today = _j("today.json", {}) or {}
+    if _today.get("market_regime"):
+        check(not pg.evaluate("() => !!window.__predictionsLoaded"), "home: first screen does not load predictions.json")
+    pg.evaluate("() => document.querySelectorAll('#homeActionSection details').forEach(d => d.open = true)")
     act = pg.inner_text("#homeActionSection")
     buys = set(re.findall(r"קנה ([A-Z.\-]+)", act)); sells = set(re.findall(r"מכור ([A-Z.\-]+)", act))
     check(not (buys & sells), f"action: no ticker both buy and sell (buy={sorted(buys)}, sell={sorted(sells)})")
@@ -92,6 +97,9 @@ with sync_playwright() as pw:
     for tab, subs in (("home", ["action", "full"]), ("mine", [None]), ("results", [None]), ("lab", ["top10", "longterm", "winners", "exit", "insider"])):
         for sb in subs:
             pg.evaluate(f"() => {{ switchTab('{tab}'); {'switchSubtab(%r);' % sb if sb else ''} }}"); pg.wait_for_timeout(700)
+            try: pg.wait_for_function("() => window.__predictionsLoaded === true", timeout=30000)
+            except Exception: check(False, f"{tab}/{sb or '-'}: predictions.json finished loading")
+            pg.wait_for_timeout(300)
             txt = pg.evaluate("() => [...document.querySelectorAll('[data-tab]')].filter(e => e.offsetParent !== null).map(e => e.innerText).join('\\n')")
             bad = [w for w in ("undefined", "NaN", "null%", "[object Object]", "Infinity") if w in txt]
             check(not bad, f"{tab}/{sb or '-'}: no broken values {bad if bad else ''}")

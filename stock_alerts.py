@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.32.0"
+BACKEND_VERSION = "5.33.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -7130,6 +7130,9 @@ def write_today_json(store):
         "generated_at": datetime.now(timezone.utc).isoformat(), "backend_version": BACKEND_VERSION,
         "last_run_status": store.get("last_run_status"), "picks": store.get("picks"), "exposure": ex,
         "strategy_comparison": store.get("strategy_comparison"),
+        # v5.33.0: the home screen renders from today.json alone (predictions.json loads on demand)
+        "market_regime": store.get("market_regime"), "market_breadth": store.get("market_breadth"),
+        "list_status": store.get("list_status"),
         "book": {k: {x: v for x, v in ((store.get("strategy_book") or {}).get(k) or {}).items()
                      if x in ("label", "start_date", "total_return_pct", "spy_same_window_pct", "stats", "holdings")}
                  for k in ("A", "B")},
