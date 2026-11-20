@@ -34,5 +34,11 @@
     "name": "אנבידיה",
     "target_high": 175,
     "target_low": 155
+  },
+  {
+    "ticker": "ANT",
+    "name": "ANT",
+    "target_high": 120,
+    "target_low": 85
   }
 ]
