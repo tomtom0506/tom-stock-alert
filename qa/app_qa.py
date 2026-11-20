@@ -22,9 +22,45 @@ fails, notes, puts = [], [], []
 SHOTS = os.path.join(REPO, 'qa', 'screens'); os.makedirs(SHOTS, exist_ok=True)
 def check(cond, msg):
     (notes if cond else fails).append(("OK  " if cond else "FAIL") + " " + msg)
+# v6.24.0 (20.11.2026 - AMD/SWKS in strategy A's buy list had no live price):
+# every ticker on a screen must be in current_prices.json, or the app shows
+# an old close / the entry price instead of a price from today
+def _j(name, default):
+    raw = local(name)
+    try: return json.loads(raw) if raw else default
+    except ValueError: return default
+# v6.24.0 (20.11.2026 - a bare NaN blanked the app; Python's json reads it, browsers don't):
+# every data file must be STRICT JSON, exactly as a browser parses it
+def _strict(raw):
+    def bad(c): raise ValueError(c)
+    json.loads(raw, parse_constant=bad)
+for _f in ("predictions.json", "today.json", "current_prices.json", "winners.json", "insider.json", "watchlist.json", "my_portfolio.json"):
+    _raw = local(_f)
+    if _raw is None: continue
+    try: _strict(_raw); check(True, f"data file is browser-readable JSON: {_f}")
+    except ValueError as e: check(False, f"data file is browser-readable JSON: {_f} (bad value: {str(e)[:60]})")
+_store = _j("predictions.json", {}) or {}
+_prices = (_j("current_prices.json", {}) or {}).get("prices") or {}
+_need = {}
+def _add(src, items):
+    for x in items or []:
+        t = x if isinstance(x, str) else (x or {}).get("ticker")
+        if t: _need.setdefault(t, src)
+_book = _store.get("strategy_book") or {}
+for _k in ("A", "B"):
+    _add(f"book {_k}", (_book.get(_k) or {}).get("holdings")); _add(f"book {_k} pending", (_book.get(_k) or {}).get("pending"))
+_add("top_picks", (_store.get("top_picks") or {}).get("tickers"))
+_add("long_term", (_store.get("long_term_picks") or {}).get("picks"))
+_add("picks_long", (_store.get("picks_long") or {}).get("holdings"))
+_add("monthly", (_store.get("monthly_portfolio") or {}).get("holdings"))
+_add("watchlist", _j("watchlist.json", []))
+_miss = sorted(f"{t} ({s})" for t, s in _need.items() if (_prices.get(t) or {}).get("price") is None)
+check(not _miss, f"live price for every listed ticker ({len(_need)} tickers){' missing: ' + ', '.join(_miss) if _miss else ''}")
 with sync_playwright() as pw:
     b = pw.chromium.launch(); pg = b.new_page(viewport={"width": 390, "height": 844})
     errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
+    # v6.24.0: the app catches its render errors and only logs them - catch those too
+    cerrs = []; pg.on("console", lambda m: cerrs.append(m.text) if m.type == "error" and not m.text.startswith("Failed to load resource") else None)
     def route(r):
         u = r.request.url
         if "raw.githubusercontent.com" in u:
@@ -43,6 +79,14 @@ with sync_playwright() as pw:
     pg.evaluate("() => localStorage.setItem('gh-watchlist-config', JSON.stringify({owner:'o', repo:'r', token:'t'}))")
     pg.reload(); pg.wait_for_timeout(6000)
     pg.evaluate("() => { const o = document.getElementById('legalOverlay'); if (o) o.remove(); }")
+    # v6.25.0: home renders from today.json; predictions.json only when it can't (old today.json)
+    _today = _j("today.json", {}) or {}
+    if _today.get("market_regime"):
+        check(not pg.evaluate("() => !!window.__predictionsLoaded"), "home: first screen does not load predictions.json")
+    # v6.25.0: on a 390px phone the header cut "עודכן לפני..." to "המ..." - it must be fully visible
+    trunc = pg.evaluate("() => { const e = document.querySelector('.brand-sub'); return !e || e.scrollWidth > e.clientWidth + 1 || !e.innerText.trim(); }")
+    check(not trunc, "header: data-freshness line fully visible on a phone")
+    pg.evaluate("() => document.querySelectorAll('#homeActionSection details').forEach(d => d.open = true)")
     act = pg.inner_text("#homeActionSection")
     buys = set(re.findall(r"קנה ([A-Z.\-]+)", act)); sells = set(re.findall(r"מכור ([A-Z.\-]+)", act))
     check(not (buys & sells), f"action: no ticker both buy and sell (buy={sorted(buys)}, sell={sorted(sells)})")
@@ -56,6 +100,9 @@ with sync_playwright() as pw:
     for tab, subs in (("home", ["action", "full"]), ("mine", [None]), ("results", [None]), ("lab", ["top10", "longterm", "winners", "exit", "insider"])):
         for sb in subs:
             pg.evaluate(f"() => {{ switchTab('{tab}'); {'switchSubtab(%r);' % sb if sb else ''} }}"); pg.wait_for_timeout(700)
+            try: pg.wait_for_function("() => window.__predictionsLoaded === true", timeout=30000)
+            except Exception: check(False, f"{tab}/{sb or '-'}: predictions.json finished loading")
+            pg.wait_for_timeout(300)
             txt = pg.evaluate("() => [...document.querySelectorAll('[data-tab]')].filter(e => e.offsetParent !== null).map(e => e.innerText).join('\\n')")
             bad = [w for w in ("undefined", "NaN", "null%", "[object Object]", "Infinity") if w in txt]
             check(not bad, f"{tab}/{sb or '-'}: no broken values {bad if bad else ''}")
@@ -89,6 +136,8 @@ with sync_playwright() as pw:
     except Exception as e:
         check(False, f"add-to-watchlist: works ({str(e).splitlines()[0][:80]})")
     check(not errs, f"no JS errors {errs[:2]}")
+    check(not cerrs, f"no errors logged by the app {[c[:120] for c in cerrs[:2]]}")
+    check(pg.evaluate("() => !document.getElementById('dataLoadError')"), "no 'could not read data file' banner")
     b.close()
 report = "\n".join(fails + notes) + f"\n\n{len(fails)} failed / {len(fails) + len(notes)} checks"
 print(report)

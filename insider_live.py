@@ -285,6 +285,18 @@ def build(st, cl, tiers):
                        "closed": len(st["closed"]), "since": st["started"]}
 
 
+def _json_safe(o):
+    """NaN / Infinity -> null: browsers can't parse a bare NaN (20.11.2026)."""
+    if isinstance(o, float) or type(o).__module__ == "numpy" and hasattr(o, "dtype") and o.dtype.kind == "f":
+        o = float(o)
+        return o if o == o and o not in (float("inf"), float("-inf")) else None
+    if isinstance(o, dict):
+        return {k: _json_safe(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_json_safe(v) for v in o]
+    return o
+
+
 def main():
     st = json.loads(STATE_FILE.read_text(encoding="utf-8")) if STATE_FILE.exists() else {
         "started": date.today().isoformat(), "purchases": [], "processed": [], "positions": [], "closed": [], "note": NOTE}
@@ -321,7 +333,7 @@ def main():
     st["sanity"] = {"strong_last_30d": n30, "expected_per_month": 9,
                     "warning": (live_days >= 30 and (n30 == 0 or n30 > 40))}
     st["updated_at"] = datetime.now(timezone.utc).isoformat()
-    STATE_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1, default=float), encoding="utf-8")
+    STATE_FILE.write_text(json.dumps(_json_safe(st), ensure_ascii=False, indent=1, default=float, allow_nan=False), encoding="utf-8")
     log(f"done: {new} new purchases, {len(st.get('signals', []))} signals, {n30} strong in 30 days, portfolio {st.get('portfolio')}")
 
 

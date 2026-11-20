@@ -104,9 +104,9 @@
   .wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 100px; }
   header.top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; }
   .brand { font-size: 24px; font-weight: 600; letter-spacing: -0.2px; }
-  .brand-sub { font-size: 11.5px; color: var(--text-faint); margin-top: 3px; letter-spacing: 0.3px; }
+  .brand-sub { font-size: 12.5px; color: var(--text-faint); margin-top: 3px; letter-spacing: 0.3px; }
   .regime-badge {
-    display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
     padding: 5px 12px; border-radius: 20px; margin-bottom: 16px; cursor: pointer;
   }
   .regime-badge:active { opacity: 0.8; }
@@ -116,12 +116,12 @@
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 18px;
   }
   /* v6.15.0 - fixed tags: proven / experiment / info / mine */
-  .tag { display:inline-block; font-size:10.5px; font-weight:700; padding:1px 8px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim); vertical-align:middle; margin-inline-start:4px; }
+  .tag { display:inline-block; font-size:12px; font-weight:700; padding:1px 8px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim); vertical-align:middle; margin-inline-start:4px; }
   .tag.proven { border-color: var(--up); color: var(--up); }
   .tag.exp { border-color: #d9a441; color: #d9a441; }
   .tag.mine { border-color: #6aa0e0; color: #6aa0e0; }
   .res-table { width:100%; border-collapse:collapse; font-size:12.5px; }
-  .res-table th { text-align:right; font-weight:600; color:var(--text-faint); font-size:11px; padding:6px 4px; border-bottom:1px solid var(--border); }
+  .res-table th { text-align:right; font-weight:600; color:var(--text-faint); font-size:12px; padding:6px 4px; border-bottom:1px solid var(--border); }
   .res-table td { padding:8px 4px; border-bottom:1px solid var(--border); vertical-align:top; }
   .fresh-stale { color: var(--down) !important; font-weight:700; }
   /* v6.23.0 - run/status messages live in their own opaque layer, never over page text */
@@ -139,10 +139,29 @@
   .act-status.sell { background: color-mix(in srgb, var(--down) 14%, transparent); }
   .act-status.none { background: var(--surface, rgba(127,127,127,.08)); text-align:center; padding:30px 18px; }
   .act-row { border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:8px; }
+  /* v6.25.0: compact collapsible lists + one readable "small" text size */
+  .muted-sm { font-size:12px; color:var(--text-faint); }
+  /* v6.25.0: touch targets - tabs, sub-tabs and close buttons at least 44px */
+  .top-tab-btn, .sub-tab-btn, .home-more-toggle { min-height:44px; }
+  .modal-close-btn { min-width:44px; min-height:44px; }
+  /* v6.25.0: on a phone the title and "updated X ago" were both cut to "המ..." - the logo already names
+     the app, so the narrow header keeps only the freshness line, readable */
+  @media (max-width: 480px) {
+    .brand { display: none; }
+    .brand-sub { white-space: normal !important; line-height: 1.3; font-size: 13.5px; color: var(--text-dim); margin-top: 0; }
+  }
+  :focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+  .held-list { margin:12px 0 8px; }
+  .held-list > summary { display:flex; justify-content:space-between; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid var(--border); border-radius:14px; cursor:pointer; font-size:13.5px; font-weight:700; color:var(--text-dim); list-style:none; }
+  .held-list > summary::-webkit-details-marker { display:none; }
+  .held-list > summary::before { content:"▸"; margin-inline-end:6px; color:var(--text-faint); }
+  .held-list[open] > summary::before { content:"▾"; }
+  .held-list[open] > summary { margin-bottom:8px; }
+  .held-list > summary > span:first-child { flex:1; }
   .act-row .head { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
   .act-row .tk { font-size:17px; font-weight:800; }
   .act-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; margin-top:8px; font-size:12.5px; }
-  .act-grid .lbl { color:var(--text-faint); font-size:11.5px; }
+  .act-grid .lbl { color:var(--text-faint); font-size:12.5px; }
   .act-tech { margin-top:8px; padding-top:8px; border-top:1px dashed var(--border); font-size:12px; color:var(--text-dim); }
   /* v6.11.0 - 📌 main-page picks */
   .picks-boxes { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:6px 0 12px; }
@@ -169,9 +188,9 @@
     background: linear-gradient(180deg, var(--panel-hi) 0%, var(--panel) 30%);
     border: 1px solid var(--border); border-radius: 12px; padding: 9px 4px; text-align: center;
   }
-  .index-label { font-size: 9.5px; color: var(--text-faint); margin-bottom: 3px; }
+  .index-label { font-size: 12px; color: var(--text-faint); margin-bottom: 3px; }
   .index-value { font-size: 14px; font-weight: 700; color: var(--text); }
-  .index-pct { font-size: 10.5px; font-weight: 600; margin-top: 2px; }
+  .index-pct { font-size: 12px; font-weight: 600; margin-top: 2px; }
   .index-pct.up { color: var(--up); }
   .index-pct.down { color: var(--down); }
   .index-pct.flat { color: var(--text-faint); }
@@ -182,7 +201,7 @@
   }
   .gear-btn:active { background: var(--panel-hi); }
   .version-badge {
-    font-size: 10px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--text-faint); font-family: 'IBM Plex Mono', monospace;
     padding: 3px 6px; border: 1px solid var(--border); border-radius: 6px;
   }
 
@@ -195,7 +214,7 @@
     box-shadow: 0 3px 12px rgba(0,0,0,0.18);
   }
   .stat-num { font-size: 20px; font-weight: 700; color: var(--gold); }
-  .stat-label { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; line-height: 1.3; }
+  .stat-label { font-size: 12px; color: var(--text-faint); margin-top: 3px; line-height: 1.3; }
 
   /* ---------- section headers ---------- */
   .section-title {
@@ -235,7 +254,7 @@
   }
   .factor-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
   .factor-badge {
-    font-size: 10.5px; padding: 3px 8px; border-radius: 6px; font-weight: 600;
+    font-size: 12px; padding: 3px 8px; border-radius: 6px; font-weight: 600;
     background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid var(--border);
   }
   .factor-badge.pos { color: var(--up); border-color: rgba(79,178,134,0.3); background: var(--up-bg); }
@@ -264,7 +283,7 @@
     border: 1px solid var(--gold-dim); background: linear-gradient(135deg, var(--gold-glow), transparent 70%), var(--panel-hi);
     box-shadow: 0 4px 18px rgba(212,169,74,0.12);
   }
-  .hot-pick-label { font-size: 11px; color: var(--gold); font-weight: 700; letter-spacing: 0.3px; margin-bottom: 6px; }
+  .hot-pick-label { font-size: 12px; color: var(--gold); font-weight: 700; letter-spacing: 0.3px; margin-bottom: 6px; }
   .hot-pick-ticker { font-size: 22px; font-weight: 800; font-family: 'Space Grotesk', sans-serif; }
 
   /* ---------- strong prediction track record ---------- */
@@ -279,7 +298,7 @@
   .track-tile.hits .track-num { color: var(--up); }
   .track-tile.misses .track-num { color: var(--down); }
   .track-tile.rate .track-num { color: var(--gold); }
-  .track-label { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; }
+  .track-label { font-size: 12px; color: var(--text-faint); margin-top: 3px; }
   .track-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px;
@@ -317,7 +336,7 @@
     margin-top: 12px; font-size: 12px; color: var(--text-dim);
   }
   .target-badge {
-    font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600;
+    font-size: 12px; padding: 2px 8px; border-radius: 20px; font-weight: 600;
   }
   .target-badge.hit { background: var(--up-bg); color: var(--up); }
   .target-badge.pending { background: rgba(139,147,161,0.12); color: var(--text-dim); }
@@ -336,7 +355,7 @@
     filter: drop-shadow(0 0 3px rgba(0,0,0,0.6));
   }
   .hot-badge {
-    display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 700;
     color: var(--gold); background: var(--gold-glow); padding: 2px 8px; border-radius: 20px;
     margin-inline-start: 6px; border: 1px solid rgba(212,169,74,0.35);
   }
@@ -358,13 +377,13 @@
   .stock-card.editing .edit-area { display: block; }
   .stock-card.editing .card-view-only { opacity: 0.5; }
   .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-  label.field-label { display: block; font-size: 10.5px; color: var(--text-faint); margin-bottom: 3px; }
+  label.field-label { display: block; font-size: 12px; color: var(--text-faint); margin-bottom: 3px; }
   input.field-input {
     width: 100%; background: var(--bg); border: 1px solid var(--border-hi); border-radius: 8px;
     padding: 8px 10px; font-size: 13.5px; color: var(--text);
   }
   input.field-input:focus { outline: none; border-color: var(--gold); }
-  .range-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+  .range-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-faint); margin-top: 4px; }
 
   .add-btn {
     position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
@@ -424,7 +443,7 @@
   .top-tab-btn {
     flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 2px;
     background: transparent; border: none; color: var(--text-faint);
-    font-size: 11px; font-family: inherit; padding: 6px 10px; border-radius: 10px;
+    font-size: 12px; font-family: inherit; padding: 6px 10px; border-radius: 10px;
     cursor: pointer; white-space: nowrap; position: relative;
   }
   .top-tab-btn .top-tab-icon { font-size: 17px; }
@@ -457,41 +476,41 @@
     background: linear-gradient(90deg, transparent, var(--gold), transparent);
   }
   .pf-hero.live::before { background: linear-gradient(90deg, transparent, var(--up), transparent); }
-  .pf-eyebrow { font-size: 10.5px; letter-spacing: 0.08em; color: var(--gold); font-weight: 700; text-transform: uppercase; }
+  .pf-eyebrow { font-size: 12px; letter-spacing: 0.08em; color: var(--gold); font-weight: 700; text-transform: uppercase; }
   .pf-name { font-size: 17px; font-weight: 800; margin-top: 2px; }
-  .pf-sub { font-size: 11px; color: var(--text-faint); margin-top: 2px; line-height: 1.5; }
+  .pf-sub { font-size: 12px; color: var(--text-faint); margin-top: 2px; line-height: 1.5; }
   .pf-value { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; margin-top: 12px; line-height: 1.1; }
   .pf-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  .pf-chip { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); }
+  .pf-chip { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--border); }
   .pf-chip.up { color: var(--up); background: var(--up-bg); border-color: transparent; }
   .pf-chip.down { color: var(--down); background: var(--down-bg); border-color: transparent; }
   .pf-chip.muted { color: var(--text-dim); }
   .pf-spark { display: block; width: 100%; height: 64px; margin: 12px 0 4px; }
   .pf-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
   .pf-kpi { background: var(--bg-glow); border: 1px solid var(--border); border-radius: 10px; padding: 7px 4px; text-align: center; }
-  .pf-kpi-l { font-size: 9.5px; color: var(--text-faint); }
+  .pf-kpi-l { font-size: 12px; color: var(--text-faint); }
   .pf-kpi-v { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 13px; font-weight: 700; margin-top: 2px; }
   .pf-alloc { display: flex; height: 7px; border-radius: 999px; overflow: hidden; margin: 12px 0 4px; background: var(--bg-glow); }
   .pf-alloc span { display: block; height: 100%; }
-  .pf-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--text-dim); }
+  .pf-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12px; color: var(--text-dim); }
   .pf-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-left: 4px; vertical-align: middle; }
-  .pf-section-h { font-size: 11px; font-weight: 700; color: var(--text-dim); letter-spacing: 0.04em; margin: 14px 0 6px; display: flex; justify-content: space-between; }
+  .pf-section-h { font-size: 12px; font-weight: 700; color: var(--text-dim); letter-spacing: 0.04em; margin: 14px 0 6px; display: flex; justify-content: space-between; }
   .pf-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 10px 0; border-top: 1px solid var(--border); }
   .pf-row:first-of-type { border-top: none; }
   .pf-tk { font-weight: 800; font-size: 14px; }
-  .pf-tag { font-size: 9.5px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-right: 6px; vertical-align: middle; }
+  .pf-tag { font-size: 12px; font-weight: 700; padding: 1px 6px; border-radius: 6px; margin-right: 6px; vertical-align: middle; }
   .pf-tag.short { color: #ffd76a; background: rgba(255,215,106,0.12); }
   .pf-tag.long { color: var(--gold); background: var(--gold-dim); }
-  .pf-meta { font-size: 11px; color: var(--text-faint); grid-column: 1 / -1; }
+  .pf-meta { font-size: 12px; color: var(--text-faint); grid-column: 1 / -1; }
   .pf-pnl { text-align: left; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 700; font-size: 13px; }
-  .pf-pnl small { display: block; font-size: 10.5px; font-weight: 500; color: var(--text-faint); }
+  .pf-pnl small { display: block; font-size: 12px; font-weight: 500; color: var(--text-faint); }
   .pf-trades summary { cursor: pointer; font-size: 12px; color: var(--text-dim); padding: 8px 0 2px; }
-  .pf-trade { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: center; font-size: 11.5px; padding: 7px 0; border-top: 1px solid var(--border); }
-  .pf-side { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 6px; }
+  .pf-trade { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 10px; align-items: center; font-size: 12.5px; padding: 7px 0; border-top: 1px solid var(--border); }
+  .pf-side { font-size: 12px; font-weight: 800; padding: 2px 7px; border-radius: 6px; }
   .pf-side.buy { color: var(--up); background: var(--up-bg); }
   .pf-side.sell { color: var(--down); background: var(--down-bg); }
   .pf-empty { font-size: 12px; color: var(--text-faint); padding: 8px 0; }
-  .pf-foot { font-size: 10.5px; color: var(--text-faint); line-height: 1.6; margin-top: 10px; }
+  .pf-foot { font-size: 12px; color: var(--text-faint); line-height: 1.6; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -547,98 +566,32 @@
         <button id="guideCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
       </div>
       <div style="font-size:13px; color:var(--text-dim); line-height:1.75;">
-
         <p style="color:var(--text); font-weight:700; margin-bottom:4px;">מה האפליקציה עושה</p>
-        <p>האפליקציה עוקבת אחרי מניות שבחרת, ובנוסף מריצה כל יום מנוע ניתוח טכני על מאות מניות בשוק האמריקאי והישראלי, ומדגישה את המניות עם האותות החזקים ביותר. כל הנתונים מבוססים על ניתוח אוטומטי בלבד - לא ייעוץ השקעות (פירוט מלא בתנאי השימוש בתחתית העמוד).</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">האייקונים בכותרת העליונה</p>
-        <p>📖 - המדריך הזה.<br>
-        🌙 / ☀️ - מעבר בין מצב תצוגה כהה לבהיר (נשמר במכשיר שלך).<br>
-        ⟳ - רענון כפוי של הדף (טוען מחדש את הגרסה העדכנית, עוקף מטמון).<br>
-        ⚙ - הגדרות החיבור לגיטהאב (שם משתמש, שם ריפו, טוקן).<br>
-      <span class="mono">vX.X</span> (התגית עם מספר הגרסה) - לחיצה עליה פותחת היסטוריית גרסאות מלאה, מה השתנה בכל עדכון.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📈 מצב שוק כללי ומדדים</p>
-        <p>תגית בראש העמוד שמראה אם השוק הרחב (S&amp;P 500) נמצא במגמת עלייה (שורי) או ירידה (דובי). <b>לחיצה עליה</b> פותחת הסבר מפורט - כולל הנתונים המדויקים שעליהם מבוססת הקביעה. מתחתיה 4 ריבועים עם שערים עדכניים (S&amp;P 500, מדד ת"א 125, דולר/שקל, ביטקוין), מתעדכנים כל 15 דקות, בירוק לעלייה ואדום לירידה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">4 האריחים הכחולים</p>
-        <p><b>אחוז הצלחת חיזוי</b> (לחיצה עליו פותחת הסבר מדויק) - מציג את הדיוק של יום המסחר האחרון שכבר ניתן היה לבדוק (יומי, לא ממוצע מצטבר!) בקרב תחזיות Top 10; אם עדיין אין Top 10 שנבדק, מוצג הדיוק על כל השוק. הממוצע המצטבר לאורך זמן מוצג בנפרד בריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-$100,000 למטה.<br>
-        <b>תחזיות חזקות היום</b> - כמה מניות נכנסו לרשימה המצומצמת של היום (עד 25).<br>
-        <b>מניות במעקב</b> - כמה מניות יש לך ברשימה הידנית "המניות שלי".<br>
-        <b>הגיעו ליעד</b> - כמה מהמניות ב"המניות שלי" הגיעו ליעד המחיר שהגדרת.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔮 Top10 ומומלצות עכשיו</p>
-        <p>הרשימה המצומצמת (עד 25) של המניות עם האותות הכי חזקים היום, כולל כרטיס מודגש למניה הכי חמה. מתחת לכותרת מוצגת גם שורת "נתונים עודכנו לאחרונה" - שני זמנים נפרדים: מתי Top10 הרשמי חושב בפועל (לא רק מתי הריצה האחרונה של המערכת הסתיימה - יש הבדל, כי המנוע היומי לא רץ שוב אם כבר יש תחזית ליום הנוכחי), ומתי "10 המומלצות עכשיו" חושבו לאחרונה. ככה תמיד אפשר לדעת אם מה שרואים טרי או קודם לעדכון קוד אחרון. אפשר למיין לפי כמה קריטריונים - ברירת המחדל היא לפי הנוסחה עצמה. שני כפתורים נפרדים קובעים מה מוצג: <b>"הצג Top 10 (למעקב והוכחה)"</b> - 10 המניות הרשמיות שנבחרו היום, קפואות מרגע הבחירה - אלה שנגדן נמדדת ההצלחה בפועל (אחוז הצלחה, סימולציית $100,000, השוואה למדדים) - ו<b>"🔮 10 המומלצות עכשיו (מתעדכן חופשי)"</b> - אותה נוסחה בדיוק, מחושבת מחדש על נתונים עדכניים לרגע הבקשה (לא בהכרח אותן מניות כמו ה-Top10 הרשמי, כי המחירים שנכנסים לחישוב שונים) - לא נשמר להיסטוריה ולא נבדק, אפשר לרענן מתי שרוצים בלי לפגוע במדידה הרשמית. הכפתור הפעיל מסומן בירוק. "10 המומלצות עכשיו" מתעדכנות גם אוטומטית פעם ביום (סמוך לסגירת המסחר) וגם ניתן לרענן ידנית עם <b>"🔁 רענן המלצות עכשיו"</b>. כל מניה בשתי הרשימות מקבלת את אותו תג ציון לחיץ 🎯. כפתור <b>🔄 עדכן ניתוח</b> הצף בתחתית המסך מפעיל ריצה חדשה של המנוע היומי הרגיל בגיטהאב - שים לב: הוא לא מחשב שוב אם כבר יש תחזית ליום הנוכחי, ואם היום סוף שבוע או חג בארה"ב (בלי מסחר), הריצה יוצאת מיד בלי לעדכן כלום - במקרה כזה תופיע הודעה "אין מסחר היום", לא הודעת שגיאה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">✏ נהל אחזקות</p>
-        <p>המקום היחיד להוספת מניה חדשה לאפליקציה - גם ל"התיק שלי" וגם ל"המניות שלי". הזנת טיקר, שם, וכמות יחידות (חובה) יוצרת גם אחזקה בתיק וגם רשומת מעקב עם ניתוח טכני מלא. אפשר לערוך את מחירי היעד (תמיכה/התנגדות להתראה) בנפרד לכל מניה בסקשן "המניות שלי" עצמו, עם כפתור ✏ ערוך.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">⭐ הכוכב וסקשן "מניות במעקב"</p>
-        <p>לחיצה על ☆ ליד כל מניה מסמנת אותה ⭐ ומעלה אותה לסקשן קבוע למעלה, גם אם היא לא ברשימה המצומצמת של יום מסוים. מניות מסומנות מקבלות גם עדכון סטטוס יומי נפרד בטלגרם.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">משמעות הפסים בכרטיס מניה</p>
-        <p><b>פס אדום-ירוק עם סמן לבן</b> - עוצמת החיזוי (מ-5- עד 5+), כמה שהסמן קרוב לירוק כך החיזוי חיובי יותר.<br>
-        <b>פס עם שני מספרים (תמיכה/התנגדות)</b> - טווח המחיר שהניתוח הטכני מזהה: המספר הימני הוא רמת תמיכה (אזור קנייה), השמאלי רמת התנגדות (אזור מכירה/שורט), עם סמן 📍 שמראה איפה המחיר הנוכחי נמצא. כוכבית (*) ליד מספר מציינת שהוא מוערך (המניה שברה את הטווח ההיסטורי).<br>
-        <b>מחיר ואחוז שינוי</b> - מתעדכן כל 15 דקות במהלך המסחר.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏢 שם החברה ותקציר פעילות</p>
-        <p>מתחת לסמל המניה (בכרטיסים שיש להם נתונים - בעיקר המצומצמות/מסומנות), מופיע שם החברה המלא. <b>לחיצה עליו</b> פותחת תקציר קצר של תחום הפעילות שלה. לא לכל מניה יש את זה זמין - זה תלוי בזמינות המידע מהמקור החיצוני.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📈 גרף נקודות תמיכה/התנגדות</p>
-        <p>בכרטיסים של המניות המצומצמות (עד 25) והמניות המסומנות בכוכב, אפשר <b>ללחוץ על התגית</b> בפס התמיכה/התנגדות (מסומנת ב-📈) כדי לפתוח גרף שמראה את ~140 ימי המסחר האחרונים, עם נקודות אדומות (שיאים מקומיים) וירוקות (שפלים מקומיים) שעליהן מבוסס חישוב התמיכה/ההתנגדות, וקו זהוב מקווקו שמחבר ביניהן לפי סדר כרונולוגי - בדיוק כמו שמסמנים ידנית על גרף. מניות אחרות (שאינן בין ה-25 או מסומנות) אין להן עדיין נתוני גרף, כדי לא להכביד על גודל הקובץ.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📅 תיק חודשי</p>
-        <p>אלטרנטיבה לסימולציית ה-$100,000 היומית, עם <b>קריטריון בחירה שונה לגמרי</b> מ-Top 10 (לא אותו מנוע מומנטום קצר-טווח - זה בכוונה, כי מניה "חמה עכשיו" היא לרוב פחות יציבה, לא יותר, בשביל החזקה של 30 יום): רק מניות מ-S&P 500 <b>וגם</b> עם שווי שוק של לפחות 50 מיליארד $ (שני התנאים ביחד - לא מספיק אחד מהם), שנמצאות <b>גם</b> לפחות 15% מתחת לשיא ה-52 שבועות שלהן <b>וגם</b> עד 25% מעל השפל של 52 השבועות - כלומר מניות גדולות ויציבות שנסחרות כרגע בזול יחסית לטווח שלהן, ועדיין עם תחזית חיובית. הרף הזה מחמיר מאוד, ולא כל חודש יימצאו 10 מניות שעומדות בו במלואו - אם פחות מ-10 עומדות, המערכת משלימה עם המניות הגדולות (שווי השוק לא מתפשר לעולם) הכי קרובות לעמידה בשני תנאי המחיר. מניה שנכנסה כך מסומנת ב-<span style="color:var(--text-faint);">(גיבוי)</span> עדין ליד השם - כדי שתדע להבחין, בלי שזה יבלוט. עד 10 הנבחרות נכנסות למחזור ומוחזקות כדי לא "לאבד" רווח על עמלות קנייה/מכירה תכופות. אם מניה שנמצאת בתיק נשברת טכנית באמצע החודש (ירידה חדה, שבירת תמיכה, או שהאיתות מתהפך לשלילי) - תישלח לך התראה דחופה ונפרדת בטלגרם עם המלצה לשקול מכירה, במקום לחכות בשקט לרענון הבא. למעלה מוצגת גם תשואה מצטברת אחת למחזור כולו - ממוצע פשוט (לא משוקלל) בין כל ההחזקות, כי אין כאן כמויות/משקלים כמו ב"התיק שלי" - רק תמונת מצב אחת שנבחרה בתחילת המחזור והוחזקה מאז.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧮 השוואת נוסחאות</p>
-        <p>ה-Top 10 האמיתי נבחר היום לפי <b>עירוב מכויל</b> בין שתי שיטות בסיסיות: עוצמת חיזוי טהורה, ויחס סיכוי/סיכון (מניות שבהן הפוטנציאל לרווח עד ההתנגדות גדול משמעותית מהסיכון עד התמיכה) - עם הגבלה של עד 50% מהתיק מאותו סקטור. משקל העירוב (alpha) מתעדכן לבד פעם בחודש בערך, בצעדים קטנים ומוגבלים, ורק כשיש פער מובהק וגדול מספיק בין השיטות - לא בתגובה לתנודה של יום-יומיים. הסקשן מציג את הביצועים של ארבע השיטות זו לצד זו: הנוסחה האמיתית (העירוב), שתי הבסיסיות הטהורות, והניסיונית עם אינדיקטורים מקדימים. תיבת <b>"✨ מאז שינוי הנוסחה"</b> מציגה את הביצועים רק מהיום שהעירוב עלה לראשונה - כדי שהיסטוריה ישנה מהנוסחה הפחות טובה לא תדלל את התמונה הנוכחית.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 Top 10 מול התיק שלי ומול המדדים</p>
-        <p>השוואה ישירה של תשואת Top 10 מול "התיק שלי" ומול המדדים הגדולים (S&P 500 ות"א 125) - זו המטרה המרכזית שהמערכת נמדדת מולה כרגע. לכל מדד גם סימולציית Buy&Hold מקבילה (מה היה קורה ל-$100,000 אם היו מושקעים במדד עצמו מתחילת המעקב, בלי לגעת), כדי שאפשר להשוות שווי מול שווי ולא רק אחוז מול אחוז. לצד התשואה מוצגים גם שני מדדי סיכון: <b>Max Drawdown</b> (הירידה המקסימלית מפסגה לשפל בתקופה) ו<b>תנודתיות</b> (סטיית התקן של התשואות היומיות) - כדי שתשואה גבוהה עם דרך מסחררת לא תיראה "טובה" יותר מתשואה דומה עם דרך יציבה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">₿ מניות חשופות-קריפטו</p>
-        <p>יקום מחקר קבוע - COIN, MSTR, MARA, RIOT, CLSK - מניות רגילות עם חשיפה/קורלציה גבוהה לביטקוין/קריפטו, נבדקות באותה נוסחה בדיוק כמו כל מניה אחרת (לא קריפטו ישיר). הסקשן מוצג רק אם יש להן ניתוח מהיום, עם תג כתום ₿ כדי להבדיל אותן בבירור מ-Top10 הרשמי - הן <b>לא</b> חלק ממנו ולא נכנסות למדידת ההצלחה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏆 פירוט מלא ל-Top 10 ול"מניות שלי"</p>
-        <p>כל אחת מ-10 מניות ה-Top 10, וכל מניה ב"המניות שלי", מציגה עכשיו תג ציון כולל לחיץ (🎯 1-100) - <b>אותה נוסחה בדיוק</b> שמחשבת את הציון ב"בדוק מניה" (לא נוסחה נפרדת), כך שאותו טיקר תמיד ייתן אותו ציון בשני המקומות. לחיצה על התג פותחת את אותו פירוט מלא שיש ב"בדוק מניה" - כולל מגמת Minervini, RS Rating, ציון אנליסטים, VCP, ואזהרת דוח כספי קרוב. הציון מתעדכן <b>פעם ביום</b> כחלק מהריצה הרגילה - לא בזמן אמת, ולא לפי לחיצה. שאר המניות שנסרקות לא מקבלות את הפירוט הזה (חוץ ממגמת Minervini ו-RS Rating, שמחושבים לכולן ומשפיעים על הבחירה עצמה) - כדי לא להעמיס קריאות API מיותרות על כל השוק.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📋 תור קנייה · החזקה · מכירה</p>
-        <p>מתקפל, מופיע בתוך סקשן Top10. כל מניה שהומלצה ב-30 הימים האחרונים נמצאת באחת משלוש רשימות. <b>🟢 קנייה</b> - ה-Top10 הרשמי של היום, עם שורת הסבר (עוצמת מומנטום, מגמת Minervini, RS, מרחק ליעד ולתמיכה). <b>🟡 החזקה</b> - הומלצה לאחרונה ויצאה מה-Top10, אבל אין איתות יציאה. <b>🔴 מכירה</b> - קרה אחד מהבאים: המחיר ירד 2%+ מתחת לתמיכה שנקבעה ביום ההמלצה, המחיר הגיע ליעד (ההתנגדות של יום ההמלצה) יחד עם RSI מעל 70 או MACD שלילי, התחזית התהפכה לירידה בעוצמה של 1.5 לפחות, או שהמגמה נחלשה ב-2 קריטריונים והמניה מתחת למחיר ההמלצה. ההשוואה היא תמיד מול הרמות של יום ההמלצה, כי רמות התמיכה וההתנגדות של היום מוגדרות תמיד סביב המחיר הנוכחי. בכל שורה: מחיר, כיוון, השינוי מאז ההמלצה ושורת הסבר. מניה שיצאה מטווח הסריקה לא נבדקת ומתיישנת אחרי 30 יום.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
-        <p>ניתוח לפי דרישה לכל טיקר, לא קשור לרשימת המעקב היומית ולא מרחיב אותה. מריץ workflow נפרד בגיטהאב (לוקח כדקה-שתיים, לא מיידי), ומציג <b>שני ציונים נפרדים</b>: <b>⏱ תזמון</b> (טווח קצר - מומנטום טכני כיווני, 50 = אין איתות) ו<b>🏛 איכות</b> (טווח ארוך - רווחיות, צמיחה, מינוף ותזרים מהדוחות, יחד עם דירוג האנליסטים), ותג המלצה שמשלב את שניהם. נתון שחסר לטיקר מסוים לא נכלל (לא מקבל ציון ניטרלי מזויף). מתחת לציונים יש <b>גרף מחיר</b> (יום עד 5 שנים) - נגיעה על הגרף או בוחר התאריך מציגים את המחיר בכל תאריך. <b>הבדיקה תמיד מציינת מאיזה תאריך המחיר בפועל</b>, ואם השוק הרלוונטי (ת"א או ארה"ב, לפי הטיקר - לכל אחד יומני מסחר וחגים שונים) סגור באותו יום - תופיע אזהרה מפורשת על כך, במקום להציג מחיר ישן בלי הסבר. לצד הציון מוצגים גם כתגיות מידע: <b>מגמת Minervini</b> (כמה מ-7 קריטריוני "מגמה בריאה" המניה עומדת בהם - זה גם מנכה מהציון עצמו, ראו למטה), <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול שאר השוק שנסרק), <b>VCP</b> (זיהוי ניסיוני של תבנית התכווצות - מידע בלבד, לא משפיע על הציון), <b>מכירה בחסר</b>, ו<b>אזהרת דוח כספי קרוב</b> אם רלוונטי (גם זו לא משפיעה על הציון - זה סיכון תזמון, לא כיוון). 10 הטיקרים האחרונים שנבדקו נשמרים בדפדפן - לחיצה על אחד מהם בהיסטוריה מציגה שוב את התוצאה השמורה, בלי להריץ בדיקה חדשה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📐 מגמת Minervini ו-RS Rating בנוסחה עצמה</p>
-        <p>שתי תוספות שנכנסו גם לנוסחת ההחלטות היומית (לא רק ל"בדוק מניה"): <b>Trend Template</b> (מבחן "מגמה בריאה" של מינרוויני - מחיר מעל ממוצעים 50/150/200 בסדר הנכון, ממוצע 200 עולה, מרחק בריא משפל/שיא 52 השבועות) פועל כ<b>מכפיל/עונש</b> על הציון הכולל, לא כעוד קול בשקלול - מניה שנכשלת במבחן המגמה מקבלת ניכוי, גם אם האינדיקטורים הקצרים שלה נראים טוב. <b>RS Rating</b> (אחוזון ביצועי 6 חודשים מול כל השוק שנסרק באותו יום) נכנס כתוספת עדינה ומוגבלת לציון - יתרון קל למניות שמובילות את השוק, לא הכרעה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧪 ניתוח טריגרים - מה עובד ומה פחות</p>
-        <p>בכל יום, המערכת בודקת את הדיוק של כל אחד מהטריגרים (Golden Cross, MACD, RSI קיצוני, נפח חריג, קרבה לתמיכה/התנגדות, אפסייד אנליסטים ועוד) מול <b>כל השוק</b> שנותח - לא רק המניות המצומצמות, אלא כל מניה בארה"ב ובישראל שיש לה תחזית שכבר נבדקה. כל טריגר מציג את אחוז ההצלחה שלו וכמה זה טוב/גרוע יותר מהממוצע הכללי ("מהבסיס"). זו בדיקה גולמית (לא ניסוי מבוקר - טריגרים חופפים ולא בלתי-תלויים), אבל היא נותנת כיוון אמיתי לאן שווה לחזק או להחליש במשקלי הנוסחה. עדכון הנוסחה עצמה נשאר תמיד להחלטה משותפת - המערכת לא משנה משקלים לבד.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔥 "למה נבחרה?" במניה הכי חמה</p>
-        <p>לחיצה על "למה נבחרה? 🔍" ליד כותרת המניה הכי חמה פותחת פירוק מלא ושקוף של הציון: אילו גורמי מגמה, תיקון-יתר ופונדמנטלס תרמו (עם הנקודות המדויקות של כל אחד), אם הבחירה התבססה על אישור נפח מסחר חריג, והשפעת מצב השוק הכללי. אם יש למניה נתוני גרף (מבין ה-25/המסומנות), הוא מוצג גם כאן.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">התגיות (badges)</p>
-        <p><b>RSI</b> - מדד תנופה; מתחת ל-30 = תשואת יתר (ירידה מוגזמת), מעל 70 = קניית יתר.<br>
-        <b>MACD חיובי/שלילי</b> - מגמה קצרת-טווח.<br>
-        <b>מגמת זהב 🌟 / מגמה שלילית 💀</b> - יחס בין ממוצעים נעים (50/200 יום).<br>
-        <b>📊 נפח חריג</b> - מסחר גבוה משמעותית מהרגיל.<br>
-        <b>אנליסטים: +X%</b> - כמה אנליסטים מצפים שהמניה תעלה, ובאיזה שיעור בממוצע.<br>
-        <b>שורט X%</b> - אחוז המניות שנמכרות בחסר (סימן לספקנות בשוק).<br>
-        <b>👥 X אנליסטים</b> - כמות אנליסטים שעוקבים אחרי המניה, והמלצתם הממוצעת.<br>
-        <b>📰 כתבה עדכנית</b> - קישור לכתבה רלוונטית אחרונה.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔥 ביצועי תחזיות חזקות</p>
-        <p>מעקב אחרי דיוק התחזיות החזקות לאורך זמן - כמה הצליחו, כמה פספסו, ואחוז ההצלחה הכולל.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💰 סימולציית תיק $100,000</p>
-        <p>תיק מדומה שמניח השקעה של $100,000 בחלוקה שווה בין כל מניות ה-Top 10 שהומלצו לעלייה, ומתעדכן כל יום לפי הביצוע בפועל. <b>הריבוע "📡 הערכה חיה"</b> מראה את התשואה המשוערת של ה-Top 10 ממש עכשיו, לפי המחיר החי (מתעדכן כל 15 דק', לא רשמי - יכול להתהפך במהלך היום) - זה שונה מהריבועים שמתחתיו ("רשמי, נעול"), שמתעדכנים רק פעם ביום, אחרי שהמערכת בפועל בודקת מול המחיר של יום המסחר הבא. <b>לחיצה על ריבוע הרווח/הפסד היומי (הרשמי)</b> מציגה פירוט של כל מניה וכמה היא עלתה/ירדה. הריבועים הנוספים מציגים את אחוז ההצלחה של אותן 10 מניות, שווי התיק הנוכחי, ואת הרווח המצטבר החודשי והשנתי. זו הערכה בלבד - ללא עמלות, מרווחי קנייה/מכירה או המרות מטבע.<br><br>
-        <b>חשוב:</b> ה-"Top 10" כאן הוא תמיד לפי עוצמת האות (קבוע) - לא מושפע מהמיון שבחרת בתפריט "מיון" מעל רשימת התחזיות. אם שינית שם את המיון, הרשימה שרואים שם עשויה להיראות שונה מ-10 המניות שמשמשות לסימולציה ולמדידת הדיוק.</p>
-
-        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">המניות שלי</p>
-        <p>רשימה ידנית שאתה בונה בעצמך - לכל מניה אפשר להגדיר יעד עליון (מכירה) ו/או תחתון (קנייה), ולקבל התראת טלגרם כשהמחיר חוצה אותם. עריכה/מחיקה בכפתורים שבתחתית כל כרטיס, והוספת מניה חדשה בכפתור הצהוב הקבוע למטה.</p>
-
+        <p>מסדרת מידע ציבורי על מניות למסך אחד: מה עושים היום לפי שתי אסטרטגיות שעברו מחקר, איך התיק שלך מתנהג מול ה-S&amp;P 500, ומה נבדק עכשיו בניסוי. מידע בלבד, לא ייעוץ השקעות.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">התגיות</p>
+        <p><span class="tag proven">מוכח</span> עבר מחקר על 26 שנות S&amp;P 500.<br>
+        <span class="tag" style="border-color:#e0a92e; color:#e0a92e;">⚠️ מפגרת בזמן אמת</span> עבר מחקר, אבל מאז שעלה לאוויר מפגר אחרי ה-S&amp;P. לא מסתירים את זה.<br>
+        <span class="tag exp">ניסוי</span> עוד לא הוכח. נמדד קדימה מול ה-S&amp;P, ולא כדאי לפעול לפיו.<br>
+        <span class="tag info">ייחוס</span> קנה מידה להשוואה (ה-S&amp;P עצמו).</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🏠 היום</p>
+        <p><b>פעולה</b> - רק מה שצריך לעשות היום: לקנות בפתיחה או למכור בסגירה, לפי אסטרטגיות A ו-B. המניות שכבר מוחזקות מקופלות ברשימה אחת קצרה. ברוב הימים אין מה לעשות, וזה תקין.<br>
+        <b>מלא</b> - ההמלצות לטווח קצר ולטווח ארוך ואיך הן מתנהגות מול ה-S&amp;P.</p>
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">💼 התיק שלי</p>
-        <p>האחזקות האמיתיות שלך (ולא תחזיות) - טיקר וכמות יחידות, נערך ידנית עם הכפתור "נהל אחזקות" (או שלח לי צילום מסך ואני אעדכן בשבילך). מציג מחיר, שינוי יומי, שווי ב-₪ ומשקל יחסי בתיק לכל אחזקה. המספר הבולט למעלה הוא המדד המצטבר מאז תחילת המעקב; השורה "רווח/הפסד להיום" שמתחתיו היא רק היומי הנפרד. אחזקות שלא הצלחתי לקבל להן מחיר (בעיקר קרנות נאמנות/מדדים ישראליים שאין להן טיקר סחיר) מוצגות בנפרד ולא נכללות בחישוב. יש גם השוואה מול ה-Top 10 של המערכת ל"מי ניחש טוב יותר היום" - זו לא תחרות רשמית, רק כדי לראות את התמונה. המדד המצטבר ("מדד תיק") ממשיך להצטבר גם אם מוחלפת אחזקה - מכירת מניה וקנייה של אחרת לא מוחקת את מה שהרווחת קודם.</p>
+        <p>האחזקות האמיתיות שלך (טיקר וכמות), "המניות שלי" לרשימת מעקב עם יעדי מחיר והתראות בטלגרם, ותנועות וחדשות במניות שלך.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 ביצועים</p>
+        <p>כל אסטרטגיה ורשימה מול ה-S&amp;P 500 באותם ימים בדיוק. "פער" = כמה יותר או פחות מה-S&amp;P.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧪 מעבדה</p>
+        <p>רשימות בניסוי: Top10, טווח ארוך, מניות מנצחות, מבחן יציאה וקניות של אנשי פנים. כל אחת נמדדת בזמן אמת, ותגית הסטטוס שלה מראה אם היא מקדימה או מפגרת.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
+        <p>ניתוח לפי דרישה לכל טיקר (כדקה-שתיים): ציון תזמון לטווח קצר, ציון איכות לטווח ארוך וגרף מחיר.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">מילון קצר</p>
+        <p><b>עכשיו / נכון ל-HH:MM</b> - מחיר חי, מתעדכן כל 15 דקות בזמן המסחר בארה"ב. תג כתום "לא עדכני" = המחיר ישן מ-20 דקות.<br>
+        <b>סגירה אחרונה</b> - אין מחיר חי, מוצג מחיר הסגירה של יום המסחר האחרון (עם התאריך).<br>
+        <b>חשיפה</b> - כמה מהכסף כדאי שיהיה במניות. כשה-S&amp;P מתחת לממוצע 200 הימים שלו, הכלל שנבדק אומר חצי במזומן.<br>
+        <b>משבצות</b> - לכל אסטרטגיה מספר קבוע של מניות (A: 10, B: 20). קונים רק כשמשבצת מתפנה - כך היא נבדקה.<br>
+        <b>פער פתיחה חריג</b> - אם המניה נפתחת מחוץ לטווח הזה, המצב השתנה מאז האות, וכדאי לבדוק לפני קנייה.</p>
+        <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">האייקונים בכותרת</p>
+        <p>📖 המדריך הזה · 🌙/☀️ מצב כהה או בהיר · ⟳ טעינה מחדש של הגרסה העדכנית · ⚙ חיבור לגיטהאב · <span class="mono">vX.X</span> מה השתנה בכל גרסה.</p>
 
       </div>
     </div>
@@ -653,7 +606,7 @@
     <div id="picksBoxes" class="picks-boxes"></div>
     <div id="picksShortCard" class="picks-card"></div>
     <div id="picksLongCard" class="picks-card"></div>
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:4px 2px 14px;">מידע בלבד, לא ייעוץ השקעות. 🚀 טווח קצר = אסטרטגיות A/B שעברו מחקר על 26 שנות S&amp;P 500 - יתרון בממוצע, לא בכל עסקה. 🏛 טווח ארוך = רשימת האיכות, 🧪 עוד לא מוכח.</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin:4px 2px 14px;">מידע בלבד, לא ייעוץ השקעות. 🚀 טווח קצר = אסטרטגיות A/B שעברו מחקר על 26 שנות S&amp;P 500 - יתרון בממוצע, לא בכל עסקה. 🏛 טווח ארוך = רשימת האיכות, 🧪 עוד לא מוכח.</div>
     <button id="homeMoreToggle" class="home-more-toggle" type="button">▾ עוד במסך הזה</button>
   </div>
   <div id="homeMoreWrap" class="home-more collapsed" data-tab="home" data-subtab="full">
@@ -667,37 +620,10 @@
   </div>
   </div>
 
-  <div id="portfoliosSection" data-tab="retired">
-    <div class="section-title">📒 תיקים</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">שני תיקי נייר בדולרים, כאילו עובדים על אמת. הם לא מחוברים לשום חשבון - רק מודדים אם ההמלצות היו עובדות בפועל, כולל עמלות.</div>
-    <div id="portfoliosBody"></div>
-  </div>
-
-  <div id="recsSection" data-tab="retired">
-    <div class="section-title">🎯 סיכום והמלצות</div>
-    <div id="recsBody"></div>
-  </div>
-
-  <div id="holdingNewsLogSection" data-tab="retired">
-    <div class="section-title">🔔 יומן עדכונים למניות בתיקים</div>
-    <div id="holdingNewsLogBody"></div>
-  </div>
-
-  <div id="eventLogSection" data-tab="retired">
-    <div class="section-title">📚 יומן תנועות חריגות</div>
-    <div id="eventLogBody"></div>
-  </div>
-
   <div id="forwardEvalSection" data-tab="lab" data-subtab="top10">
     <div class="section-title">📐 האם הציון מנבא? מדידה על כל היקום</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">IC = מתאם דירוג בין הציון של כל מניה לבין מה שקרה לה בפועל, על כל המניות שנסרקו (כ-750 ביום) ולא רק על 10. ‏0 = אין קשר, חיובי = מניות עם ציון גבוה עלו יותר. ה-t מחושב רק על ימים שלא חופפים, כדי לא להגזים במובהקות.</div>
     <div id="forwardEvalBody"></div>
-  </div>
-
-  <div id="strategiesSection" data-tab="retired">
-    <div class="section-title">⚖️ השוואת אסטרטגיות מול benchmark</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">כל אסטרטגיה מתחילה ב-$100,000 בתאריך שמוצג לידה - לא כולן התחילו באותו יום, אז משווים כל שורה לתאריך שלה. ללא עמלות וללא המרות מטבע.</div>
-    <div id="strategiesTable"></div>
   </div>
 
   <div id="trackRecordSection" class="hidden" data-tab="lab" data-subtab="top10">
@@ -756,33 +682,6 @@
     </div>
   </div>
 
-  <div id="benchmarkComparisonSection" class="hidden" data-tab="retired">
-    <div class="section-title" id="benchmarkComparisonToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-      📊 Top 10 מול התיק שלי ומול המדדים <span id="benchmarkComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
-    </div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      זו המטרה המרכזית שהמערכת נמדדת מולה כרגע: האם Top 10 באמת מנצח את התיק שלי ואת המדדים הגדולים. לכל אחד - תשואה (מתחילת המעקב, ומאז שינוי הנוסחה), שווי $100,000 מדומה (Buy&Hold למדדים), ומדדי סיכון.
-    </div>
-    <div class="predictions-panel hidden" id="benchmarkComparisonPanel"><div id="benchmarkComparisonList"></div></div>
-  </div>
-
-  <div id="factorAnalysisSection" class="hidden" data-tab="retired">
-    <div class="section-title" id="factorAnalysisToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-      🧪 ניתוח טריגרים - מה עובד ומה פחות <span id="factorAnalysisArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
-    </div>
-    <div id="factorAnalysisSummary" style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;"></div>
-    <div class="predictions-panel hidden" id="factorAnalysisPanel"><div id="factorAnalysisList"></div></div>
-  </div>
-
-  <div id="rrExperimentSection" class="hidden" data-tab="retired">
-    <div class="section-title" id="formulaComparisonToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-      🧮 השוואת נוסחאות (Top 10) <span id="formulaComparisonArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
-    </div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;" id="formulaComparisonNote"></div>
-    <div id="formulaSinceChangeBox" style="margin-bottom:12px;"></div>
-    <div class="predictions-panel hidden" id="formulaComparisonPanel"><div id="formulaComparisonList"></div></div>
-  </div>
-
   <div id="longTermSection" data-tab="lab" data-subtab="longterm">
     <div class="section-title">🏛 טווח ארוך - 10 מניות איכות</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
@@ -800,18 +699,6 @@
     <div id="winnersBody"><div style="font-size:12px; color:var(--text-faint);">טוען...</div></div>
   </div>
 
-  <div id="monthlyPortfolioSection" class="hidden" data-tab="retired">
-    <div class="section-title" id="monthlyPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
-      📅 תיק חודשי <span id="monthlyPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
-    </div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      במקום מסחר יומי (שהעמלות שלו יכולות לבלוע את הרווח), התיק הזה בוחר Top 10 פעם ב-30 יום ומחזיק אותן. אם אחת המניות נשברת טכנית באמצע החודש (יורדת חד, שוברת תמיכה, או שהאיתות מתהפך) - תקבל התראה דחופה נפרדת בטלגרם עם המלצה לשקול מכירה מהירה. יש גם שכבת <b>איתות מקדים</b> (⚠️) שמתריעה מוקדם יותר, על היחלשות מומנטום (דיברגנס RSI/MACD/OBV או ADX נחלש) - עוד לפני שבירה טכנית מלאה, לא בהכרח סימן למכור.
-    </div>
-    <div id="monthlyPortfolioSummary" style="font-size:13px; color:var(--text-dim); margin-bottom:10px;"></div>
-    <div id="monthlySectorDonut"></div>
-    <div class="predictions-panel hidden" id="monthlyPortfolioPanel"><div id="monthlyPortfolioList"></div></div>
-  </div>
-
   <div id="predictionsSection" class="hidden" data-tab="lab" data-subtab="top10">
     <div style="background:rgba(255,215,106,0.08); border:1px solid rgba(255,215,106,0.35); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; line-height:1.6; color:var(--text-dim);">
       <span id="top10StatusChip"></span><br>🧪 <b>ניסוי - טווח קצר (ימים עד שבועות).</b> מחקר של 26 שנה לא מצא לנוסחה יתרון מובהק על פני החזקה של כל המניות, ולכן זו לא בסיס להשקעה משמעותית. לכל מניה מוצגים מראש יעד וסטופ.
@@ -824,7 +711,7 @@
       <div class="section-title" id="cryptoExposedToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
         ₿ מניות חשופות-קריפטו <span id="cryptoExposedArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
       </div>
-      <p style="font-size:11.5px; color:var(--text-faint); margin:0 0 8px;">
+      <p style="font-size:12.5px; color:var(--text-faint); margin:0 0 8px;">
         יקום קבוע (COIN, MSTR, MARA, RIOT, CLSK) - אותה נוסחה בדיוק כמו Top10, לא חלק מ-Top10 הרשמי הנמדד.
       </p>
       <div class="predictions-panel hidden" id="cryptoExposedPanel"><div id="cryptoExposedList"></div></div>
@@ -832,7 +719,7 @@
     <div class="section-title" id="predictionsToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🔮 Top10 ותחזית למחר <span id="predictionsArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
-    <div id="dataFreshnessNote" style="font-size:11px; color:var(--text-faint); margin-bottom:8px;"></div>
+    <div id="dataFreshnessNote" style="font-size:12px; color:var(--text-faint); margin-bottom:8px;"></div>
     <div id="top10SectorDonut"></div>
     <div class="predictions-controls">
       <select id="sortSelect" class="sort-select">
@@ -851,7 +738,7 @@
         📋 תור קנייה · החזקה · מכירה <span id="buySellQueueArrow" style="font-size:12px; color:var(--text-faint);">▾ הסתר</span>
       </div>
       <div id="buySellQueueBody">
-        <div style="font-size:11px; color:var(--text-faint); margin-bottom:10px; line-height:1.6;">כל מניה שהומלצה ב-30 הימים האחרונים נמצאת באחת משלוש הרשימות - שום מניה לא נעלמת בלי הסבר. לחיצה על שורה פותחת פירוט מלא.</div>
+        <div style="font-size:12px; color:var(--text-faint); margin-bottom:10px; line-height:1.6;">כל מניה שהומלצה ב-30 הימים האחרונים נמצאת באחת משלוש הרשימות - שום מניה לא נעלמת בלי הסבר. לחיצה על שורה פותחת פירוט מלא.</div>
         <div style="font-size:12px; font-weight:700; color:#5ee6a0; margin-bottom:6px;">🧪 Top10 · ניסוי (<span id="queueCountBuy">0</span>) <span style="font-weight:400; color:var(--text-faint);">- ה-Top10 הרשמי של היום</span></div>
         <div id="buyQueueList" style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;"></div>
         <div style="font-size:12px; font-weight:700; color:#ffd76a; margin-bottom:6px;">🟡 החזקה (<span id="queueCountHold">0</span>) <span style="font-weight:400; color:var(--text-faint);">- הומלצה לאחרונה, אין איתות יציאה</span></div>
@@ -864,17 +751,6 @@
     <div class="predictions-panel hidden" id="predictionsListPanel"><div id="predictionsList"></div></div>
   </div>
 
-  <div id="recommendedSection" data-tab="retired">
-    <div class="section-title">🔮 10 המומלצות עכשיו (מתעדכן חופשי)</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
-      אותה נוסחה בדיוק כמו Top10 הרשמי, מחושבת מחדש על נתונים עדכניים לרגע הבקשה - לא נשמר להיסטוריה ולא נבדק לצורך מדידת דיוק.
-    </div>
-    <button id="forecastRecomputeBtn" class="top-toggle-btn" title="מחשב מחדש את 10 המומלצות עכשיו, על נתונים עדכניים לרגע זה - לא נשמר להיסטוריה ולא נבדק">🔁 רענן המלצות עכשיו</button>
-    <div id="tomorrowForecastStatus"></div>
-    <div id="recommendedSectorDonut"></div>
-    <div class="predictions-panel" id="recommendedListPanel"><div id="recommendedList"></div></div>
-  </div>
-
   <div id="checkStockSection" data-tab="check">
     <button class="sub-tab-btn" style="margin-bottom:10px;" onclick="switchTab(preCheckTab)">← חזרה</button>
     <div class="section-title">🔍 בדוק מניה</div>
@@ -882,7 +758,7 @@
       ניתוח לפי דרישה לכל טיקר - לא קשור לרשימת המעקב היומית. מריץ את אותן שלוש הנוסחאות שמריצות את Top 10, בתוספת דירוג אנליסטים, ונותן ציון כולל 1-100. לוקח כדקה-שתיים (מפעיל ריצה חדשה בגיטהאב, לא מיידי).
     </div>
     <div style="display:flex; gap:8px; margin-bottom:10px;">
-      <input class="field-input mono" id="checkStockInput" placeholder="לדוגמה: NVDA / TEVA.TA" style="flex:1;" list="checkStockSuggestions" autocomplete="off" />
+      <input class="field-input mono" id="checkStockInput" aria-label="טיקר לבדיקה" placeholder="לדוגמה: NVDA / TEVA.TA" style="flex:1;" list="checkStockSuggestions" autocomplete="off" />
       <datalist id="checkStockSuggestions"></datalist>
       <button id="checkStockBtn" class="top-toggle-btn" style="white-space:nowrap;">בדוק מניה</button>
     </div>
@@ -947,7 +823,7 @@
         <h2 id="chartTitle" style="margin:0; font-size:17px;">📈 גרף</h2>
         <button id="chartCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
       </div>
-      <div style="font-size:11.5px; color:var(--text-faint); margin:4px 0 10px; line-height:1.5;">
+      <div style="font-size:12.5px; color:var(--text-faint); margin:4px 0 10px; line-height:1.5;">
         הנקודות האדומות/ירוקות הן שיאי/שפלי מחיר מקומיים (סווינג) שהניתוח הטכני מזהה על פני כ-140 ימי מסחר אחרונים. הקו המקווקו הזהוב מחבר ביניהם לפי סדר כרונולוגי.
       </div>
       <div id="chartBody"></div>
@@ -981,11 +857,11 @@
         <button id="configCloseBtn" class="modal-close-btn" aria-label="סגירה">✕</button>
       </div>
       <label class="field-label">שם משתמש</label>
-      <input id="cfgOwner" placeholder="tomtom0506" />
+      <input id="cfgOwner" aria-label="שם משתמש בגיטהאב" placeholder="tomtom0506" />
       <label class="field-label">שם הריפו</label>
-      <input id="cfgRepo" placeholder="tom-stock-alert" />
+      <input id="cfgRepo" aria-label="שם הריפו" placeholder="tom-stock-alert" />
       <label class="field-label">Personal Access Token (Contents: Read & Write + Actions: Read & Write)</label>
-      <input id="cfgToken" type="password" placeholder="github_pat_..." />
+      <input id="cfgToken" aria-label="טוקן גישה לגיטהאב" type="password" placeholder="github_pat_..." />
       <button class="btn-primary" id="saveConfigBtn">שמור והתחבר</button>
     </div>
   </div>
@@ -1000,28 +876,28 @@
     <div id="myPortfolioCompare" style="margin-bottom:14px;"></div>
     <div id="myPortfolioDonut"></div>
     <div class="predictions-panel hidden" id="myPortfolioPanel"><div id="myPortfolioList"></div></div>
-    <div id="myPortfolioUnpriced" style="font-size:11.5px; color:var(--text-faint); margin-top:8px; line-height:1.6;"></div>
+    <div id="myPortfolioUnpriced" style="font-size:12.5px; color:var(--text-faint); margin-top:8px; line-height:1.6;"></div>
     <button class="icon-btn" id="myPortfolioAddToggleBtn" style="margin-top:14px;">✏ נהל אחזקות</button>
     <div id="myPortfolioEditArea" class="hidden" style="margin-top:12px;">
       <div class="field-row">
         <div>
           <label class="field-label">טיקר (Yahoo Finance)</label>
-          <input class="field-input mono" id="mpTickerInput" placeholder="PLTR / AZRG.TA" />
+          <input class="field-input mono" id="mpTickerInput" aria-label="טיקר" placeholder="PLTR / AZRG.TA" />
         </div>
         <div>
           <label class="field-label">שם לתצוגה (אופציונלי)</label>
-          <input class="field-input" id="mpNameInput" placeholder="Palantir" />
+          <input class="field-input" id="mpNameInput" aria-label="שם החברה" placeholder="Palantir" />
         </div>
       </div>
       <div class="field-row">
         <div>
           <label class="field-label">כמות יחידות</label>
-          <input class="field-input mono" type="number" step="any" id="mpQtyInput" placeholder="למשל 56" />
+          <input class="field-input mono" type="number" step="any" id="mpQtyInput" aria-label="כמות יחידות" placeholder="למשל 56" />
         </div>
       </div>
       <button class="btn-primary" id="mpSaveHoldingBtn" style="margin-top:10px;">💾 שמור אחזקה</button>
       <div id="myPortfolioEditStatus"></div>
-      <div style="margin-top:14px; font-size:11px; color:var(--text-faint);">אחזקות קיימות:</div>
+      <div style="margin-top:14px; font-size:12px; color:var(--text-faint);">אחזקות קיימות:</div>
       <div id="myPortfolioEditList" style="margin-top:6px;"></div>
     </div>
   </div>
@@ -1053,9 +929,9 @@
     <div id="watchlistAddForm" class="hidden">
       <div style="font-size:12px; color:var(--text-faint); line-height:1.5;">מעקב בלבד - בלי כמות, התיק לא משתנה. היעדים לא חובה: מקבלים התראת טלגרם כשהמחיר חוצה אותם.</div>
       <div class="wl-add">
-        <input id="wlAddTicker" class="full" placeholder="טיקר (למשל NVDA או TEVA.TA)" autocapitalize="characters" autocomplete="off">
-        <input id="wlAddHigh" type="number" inputmode="decimal" placeholder="יעד עליון (לא חובה)">
-        <input id="wlAddLow" type="number" inputmode="decimal" placeholder="יעד תחתון (לא חובה)">
+        <input id="wlAddTicker" aria-label="טיקר להוספה למעקב" class="full" placeholder="טיקר (למשל NVDA או TEVA.TA)" autocapitalize="characters" autocomplete="off">
+        <input id="wlAddHigh" aria-label="יעד מחיר עליון" type="number" inputmode="decimal" placeholder="יעד עליון (לא חובה)">
+        <input id="wlAddLow" aria-label="יעד מחיר תחתון" type="number" inputmode="decimal" placeholder="יעד תחתון (לא חובה)">
         <button type="button" class="icon-btn full" id="wlAddSaveBtn" style="min-height:44px;">שמור במעקב</button>
       </div>
       <div id="wlAddStatus"></div>
@@ -1069,7 +945,7 @@
   <div id="statusMsg"></div>
   <div class="empty hidden" id="needConfigMsg">הגדר חיבור ל-GitHub כדי להתחיל.</div>
 
-  <div style="text-align:center; padding:22px 10px 6px; font-size:11px; color:var(--text-faint); line-height:1.6;">
+  <div style="text-align:center; padding:22px 10px 6px; font-size:12px; color:var(--text-faint); line-height:1.6;">
     המידע באפליקציה אינו מהווה ייעוץ השקעות ואינו תחליף לשיקול דעת עצמאי או ייעוץ מקצועי.
     <br />
     <a href="#" id="footerTosLink" style="color:var(--text-faint); text-decoration:underline;">תנאי שימוש והבהרה משפטית מלאה</a>
@@ -1086,7 +962,7 @@
       המידע, הניתוחים, הציונים והסימונים באפליקציה זו (כולל "מומלצת לקנייה", "מומלצת למכירה/שורט" וכל ניסוח דומה) הם תוצר של ניתוח טכני וסטטיסטי אוטומטי בלבד, ואינם מהווים ייעוץ השקעות, שיווק השקעות או המלצה לביצוע כל פעולה פיננסית. מפעיל האפליקציה אינו בעל רישיון לייעוץ או לשיווק השקעות. כל החלטה פיננסית היא באחריותו הבלעדית של המשתמש, ומומלץ להיוועץ באיש מקצוע מורשה לפני כל פעולה.
     </p>
     <label style="display:flex; align-items:flex-start; gap:9px; font-size:13px; color:var(--text-dim); margin-bottom:16px; cursor:pointer;">
-      <input type="checkbox" id="legalCheckbox" style="margin-top:3px; flex-shrink:0; width:16px; height:16px;" />
+      <input type="checkbox" id="legalCheckbox" aria-label="קראתי ואני מסכים לתנאי השימוש" style="margin-top:3px; flex-shrink:0; width:16px; height:16px;" />
       <span>קראתי והבנתי שהמידע באפליקציה אינו מהווה ייעוץ השקעות, ואני מאשר/ת את <a href="#" id="openTosLink" style="color:var(--gold); text-decoration:underline;">תנאי השימוש המלאים</a>.</span>
     </label>
     <button class="btn-primary" id="legalAcceptBtn" disabled>אני מסכים/ה ונכנס/ת</button>
@@ -1128,12 +1004,26 @@
 </div>
 
 <script>
-const APP_VERSION = "6.23.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.25.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.25.0", date: "2026-11-20", items: [
+    "🧹 מסך 'היום › פעולה' מציג רק מה שעושים היום. המניות המוחזקות מקופלות לשורה אחת לכל מניה, עם ממוצע. מבחן היציאה (ניסוי) נשאר רק במעבדה, הטווח הארוך ב'מלא', והגדרת הסכום למסחר במקום מקופל.",
+    "⚠️ תגית 'מוכח' (עבר מחקר על 26 שנה) מופיעה עכשיו יחד עם '⚠️ מפגרת בזמן אמת' כשאסטרטגיה מפגרת אחרי ה-S&P מאז שעלתה (כרגע A). קודם הוצג רק 'מוכח'.",
+    "⚡ מסך הבית נטען מקובץ קטן (35KB). קובץ הנתונים הגדול (כ-18MB) נטען רק כשעוברים למסך אחר - חוסך גלישה בטלפון.",
+    "📖 המדריך נכתב מחדש: רק המסכים שקיימים היום, משמעות התגיות ומילון קצר (מחיר חי, סגירה אחרונה, חשיפה, משבצות).",
+    "♿ נגישות: טקסט קטן הוגדל ל-12px לפחות, כפתורי לשוניות וסגירה בגודל 44px למגע, תוויות לקורא מסך לכל שדה, ומסגרת פוקוס ברורה במקלדת.",
+    "🗑️ הוסר מהקוד מה שכבר לא מוצג: 10 אזורים ישנים ו-9 פונקציות שאף אחד לא קרא להן. ה-changelog מציג 5 גרסאות אחרונות, והשאר בכפתור.",
+  ]},
+  { version: "6.24.0", date: "2026-11-20", items: [
+    "🐞 מחירים חיים חסרים (backend 5.32.0): מניות שנבחרו בריצה היומית אחרי שנשמרו המחירים (למשל AMD ו-SWKS בקנייה של אסטרטגיה A ב-19.11) נשארו בלי מחיר חי עד הרענון הבא. עכשיו בסוף כל ריצה נבדק שלכל מניה שמוצגת יש מחיר, ומה שחסר נמשך מיד.",
+    "🐞 התיק החודשי: כשאין מחיר חי מוצג 'אין מחיר עדכני' במקום מחיר הכניסה (שנראה כמו 0.0%), והמניה לא נכנסת לממוצע.",
+    "🚨 תוקן (20.11): המסך נשאר ריק או תקוע על 'טוען...'. ל-Yahoo עדיין לא היה מחיר סגירה של 19.11 ל-OKTA, PLTR ו-PANW, ולכן נשמר בקובץ הנתונים ערך לא חוקי (NaN) שהדפדפן לא מצליח לקרוא. עכשיו עסקה בלי מחיר סגירה נשארת פתוחה עד שיש מחיר, כל קובץ נשמר בלי ערכים כאלה, והאפליקציה מדלגת עליהם - ואם קובץ בכל זאת לא נקרא, מופיע פס אדום במקום מסך ריק.",
+    "🔒 אבטחה: insider.json ו-today.json עוברים עכשיו את אותו ניקוי של טקסט חיצוני כמו שאר קבצי הנתונים (לפני כן הם לא עברו אותו).",
+  ]},
   { version: "6.23.0", date: "2026-11-16", items: [
     "📊 מבחן היציאה (backend 5.31.0): הקוביות מציגות ממוצע לעסקה במקום סכום אחוזים (שירד מתחת ל-100%- ונראה כמו מחיקת תיק), את הפער הממוצע מול ה-S&P באותם ימים, מספר העסקאות, ותיק ניסיוני של $100,000 שעובר מעסקה לעסקה (ריבית דריבית).",
     "🪟 הודעות הפעלה ('הופעל! מחכה לסיום') מופיעות בשכבה נפרדת עם רקע, ולא מעל טקסט אחר.",
@@ -1493,18 +1383,23 @@ const CHANGELOG = [
   ]},
 ];
 
-function showChangelog() {
+function showChangelog(showAll) {
   const body = document.getElementById("changelogBody");
-  body.innerHTML = CHANGELOG.map(entry => `
+  // v6.25.0: the latest 5 versions; the rest behind one button
+  const list = showAll === true ? CHANGELOG : CHANGELOG.slice(0, 5);
+  body.innerHTML = list.map(entry => `
     <div style="margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--border);">
       <div style="font-weight:700; color:var(--text); margin-bottom:5px; display:flex; justify-content:space-between; align-items:baseline;">
         <span>גרסה ${entry.version}</span>
-        ${entry.date ? `<span style="font-weight:400; font-size:11px; color:var(--text-faint);">${entry.date}</span>` : ""}
+        ${entry.date ? `<span style="font-weight:400; font-size:12px; color:var(--text-faint);">${entry.date}</span>` : ""}
       </div>
       <ul style="margin:0; padding-inline-start:18px;">
         ${entry.items.map(i => `<li style="margin-bottom:3px;">${i}</li>`).join("")}
       </ul>
-    </div>`).join("");
+    </div>`).join("") + (list.length < CHANGELOG.length
+      ? `<button type="button" id="changelogMoreBtn" style="width:100%; min-height:44px; border-radius:12px; border:1px solid var(--border); background:transparent; color:inherit; font-size:14px;">הצג את כל ${CHANGELOG.length} הגרסאות</button>` : "");
+  const more = document.getElementById("changelogMoreBtn");
+  if (more) more.addEventListener("click", () => showChangelog(true));
   document.getElementById("changelogOverlay").classList.remove("hidden");
 }
 document.getElementById("versionBadge").addEventListener("click", showChangelog);
@@ -1513,6 +1408,7 @@ function setupCollapsibleToggle(titleId, arrowId, panelId, openLabel, closeLabel
   const title = document.getElementById(titleId);
   const arrow = document.getElementById(arrowId);
   const panel = document.getElementById(panelId);
+  if (!title || !arrow || !panel) return;   // v6.25.0: never let one missing section stop the whole page
   title.addEventListener("click", () => {
     const isHidden = panel.classList.contains("hidden");
     panel.classList.toggle("hidden", !isHidden);
@@ -1520,11 +1416,7 @@ function setupCollapsibleToggle(titleId, arrowId, panelId, openLabel, closeLabel
   });
 }
 setupCollapsibleToggle("trackRecordToggle", "trackRecordArrow", "trackListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
-setupCollapsibleToggle("factorAnalysisToggle", "factorAnalysisArrow", "factorAnalysisPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
-setupCollapsibleToggle("monthlyPortfolioToggle", "monthlyPortfolioArrow", "monthlyPortfolioPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("myPortfolioToggle", "myPortfolioArrow", "myPortfolioPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
-setupCollapsibleToggle("formulaComparisonToggle", "formulaComparisonArrow", "formulaComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
-setupCollapsibleToggle("benchmarkComparisonToggle", "benchmarkComparisonArrow", "benchmarkComparisonPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("predictionsToggle", "predictionsArrow", "predictionsListPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("cryptoExposedToggle", "cryptoExposedArrow", "cryptoExposedPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
 setupCollapsibleToggle("watchlistToggle", "watchlistArrow", "watchlistPanel", "▸ הצג פירוט", "▾ הסתר פירוט");
@@ -1567,7 +1459,32 @@ function deepSanitize(x) {
   if (x && typeof x === "object") { for (const k of Object.keys(x)) x[k] = deepSanitize(x[k]); return x; }
   return x;
 }
-async function safeJson(res) { return deepSanitize(await res.json()); }
+// v6.24.0 (20.11.2026): a bare NaN from the engine made JSON.parse throw and
+// blanked the whole app. Bare NaN / Infinity tokens are read as null, and a
+// file that still can't be read shows a red banner instead of an empty screen.
+const BAD_NUM_RE = /([:\[,]\s*)(?:NaN|-?Infinity)(?=\s*[,\]}])/g;
+function parseDataText(txt) {
+  try { return JSON.parse(txt); } catch (e) { return JSON.parse(txt.replace(BAD_NUM_RE, "$1null")); }
+}
+function showDataLoadError(url) {
+  const name = String(url || "").split("?")[0].split("/").pop() || "קובץ נתונים";
+  let el = document.getElementById("dataLoadError");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "dataLoadError";
+    el.setAttribute("role", "alert");
+    el.style.cssText = "position:sticky; top:0; z-index:50; margin:8px; padding:10px 12px; border-radius:10px; background:#5a1d1d; color:#fff; font-size:13px; font-weight:700;";
+    document.body.prepend(el);
+  }
+  const names = new Set((el.dataset.files || "").split(",").filter(Boolean)); names.add(name);
+  el.dataset.files = [...names].join(",");
+  el.textContent = `⚠️ לא הצלחתי לקרוא את ${[...names].join(", ")} - חלק מהמסך חסר. אל תפעל לפי המסך עד שזה יתוקן.`;
+}
+async function safeJson(res) {
+  const txt = await res.text();
+  try { return deepSanitize(parseDataText(txt)); }
+  catch (e) { console.error("data file unreadable", res.url, e); showDataLoadError(res.url); throw e; }
+}
 // an (already-escaped) URL is used only if it is plain http(s)
 function safeUrl(u) {
   if (!u) return null;
@@ -1965,21 +1882,21 @@ function topPickBreakdownHtml(p) {
   const tt = p.trend_template;
   if (tt && tt.criteria_total) {
     const ttColor = tt.passes ? "#5ee6a0" : "#ffb27a";
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:3px 8px; font-size:10.5px;">Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:3px 8px; font-size:12px;">Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
   }
   if (p.rs_rating != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:3px 8px; font-size:10.5px;">RS: ${p.rs_rating.toFixed(0)}</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:3px 8px; font-size:12px;">RS: ${p.rs_rating.toFixed(0)}</span>`);
   }
   if (p.analyst_score != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #ffd76a44; color:#ffd76a; border-radius:8px; padding:3px 8px; font-size:10.5px;">אנליסטים: ${p.analyst_score.toFixed(0)}</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid #ffd76a44; color:#ffd76a; border-radius:8px; padding:3px 8px; font-size:12px;">אנליסטים: ${p.analyst_score.toFixed(0)}</span>`);
   }
   if (p.vcp && p.vcp.vcp_detected) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:3px 8px; font-size:10.5px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:3px 8px; font-size:12px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP</span>`);
   }
   const earn = p.earnings;
   let earningsLine = "";
   if (earn && earn.days_away != null && earn.days_away <= 14) {
-    earningsLine = `<div style="font-size:10.5px; color:#ffd76a; margin-top:6px;">⚠️ דוח כספי צפוי ב-${earn.date} (בעוד ${earn.days_away} ימים)</div>`;
+    earningsLine = `<div style="font-size:12px; color:#ffd76a; margin-top:6px;">⚠️ דוח כספי צפוי ב-${earn.date} (בעוד ${earn.days_away} ימים)</div>`;
   }
   if (!tags.length && !earningsLine) return "";
   return `
@@ -2046,7 +1963,7 @@ function renderCryptoExposedSection() {
     section.classList.add("hidden");
     return;
   }
-  const badge = `<span style="background:var(--panel-hi); border:1px solid #f7931a66; color:#f7931a; border-radius:8px; padding:2px 7px; font-size:10px; margin-right:5px;">₿ חשוף-קריפטו</span>`;
+  const badge = `<span style="background:var(--panel-hi); border:1px solid #f7931a66; color:#f7931a; border-radius:8px; padding:2px 7px; font-size:12px; margin-right:5px;">₿ חשוף-קריפטו</span>`;
   list.innerHTML = items.map(p => predictionCardHtml(p, false, badge)).join("");
   attachStarEvents(list);
   section.classList.remove("hidden");
@@ -2086,7 +2003,7 @@ function renderSectorAllocationDonut(containerId, stockList) {
   container.innerHTML = `
     <div style="display:flex; align-items:center; gap:16px; margin:10px 0 16px;">
       <svg viewBox="0 0 140 140" style="width:90px; height:90px; flex-shrink:0;">${arcs.map(a => a.path).join("")}</svg>
-      <div style="font-size:11.5px; line-height:1.8; flex:1; min-width:0;">
+      <div style="font-size:12.5px; line-height:1.8; flex:1; min-width:0;">
         ${arcs.map(a => `<div style="display:flex; align-items:center; gap:6px;">
           <span style="width:8px; height:8px; border-radius:50%; background:${a.color}; flex-shrink:0;"></span>
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${a.sector}</span>
@@ -2207,37 +2124,6 @@ document.getElementById("contextActionBtn").addEventListener("click", () => {
   else if (activeTab === "results") triggerFullRecompute("floatingRecomputeStatus");
   else if (activeTab === "lab") document.getElementById("refreshBtn").click();
 });
-document.getElementById("forecastRecomputeBtn").addEventListener("click", async () => {
-  const statusEl = document.getElementById("tomorrowForecastStatus");
-  if (!owner || !repo || !token) {
-    statusEl.innerHTML = `<div class="status error">קודם צריך להתחבר דרך ⚙ הגדרות</div>`;
-    return;
-  }
-  statusEl.innerHTML = `<div class="status">מחשב מחדש את 10 המומלצות עכשיו...</div>`;
-  try {
-    const res = await fetch(
-      `https://api.github.com/repos/${owner}/${repo}/actions/workflows/tomorrow_forecast.yml/dispatches`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `token ${token}`,
-          Accept: "application/vnd.github.v3+json",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ref: "main" }),
-      }
-    );
-    if (res.status === 204) {
-      statusEl.innerHTML = `<div class="status">✓ הופעל! זה ייקח כמה דקות - "10 המומלצות עכשיו" יתעדכנו כשזה מוכן.</div>`;
-    } else if (res.status === 403) {
-      statusEl.innerHTML = `<div class="status error">לטוקן אין הרשאת "Actions: Read and write"</div>`;
-    } else {
-      statusEl.innerHTML = `<div class="status error">שגיאה (${res.status}) בהפעלת החישוב</div>`;
-    }
-  } catch (e) {
-    statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
-  }
-});
 
 let checkStockPollTimer = null;
 
@@ -2275,7 +2161,7 @@ function renderCheckStockHistory() {
 
   if (!hist.length) { el.innerHTML = ""; return; }
   el.innerHTML = `
-    <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">נבדקו לאחרונה (לחיצה מציגה את התוצאה השמורה, בלי בדיקה חדשה):</div>
+    <div style="font-size:12px; color:var(--text-faint); margin-bottom:6px;">נבדקו לאחרונה (לחיצה מציגה את התוצאה השמורה, בלי בדיקה חדשה):</div>
     <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;">
       ${hist.map((h, i) => {
         const dirColor = h.predicted_direction === "up" ? "#5ee6a0" : "#ff9a8a";
@@ -2355,7 +2241,7 @@ function listStatusChip(key, opts) {
     ? ` · בזמן אמת: ${st.sessions || 0} ימי מסחר${ex}`
     : (st.status === "proven" ? ex : ` · ${st.sessions || 0}/${rules.proven_sessions} ימים${ex}`);
   const name = opts && opts.withLabel && st.label ? `${st.label}: ` : "";
-  return `<span style="display:inline-block; font-size:11px; font-weight:700; color:${M[1]}; border:1px solid ${M[2]}; border-radius:999px; padding:2px 9px; margin:${(opts && opts.margin) || "0 0 8px"};">${name}${M[0]}${progress}</span>`;
+  return `<span style="display:inline-block; font-size:12px; font-weight:700; color:${M[1]}; border:1px solid ${M[2]}; border-radius:999px; padding:2px 9px; margin:${(opts && opts.margin) || "0 0 8px"};">${name}${M[0]}${progress}</span>`;
 }
 
 function verdictTagHtml(verdict, fontSize) {
@@ -2369,9 +2255,9 @@ function scoreTileHtml(title, value, sub) {
   const color = scoreToneColor(value);
   return `
     <div style="background:var(--panel-hi); border:1px solid ${value != null ? color + "55" : "var(--border)"}; border-radius:12px; padding:10px 8px; text-align:center;">
-      <div style="font-size:11px; color:var(--text-dim); margin-bottom:2px;">${title}</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-bottom:2px;">${title}</div>
       <div class="mono" style="font-size:30px; font-weight:800; color:${color}; line-height:1.15;">${value != null ? Number(value).toFixed(0) : "—"}</div>
-      <div style="font-size:10px; color:var(--text-faint);">${sub}</div>
+      <div style="font-size:12px; color:var(--text-faint);">${sub}</div>
     </div>`;
 }
 
@@ -2384,7 +2270,7 @@ function strategyLineHtml(v) {
   if (v.action === "hold") return box("rgba(255,215,106,0.12)", "#ffd76a", `${v.label}: להחזיק עד ${d(v.exit_date)} (עוד ${v.sessions_left} ימי מסחר)`);
   if (v.action === "sell") return box("var(--down-bg)", "var(--down)", `${v.label}: למכור בסגירה של ${d(v.exit_date)}`);
   if (v.action === "not_applicable") return box("transparent", "var(--text-faint)", "אסטרטגיות שנבדקו: רלוונטיות רק למניות S&amp;P 500", "var(--border)");
-  return box("transparent", "var(--text-dim)", "אסטרטגיות שנבדקו: אין אות כרגע<div style=\"font-size:11px; font-weight:400; color:var(--text-faint); margin-top:3px;\">אין כלל מוכח למכירה של מניה בודדת. ההגנה המוכחת היא ברמת התיק - כלל החשיפה</div>", "var(--border)");
+  return box("transparent", "var(--text-dim)", "אסטרטגיות שנבדקו: אין אות כרגע<div style=\"font-size:12px; font-weight:400; color:var(--text-faint); margin-top:3px;\">אין כלל מוכח למכירה של מניה בודדת. ההגנה המוכחת היא ברמת התיק - כלל החשיפה</div>", "var(--border)");
 }
 
 function scoreBreakdownCardHtml(data) {
@@ -2421,7 +2307,7 @@ function scoreBreakdownCardHtml(data) {
     const qLabels = { roe: "תשואה על ההון", profit_margin: "שולי רווח", revenue_growth: "צמיחת הכנסות", debt_to_equity: "מינוף (נמוך = טוב)", free_cash_flow: "תזרים חופשי" };
     const cells = Object.keys(qLabels).map(k => {
       const v = data.quality_parts[k];
-      return `<div style="display:flex; justify-content:space-between; font-size:11px; padding:3px 0;"><span style="color:var(--text-dim);">${qLabels[k]}</span><span class="mono" style="color:${scoreToneColor(v)};">${v != null ? Number(v).toFixed(0) : "—"}</span></div>`;
+      return `<div style="display:flex; justify-content:space-between; font-size:12px; padding:3px 0;"><span style="color:var(--text-dim);">${qLabels[k]}</span><span class="mono" style="color:${scoreToneColor(v)};">${v != null ? Number(v).toFixed(0) : "—"}</span></div>`;
     }).join("");
     qualityPartsHtml = `
       <details style="margin-top:6px;">
@@ -2440,7 +2326,7 @@ function scoreBreakdownCardHtml(data) {
           ⚠️ אין מסחר היום ב${ms.market} - ${dateNote || "הנתונים מהסגירה האחרונה"}
         </div>`;
     } else if (dateNote) {
-      marketStatusBanner = `<div style="font-size:11px; color:var(--text-faint); margin-bottom:8px;">${dateNote}</div>`;
+      marketStatusBanner = `<div style="font-size:12px; color:var(--text-faint); margin-bottom:8px;">${dateNote}</div>`;
     }
   }
 
@@ -2466,16 +2352,16 @@ function scoreBreakdownCardHtml(data) {
   const tags = [];
   if (tt && tt.criteria_total) {
     const ttColor = tt.passes ? "#5ee6a0" : "#ffb27a";
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:4px 9px; font-size:11px;">מגמת Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid ${ttColor}44; color:${ttColor}; border-radius:8px; padding:4px 9px; font-size:12px;">מגמת Minervini: ${tt.criteria_met}/${tt.criteria_total}${tt.passes ? " ✓" : ""}</span>`);
   }
   if (data.rs_rating != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:4px 9px; font-size:11px;">RS Rating: ${Number(data.rs_rating).toFixed(0)}/100</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid #7aa2ff44; color:#7aa2ff; border-radius:8px; padding:4px 9px; font-size:12px;">RS Rating: ${Number(data.rs_rating).toFixed(0)}/100</span>`);
   }
   if (vcp && vcp.vcp_detected) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:4px 9px; font-size:11px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP אפשרי</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid #d79bff44; color:#d79bff; border-radius:8px; padding:4px 9px; font-size:12px;" title="זיהוי ניסיוני, לא משפיע על הציון">🧪 VCP אפשרי</span>`);
   }
   if (data.short_pct != null) {
-    tags.push(`<span style="background:var(--panel-hi); border:1px solid #ffffff33; color:var(--text-faint); border-radius:8px; padding:4px 9px; font-size:11px;">מכירה בחסר: ${Number(data.short_pct).toFixed(1)}%</span>`);
+    tags.push(`<span style="background:var(--panel-hi); border:1px solid #ffffff33; color:var(--text-faint); border-radius:8px; padding:4px 9px; font-size:12px;">מכירה בחסר: ${Number(data.short_pct).toFixed(1)}%</span>`);
   }
   const tagsRow = tags.length ? `<div style="display:flex; flex-wrap:wrap; gap:6px; margin:10px 0;">${tags.join("")}</div>` : "";
 
@@ -2488,7 +2374,7 @@ function scoreBreakdownCardHtml(data) {
         ${scoreTileHtml("⏱ תזמון · טווח קצר", data.timing_score, "50 = אין איתות")}
         ${scoreTileHtml("🏛 איכות · טווח ארוך", data.long_term_score, ltSub)}
       </div>
-      <div style="text-align:center; font-size:11px; color:var(--text-faint); margin-bottom:8px;">
+      <div style="text-align:center; font-size:12px; color:var(--text-faint); margin-bottom:8px;">
         ציון משוקלל: <span class="mono" style="color:${scoreToneColor(data.overall_score)};">${data.overall_score != null ? Number(data.overall_score).toFixed(1) : "—"}</span>
         ${data.long_term_score != null ? "(60% תזמון · 40% טווח ארוך)" : "(תזמון בלבד)"}
       </div>`;
@@ -2525,7 +2411,7 @@ function scoreBreakdownCardHtml(data) {
       <div style="font-size:13px; font-weight:700; margin-bottom:4px;">פירוט לפי ניתוח:</div>
       ${compRows}
       ${qualityPartsHtml}
-      ${data.checked_at ? `<div style="font-size:11px; color:var(--text-faint); margin-top:10px;">נבדק ב-${new Date(data.checked_at).toLocaleString("he-IL")}</div>` : ""}
+      ${data.checked_at ? `<div style="font-size:12px; color:var(--text-faint); margin-top:10px;">נבדק ב-${new Date(data.checked_at).toLocaleString("he-IL")}</div>` : ""}
     </div>`;
 }
 
@@ -2567,7 +2453,7 @@ function stockChartShellHtml() {
         <span>קפוץ לתאריך:</span>
         <input type="date" class="sc-date-input" style="background:var(--panel-hi); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:4px 8px; font-size:12px;">
       </div>
-      <div style="font-size:10px; color:var(--text-faint); margin-top:4px;">גע או גרור על הגרף כדי לראות מחיר בתאריך מסוים · נתונים נכונים לרגע הבדיקה</div>
+      <div style="font-size:12px; color:var(--text-faint); margin-top:4px;">גע או גרור על הגרף כדי לראות מחיר בתאריך מסוים · נתונים נכונים לרגע הבדיקה</div>
     </div>`;
 }
 
@@ -2957,7 +2843,7 @@ function queueRowHtml(p, scheme) {
   }
   const reasons = scheme === "buy" ? [buyReasonText(p)] : (p.reason_texts || []);
   const reasonHtml = reasons.filter(Boolean).map(t =>
-    `<div style="font-size:11px; color:${scheme === "sell" ? c.accent : "var(--text-dim)"}; margin-top:3px;">${scheme === "sell" ? "⛔ " : ""}${t}</div>`
+    `<div style="font-size:12px; color:${scheme === "sell" ? c.accent : "var(--text-dim)"}; margin-top:3px;">${scheme === "sell" ? "⛔ " : ""}${t}</div>`
   ).join("");
 
   return `
@@ -2966,7 +2852,7 @@ function queueRowHtml(p, scheme) {
         <span style="font-weight:800; font-size:14px;">${ticker}</span>
         <span class="mono" style="font-weight:800; color:${scoreToneColor(shown)};" title="ציון תזמון">⏱ ${scoreText}</span>
       </div>
-      <div style="font-size:11px; color:var(--text-faint); margin-top:2px;">
+      <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">
         מחיר <span class="mono">${fmtTickerPrice(p.ticker, p.price)}</span>${dir ? ` · ${dir}` : ""}${sinceHtml}
       </div>
       ${reasonHtml}
@@ -3019,7 +2905,7 @@ function exitRulesHtml(p) {
   const stop = p.support != null ? Number(p.support) * 0.98 : null;
   const toT = pctFrom(p.price, p.resistance), toS = pctFrom(p.price, stop);
   return `
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:11.5px;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; font-size:12.5px;">
       <span style="border:1px solid #5ee6a055; color:#5ee6a0; border-radius:8px; padding:3px 8px;">🎯 יעד <span class="mono">${fmtTickerPrice(p.ticker, p.resistance)}</span>${toT != null ? ` (${signedPct(toT)})` : ""}</span>
       <span style="border:1px solid #ff9a8a55; color:#ff9a8a; border-radius:8px; padding:3px 8px;">🛑 סטופ <span class="mono">${fmtTickerPrice(p.ticker, stop)}</span>${toS != null ? ` (${signedPct(toS)})` : ""}</span>
     </div>`;
@@ -3043,7 +2929,7 @@ function renderExposureCard(data) {
       <div style="font-size:12px; color:var(--text-dim); line-height:1.6;">
         S&amp;P 500 ${full ? "מעל ממוצע" : "מתחת לממוצע"} 200 יום (<span class="mono">${signedPct(ex.pct_vs_sma, 1)}</span>)${ex.last_flip_date ? ` · מאז ${fmtDateIL(ex.last_flip_date)}` : ""}
       </div>
-      <div style="font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
+      <div style="font-size:12px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
         הכלל נבדק על 26 שנה: בכל משבר חתך את הנפילה בערך בחצי (2008: ‎-23% במקום ‎-55%). המחיר: כ-1% תשואה בשנה בגרסת 50% מזומן, וכ-3%-4% בשנה בשווקים עולים אם יוצאים ל-100% מזומן. הוא לא מנבא את מחר - הוא מגן מנפילות ארוכות.
       </div>
     </div>`;
@@ -3065,24 +2951,24 @@ function renderLayersCard(data) {
     return `
       <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border);">
         <div style="min-width:0;">
-          <div style="font-size:13px; font-weight:700;">${icon} ${title} <span style="font-weight:400; color:var(--text-faint); font-size:11px;">${share}</span></div>
-          <div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${note}</div>
+          <div style="font-size:13px; font-weight:700;">${icon} ${title} <span style="font-weight:400; color:var(--text-faint); font-size:12px;">${share}</span></div>
+          <div style="font-size:12px; color:var(--text-dim); margin-top:2px;">${note}</div>
         </div>
         <div style="text-align:left; flex-shrink:0;">
           <div class="mono" style="font-weight:800; color:${row ? (row.return_pct >= 0 ? "var(--up)" : "var(--down)") : "var(--text-faint)"};">${row ? signedPct(row.return_pct, 2) : "—"}</div>
-          ${vsSp != null ? `<div class="mono" style="font-size:10.5px; color:var(--text-faint);">פער מול S&amp;P: ${signedPct(vsSp, 2)}</div>` : ""}
+          ${vsSp != null ? `<div class="mono" style="font-size:12px; color:var(--text-faint);">פער מול S&amp;P: ${signedPct(vsSp, 2)}</div>` : ""}
         </div>
       </div>`;
   }
   el.innerHTML = `
     <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px;">
       <div style="font-size:13px; font-weight:800; margin-bottom:2px;">🧱 שלוש שכבות התיק</div>
-      <div style="font-size:11px; color:var(--text-faint); margin-bottom:4px;">החלוקה היא הצעה בלבד, לא ייעוץ השקעות.</div>
+      <div style="font-size:12px; color:var(--text-faint); margin-bottom:4px;">החלוקה היא הצעה בלבד, לא ייעוץ השקעות.</div>
       ${line("🧭", "ליבה: מדד + כלל חשיפה", "כ-70%", by.core_exposure, `חשיפה היום: ${data.exposure ? data.exposure.recommended_exposure_pct + "%" : "—"}`)}
       ${line("🏛", "טווח ארוך: מניות איכות", "כ-20%", by.long_term,
         lt.picks && lt.picks.length ? `${lt.picks.length} מניות · ${enterCount} בתזמון כניסה` : `בונה את הרשימה (${lt.fundamentals_coverage_pct ?? 0}% מהדוחות נאספו)`)}
       ${line("⚡", "טווח קצר: Top10", "עד 10% · ניסוי", by.top10, `${topBuy} מניות היום · יעד וסטופ לכל אחת`)}
-      <div style="font-size:11px; color:var(--text-faint); margin-top:8px;">התשואה היא מתחילת המעקב של כל שורה, והפער הוא מול S&amp;P 500 באותה תקופה בדיוק - פירוט מלא בסימולציה ← ביצועים.</div>
+      <div style="font-size:12px; color:var(--text-faint); margin-top:8px;">התשואה היא מתחילת המעקב של כל שורה, והפער הוא מול S&amp;P 500 באותה תקופה בדיוק - פירוט מלא בסימולציה ← ביצועים.</div>
     </div>`;
 }
 
@@ -3091,7 +2977,7 @@ function valueLineHtml(p) {
   const v = p && p.valuation;
   if (!v || v.pe_now == null) return "";
   const fy = v.fcf_yield_now_pct != null ? ` · תשואת תזרים ${v.fcf_yield_now_pct}% (ממוצע ${v.fcf_yield_avg_pct}%)` : "";
-  return `<div style="font-size:11px; margin-top:4px; color:${p.value_tag ? "#7fd8ff" : "var(--text-faint)"};">${p.value_tag ? "💎 זולה מול עצמה · " : ""}מכפיל רווח ${v.pe_now} מול ממוצע ${v.pe_avg} (${signedPct(v.pe_vs_avg_pct, 0)})${fy}</div>`;
+  return `<div style="font-size:12px; margin-top:4px; color:${p.value_tag ? "#7fd8ff" : "var(--text-faint)"};">${p.value_tag ? "💎 זולה מול עצמה · " : ""}מכפיל רווח ${v.pe_now} מול ממוצע ${v.pe_avg} (${signedPct(v.pe_vs_avg_pct, 0)})${fy}</div>`;
 }
 
 // v6.5.1: live price (current_prices.json, refreshed every 15 minutes) -
@@ -3124,14 +3010,14 @@ function renderLongTerm(data) {
       wait: ["var(--text-faint)", "⏳ להמתין לתזמון"],
     };
     const tg = TAGS[p.entry_tag];
-    const tag = tg ? `<span style="font-size:11px; font-weight:700; color:${tg[0]};">${tg[1]}</span>` : "";
+    const tag = tg ? `<span style="font-size:12px; font-weight:700; color:${tg[0]};">${tg[1]}</span>` : "";
     return `
       <button class="score-badge-btn" data-idx="${idx}" style="display:block; width:100%; text-align:right; background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:10px 12px; cursor:pointer; color:var(--text);">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="font-weight:800; font-size:14px;">${p.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${p.company_name || ""}</span></span>
+          <span style="font-weight:800; font-size:14px;">${p.ticker} <span style="font-weight:400; font-size:12px; color:var(--text-faint);">${p.company_name || ""}</span></span>
           <span class="mono" style="font-weight:800; color:${scoreToneColor(p.long_term_score)};" title="ציון טווח ארוך">🏛 ${p.long_term_score != null ? Number(p.long_term_score).toFixed(0) : "—"}</span>
         </div>
-        <div style="font-size:11px; color:var(--text-faint); margin-top:3px;">
+        <div style="font-size:12px; color:var(--text-faint); margin-top:3px;">
           ${(() => {
             const lv = livePriceOf(p.ticker);
             const px = lv ? lv.price : p.price;
@@ -3143,7 +3029,7 @@ function renderLongTerm(data) {
         ${valueLineHtml(p)}
         <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
           ${tag}
-          <span style="font-size:11px; color:var(--text-dim);">איכות <span class="mono">${p.quality_score != null ? Number(p.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${p.analyst_score != null ? Number(p.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${p.timing_score != null ? Number(p.timing_score).toFixed(0) : "—"}</span></span>
+          <span style="font-size:12px; color:var(--text-dim);">איכות <span class="mono">${p.quality_score != null ? Number(p.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${p.analyst_score != null ? Number(p.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${p.timing_score != null ? Number(p.timing_score).toFixed(0) : "—"}</span></span>
         </div>
       </button>`;
   }).join("");
@@ -3156,7 +3042,7 @@ async function loadInsider() {
   try {
     const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/insider.json?t=${Date.now()}`);
     if (!r.ok) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">מתחיל בריצת הערב הקרובה.</div>`; return; }
-    renderInsider(await r.json());
+    renderInsider(await safeJson(r));  // v6.24.0: was unescaped, and NaN-unsafe
   } catch (e) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">לא הצלחתי לטעון את הנתונים.</div>`; }
 }
 
@@ -3170,14 +3056,14 @@ function renderInsider(d) {
   const sig = d.signals || [];
   h += `<div style="font-size:13px; font-weight:700; margin:12px 2px 6px;">אותות מ-45 הימים האחרונים</div>`;
   h += sig.length ? `<div class="act-row" style="padding:4px 12px;">` + sig.map(x => `<div class="picks-row" style="align-items:center;">
-      <div><b>${x.ticker}</b> ${x.strong ? '<span class="tag exp">חזק</span>' : ""} <span style="font-size:11px; color:var(--text-faint);">${fmtDateIL(x.filing_date)} · ${x.insiders} אנשי פנים${x.ceo_cfo ? " · מנכ״ל/סמנכ״ל ✓" : ""}${x.liquid ? "" : " · לא עובר סינון נזילות"}</span></div>
-      <div style="text-align:left; font-size:12px;"><span class="mono">${usd(x.value)}</span><br><span style="font-size:10.5px; color:var(--text-faint);">${x.dd_from_high_pct != null ? `${x.dd_from_high_pct}% מהשיא` : ""}</span></div></div>`).join("") + `</div>`
+      <div><b>${x.ticker}</b> ${x.strong ? '<span class="tag exp">חזק</span>' : ""} <span style="font-size:12px; color:var(--text-faint);">${fmtDateIL(x.filing_date)} · ${x.insiders} אנשי פנים${x.ceo_cfo ? " · מנכ״ל/סמנכ״ל ✓" : ""}${x.liquid ? "" : " · לא עובר סינון נזילות"}</span></div>
+      <div style="text-align:left; font-size:12px;"><span class="mono">${usd(x.value)}</span><br><span style="font-size:12px; color:var(--text-faint);">${x.dd_from_high_pct != null ? `${x.dd_from_high_pct}% מהשיא` : ""}</span></div></div>`).join("") + `</div>`
     : `<div style="font-size:12px; color:var(--text-dim);">אין אותות כרגע.</div>`;
   const pos = d.positions || [];
-  if (pos.length) h += `<div style="font-size:13px; font-weight:700; margin:12px 2px 6px;">פוזיציות פתוחות</div><div class="act-row" style="padding:4px 12px;">` + pos.map(p => `<div class="picks-row"><div><b>${p.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">נקנתה ${fmtDateIL(p.entry_date)} ב-$${Number(p.entry_price).toFixed(2)}</span></div><div class="mono" style="color:${col(p.ret_pct)};">${signedPct(p.ret_pct, 1)}</div></div>`).join("") + `</div>`;
+  if (pos.length) h += `<div style="font-size:13px; font-weight:700; margin:12px 2px 6px;">פוזיציות פתוחות</div><div class="act-row" style="padding:4px 12px;">` + pos.map(p => `<div class="picks-row"><div><b>${p.ticker}</b> <span style="font-size:12px; color:var(--text-faint);">נקנתה ${fmtDateIL(p.entry_date)} ב-$${Number(p.entry_price).toFixed(2)}</span></div><div class="mono" style="color:${col(p.ret_pct)};">${signedPct(p.ret_pct, 1)}</div></div>`).join("") + `</div>`;
   const sn = d.sanity || {};
   if (sn.warning) h += `<div class="act-row" style="color:var(--down); font-size:12px;">⚠️ ${sn.strong_last_30d} אותות חזקים ב-30 יום, כשבהיסטוריה היו כ-${sn.expected_per_month} בחודש - כנראה תקלה בנתונים.</div>`;
-  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">${d.note || ""} מקור: דיווחי Form 4 ל-SEC. עודכן ${d.updated_at ? fmtDateIL(d.updated_at.slice(0, 10)) : "—"}.</div>`;
+  h += `<div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">${d.note || ""} מקור: דיווחי Form 4 ל-SEC. עודכן ${d.updated_at ? fmtDateIL(d.updated_at.slice(0, 10)) : "—"}.</div>`;
   el.innerHTML = h;
 }
 
@@ -3243,7 +3129,10 @@ async function maybeAutoRefreshPrices() {
 
 // ---------- v6.15.0: results tab, lab exit tab, fast first paint from today.json ----------
 const TAG_HTML = { proven: '<span class="tag proven">מוכח</span>', experiment: '<span class="tag exp">ניסוי</span>',
-                   benchmark: '<span class="tag info">ייחוס</span>', mine: '<span class="tag mine">שלך</span>', info: '<span class="tag info">מידע</span>' };
+                   benchmark: '<span class="tag info">ייחוס</span>', mine: '<span class="tag mine">שלך</span>', info: '<span class="tag info">מידע</span>',
+                   warning: '<span class="tag" style="border-color:#e0a92e; color:#e0a92e;">⚠️ מפגרת בזמן אמת</span>' };
+// v6.25.0: "מוכח" = passed the 26-year research; a live lag behind the S&P is shown next to it, never hidden
+const liveWarnTag = key => ((typeof listStatus !== "undefined" && listStatus && listStatus[key]) || {}).status === "warning" ? " " + TAG_HTML.warning : "";
 
 function renderResults(data) {
   const el = document.getElementById("resultsBody");
@@ -3255,12 +3144,12 @@ function renderResults(data) {
   let h = `<div class="section-title">ביצועים מול ה-S&amp;P 500</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">כל שורה נמדדת מול ה-S&amp;P באותם ימים בדיוק, מהתאריך שבו היא התחילה. "פער" = כמה יותר (או פחות) מה-S&amp;P.</div>
     <div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>מה</th><th>מאז</th><th>תשואה</th><th>S&amp;P</th><th>פער</th></tr></thead><tbody>`;
-  h += sorted.map(r => `<tr><td>${r.label} ${TAG_HTML[r.tag] || ""}</td><td style="white-space:nowrap; color:var(--text-faint);">${fmtDateIL(r.start_date)}</td>
+  h += sorted.map(r => `<tr><td>${r.label} ${TAG_HTML[r.tag] || ""}${liveWarnTag(r.key)}</td><td style="white-space:nowrap; color:var(--text-faint);">${fmtDateIL(r.start_date)}</td>
       <td class="mono" style="color:${col(r.return_pct)};">${signedPct(r.return_pct, 1)}</td>
       <td class="mono" style="color:var(--text-dim);">${signedPct(r.sp500_same_window_pct, 1)}</td>
       <td class="mono" style="font-weight:800; color:${col(r.vs_sp500_pct)};">${r.key === "sp500" ? "—" : signedPct(r.vs_sp500_pct, 1)}</td></tr>`).join("");
   h += `</tbody></table></div>
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:6px 2px 14px;">שורות A/B מראות רק מה שקרה בזמן אמת, מאז שהאסטרטגיות עלו (1.10), כולל עמלות. הפירוט למטה כולל גם את הסימולציה על השנה האחרונה - היא מחושבת מחדש כל יום על חלון נע, ולכן המספר הכולל שלה זז גם בלי עסקאות.</div>`;
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin:6px 2px 14px;">שורות A/B מראות רק מה שקרה בזמן אמת, מאז שהאסטרטגיות עלו (1.10), כולל עמלות. הפירוט למטה כולל גם את הסימולציה על השנה האחרונה - היא מחושבת מחדש כל יום על חלון נע, ולכן המספר הכולל שלה זז גם בלי עסקאות.</div>`;
   const sb = data.strategy_book || data.book || {};
   if (typeof renderBookCard === "function" && (sb.A || sb.B)) {
     h += `<div class="section-title">פירוט האסטרטגיות <span class="tag proven">מוכח</span></div>`;
@@ -3283,21 +3172,8 @@ function renderExposureLine(data) {
   const up = ex.above_sma;
   return `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
     <div><div style="font-size:13px; font-weight:700;">השוק: ${up ? "מעל " : "מתחת ל"}ממוצע 200 ימים ${TAG_HTML.proven}</div>
-    <div style="font-size:11.5px; color:var(--text-faint);">ה-S&amp;P ${signedPct(ex.pct_vs_sma, 1)} מהממוצע · ${up ? "חשיפה מלאה למניות" : "כלל החשיפה: חצי מזומן"}</div></div>
+    <div style="font-size:12.5px; color:var(--text-faint);">ה-S&amp;P ${signedPct(ex.pct_vs_sma, 1)} מהממוצע · ${up ? "חשיפה מלאה למניות" : "כלל החשיפה: חצי מזומן"}</div></div>
     <div style="font-size:20px; font-weight:800; color:${up ? "var(--up)" : "var(--down)"};">${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%</div></div>`;
-}
-
-function renderLongCompact(data) {
-  const pk = data.picks || {};
-  const longs = pk.long || [];
-  if (!longs.length) return "";
-  const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
-  return `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:16px 2px 6px;">טווח ארוך ${TAG_HTML.experiment}</div>
-    <div class="act-row" style="padding:4px 14px;">` + longs.map(l => {
-      const pn = priceNow(l.ticker, l.last_price, pk.session);
-      const ch = (l.entry_price && pn.price) ? (pn.price / l.entry_price - 1) * 100 : null;
-      return `<div class="picks-row"><div><b>${l.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">${l.company_name || ""} · מ-${fmtDateIL(l.entry_date)}</span><div style="font-size:11px; color:var(--text-faint);">${priceTag(pn)}</div></div><div class="mono" style="color:${col(ch)};">${signedPct(ch, 1)}</div></div>`;
-    }).join("") + `</div><div style="font-size:11px; color:var(--text-faint); margin:4px 2px 0;">לא נבדק במחקר. נמדד במעבדה מול ה-S&amp;P.</div>`;
 }
 
 function renderFreshness(data) {
@@ -3315,17 +3191,28 @@ function renderFreshness(data) {
 async function loadToday() {
   try {
     const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/today.json?t=${Date.now()}`);
-    if (!r.ok) return;
-    const t = await r.json();
+    if (!r.ok) return false;
+    const t = await safeJson(r);  // v6.24.0: escaped + NaN-safe like every other data file
+    if (t.list_status && !Object.keys(listStatus || {}).length) listStatus = t.list_status;
     renderActionScreen(t);
     renderFreshness(t);
-  } catch (e) { /* the full load below renders everything anyway */ }
+    if (!t.market_regime) return false;   // older today.json: fall back to the full file
+    renderRegimeBadge(t.market_regime, t.market_breadth);
+    return true;
+  } catch (e) { return false; }
+}
+
+// v6.25.0: predictions.json is loaded once, on demand
+let predictionsPromise = null;
+function ensurePredictions() {
+  if (!predictionsPromise && owner && repo && token) predictionsPromise = loadPredictions();
+  return predictionsPromise;
 }
 
 // ---------- v6.14.0: 🧪 forward test - time exit vs price exit, side by side ----------
 function exitTestBlock(t, col, compact) {
   const head = `<div style="font-size:14px; font-weight:800; margin:18px 2px 4px;">🧪 מבחן קדימה: מכירה לפי זמן מול לפי מחיר</div>
-    <div style="font-size:11.5px; color:var(--text-faint); line-height:1.5; margin:0 2px 8px;">כל המלצה משוחקת על המחירים האמיתיים בכל שיטת יציאה. לכל שיטה: התוצאה הממוצעת לעסקה שנסגרה, הפער הממוצע מול ה-S&amp;P 500 באותם ימים, ומה היה קורה ל-$100,000. במחקר על 26 שנה המכירה לפי מחיר הורידה את הרווח - כאן בודקים אם זה נכון גם קדימה.</div>`;
+    <div style="font-size:12.5px; color:var(--text-faint); line-height:1.5; margin:0 2px 8px;">כל המלצה משוחקת על המחירים האמיתיים בכל שיטת יציאה. לכל שיטה: התוצאה הממוצעת לעסקה שנסגרה, הפער הממוצע מול ה-S&amp;P 500 באותם ימים, ומה היה קורה ל-$100,000. במחקר על 26 שנה המכירה לפי מחיר הורידה את הרווח - כאן בודקים אם זה נכון גם קדימה.</div>`;
   if (!t || !(t.trades || []).length) return compact ? "" : head + `<div class="act-row" style="font-size:12.5px; color:var(--text-dim);">מתחיל מההמלצות הבאות - הרמות נשמרות ביום האות, כך שאי אפשר לכוונן אותן בדיעבד.</div>`;
   // v6.23.0: average per trade (comparable across columns with different trade counts),
   // average gap vs S&P over each trade's own days, and a chained $100,000 paper account
@@ -3341,14 +3228,14 @@ function exitTestBlock(t, col, compact) {
     ${n && sm.paper_value != null ? `<div class="pb-small">$100,000 ← <b class="mono" style="color:${col(sm.paper_value - 100000)};">${usd0(sm.paper_value)}</b></div>` : ""}</div>`;
   };
   const why = { target: "🎯 יעד", stop: "🛑 סטופ", time: "⏱ תאריך" };
-  const cell = (r, open) => r ? `<span class="mono" style="color:${col(r.pnl_pct)}; font-weight:700;">${signedPct(r.pnl_pct, 1)}</span> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(r.exit_date)}</span>`
-    : `<span style="font-size:11px; color:var(--text-faint);">פתוחה ${open != null ? `(${signedPct(open, 1)})` : ""}</span>`;
+  const cell = (r, open) => r ? `<span class="mono" style="color:${col(r.pnl_pct)}; font-weight:700;">${signedPct(r.pnl_pct, 1)}</span> <span style="font-size:12px; color:var(--text-faint);">${fmtDateIL(r.exit_date)}</span>`
+    : `<span style="font-size:12px; color:var(--text-faint);">פתוחה ${open != null ? `(${signedPct(open, 1)})` : ""}</span>`;
   const rows = (t.trades || []).slice().reverse().map(x => `<div class="picks-row" style="align-items:center;">
-      <div><b>${x.ticker}</b> <span style="font-size:10.5px; color:var(--text-faint);">${fmtDateIL(x.entry_date)}</span></div>
+      <div><b>${x.ticker}</b> <span style="font-size:12px; color:var(--text-faint);">${fmtDateIL(x.entry_date)}</span></div>
       <div style="text-align:left; font-size:12px; line-height:1.6;">⏱ ${cell(x.time, x.open_pnl_pct)}<br>${x.price_exit ? why[x.price_exit] : "🎯/🛑"} ${cell(x.price, x.open_pnl_pct)}${x.has_far ? `<br>🚀 ${x.far_exit ? why[x.far_exit] : ""} ${cell(x.far, x.open_pnl_pct)}` : ""}</div></div>`).join("");
   const boxes = `<div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("⏱ לפי תאריך", t.time || {})}${box("🎯 יעד קרוב", t.price || {})}${box("🚀 יעד רחוק", t.far || {})}</div>
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.5; margin:-4px 2px 6px;">ה-$100,000 הוא תיק ניסיוני שעובר מעסקה לעסקה לפי סדר הסגירה (ריבית דריבית) - פישוט: בפועל עסקאות חופפות בזמן, כך שהוא מגדיל גם רווחים וגם הפסדים. בשתי שיטות המחיר הסטופ הוא קו התמיכה הקרוב. 'יעד קרוב' = ההתנגדות הקרובה. 'יעד רחוק' (השיטה של החבר) = השיא השנתי, אם הוא עד 40% מעל. אם לא נגעו - מוכרים בתאריך.</div>`;
-  if (compact) return `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:16px 2px 6px;">מבחן יציאה: תאריך מול מחיר <span class="tag exp">ניסוי</span></div>${boxes}<div style="font-size:11px; color:var(--text-faint); margin:2px 2px 0;">פירוט כל עסקה: מעבדה › מבחן יציאה.</div>`;
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.5; margin:-4px 2px 6px;">ה-$100,000 הוא תיק ניסיוני שעובר מעסקה לעסקה לפי סדר הסגירה (ריבית דריבית) - פישוט: בפועל עסקאות חופפות בזמן, כך שהוא מגדיל גם רווחים וגם הפסדים. בשתי שיטות המחיר הסטופ הוא קו התמיכה הקרוב. 'יעד קרוב' = ההתנגדות הקרובה. 'יעד רחוק' (השיטה של החבר) = השיא השנתי, אם הוא עד 40% מעל. אם לא נגעו - מוכרים בתאריך.</div>`;
+  if (compact) return `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:16px 2px 6px;">מבחן יציאה: תאריך מול מחיר <span class="tag exp">ניסוי</span></div>${boxes}<div style="font-size:12px; color:var(--text-faint); margin:2px 2px 0;">פירוט כל עסקה: מעבדה › מבחן יציאה.</div>`;
   return head + boxes + `<div class="act-row" style="padding:6px 14px;">${rows}</div>`;
 }
 
@@ -3382,7 +3269,7 @@ function renderActionScreen(data) {
     if (!amt) return `<div><div class="lbl">כמה</div><b>${w ? (w / 2).toFixed(1) + "%" : "—"}</b> מהסכום למסחר קצר</div>`;
     const sh = b.ref_price ? Math.floor(amt / b.ref_price) : null;
     const fp = feeOf(amt) / amt * 100;
-    return `<div><div class="lbl">כמה</div><b class="mono">${usd(amt)}</b>${sh ? ` · כ-${sh} מניות` : ""}${fp > 0.2 ? `<div style="font-size:11px; color:var(--down);">עמלה ${fp.toFixed(2)}% לצד - גבוה. כדאי לפחות $4,000 לעסקה</div>` : ""}</div>`;
+    return `<div><div class="lbl">כמה</div><b class="mono">${usd(amt)}</b>${sh ? ` · כ-${sh} מניות` : ""}${fp > 0.2 ? `<div style="font-size:12px; color:var(--down);">עמלה ${fp.toFixed(2)}% לצד - גבוה. כדאי לפחות $4,000 לעסקה</div>` : ""}</div>`;
   };
   // v6.18.0: a level farther than 40% from the price is not a usable level - hide it
   const okLv = (v, pct) => v && pct != null && Math.abs(pct) <= 40;
@@ -3398,11 +3285,11 @@ function renderActionScreen(data) {
     h += `<div class="act-status none"><div style="font-size:22px; font-weight:800;">אין מה לעשות היום</div><div style="font-size:13.5px; color:var(--text-dim); margin-top:6px; line-height:1.5;">אין אות קנייה חדש, ואף עסקה לא הגיעה ליום המכירה. זה המצב ברוב הימים, וזה תקין.</div></div>`;
   }
   if ((pk.qa_issues || []).length) h += `<div class="act-row" style="border-color:var(--down); color:var(--down); font-size:12.5px;"><b>⚠️ בדיקה עצמית מצאה בעיה במסך - אל תפעל לפיו עד שזה מתוקן:</b><br>${pk.qa_issues.join("<br>")}</div>`;
-  h += transfers.map(b => `<div class="act-row"><div class="head"><div class="tk">המשך להחזיק ${b.ticker}</div><div style="font-size:11.5px; color:var(--text-dim);">לא קונים ולא מוכרים</div></div>
+  h += transfers.map(b => `<div class="act-row"><div class="head"><div class="tk">המשך להחזיק ${b.ticker}</div><div style="font-size:12.5px; color:var(--text-dim);">לא קונים ולא מוכרים</div></div>
       <div style="font-size:12.5px; color:var(--text-dim); line-height:1.6; margin-top:4px;">אסטרטגיה ${b.net_from} מוכרת אותה בסגירה, ו-${b.strategy} קונה אותה מחדש בפתיחה (${b.why}). אצלך זו אותה מניה - פשוט ממשיכים להחזיק עד ${fmtDateIL(b.exit_estimate)}, וחוסכים שתי עמלות.</div></div>`).join("");
   h += alreadyHeld.map(b => `<div class="act-row" style="font-size:12.5px; color:var(--text-dim);"><b>${b.ticker}</b>: אסטרטגיה ${b.strategy} קיבלה אות, אבל המניה כבר מוחזקת באסטרטגיה ${b.net_from}. לא קונים פעם שנייה.</div>`).join("");
   h += buys.map(b => `<div class="act-row">
-      <div class="head"><div class="tk" style="color:var(--up);">קנה ${b.ticker}</div><div style="font-size:11.5px; color:var(--text-dim);">${b.strategy_label}</div></div>
+      <div class="head"><div class="tk" style="color:var(--up);">קנה ${b.ticker}</div><div style="font-size:12.5px; color:var(--text-dim);">${b.strategy_label}</div></div>
       <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">${b.why}</div>
       <div class="act-grid">
         <div><div class="lbl">קנייה</div><b>בפתיחה</b> (פקודת שוק)</div>
@@ -3412,8 +3299,8 @@ function renderActionScreen(data) {
         ${sizing(b)}
       </div>${tech(b)}</div>`).join("");
   if (ba) {
-    const line = k => { const a = ba[k] || {}; return a.slots ? `${a.label}: ${a.open}/${a.slots} משבצות תפוסות${a.skipped && a.skipped.length ? ` · דולגו (אין משבצת): ${a.skipped.join(", ")}` : ""}` : ""; };
-    h += `<div style="font-size:11.5px; color:var(--text-faint); line-height:1.6; margin:2px 2px 8px;">${line("A")}<br>${line("B")}<br>כך בדיוק האסטרטגיות נבדקו: מספר קבוע של מניות, וקנייה רק כשמשבצת מתפנה.</div>`;
+    const line = k => { const a = ba[k] || {}; return a.slots ? `${a.label}: ${a.open}/${a.slots} משבצות תפוסות${a.skipped && a.skipped.length ? ` · דולגו (אין משבצת): ${a.skipped.join(", ")}` : ""}${liveWarnTag("book_" + k)}` : ""; };
+    h += `<div style="font-size:12.5px; color:var(--text-faint); line-height:1.6; margin:2px 2px 8px;">${line("A")}<br>${line("B")}<br>כך בדיוק האסטרטגיות נבדקו: מספר קבוע של מניות, וקנייה רק כשמשבצת מתפנה.</div>`;
   }
   const withNow = o => { const pn = priceNow(o.ticker, o.last, o.last_session || pk.session); return { pn, pnl: (pn.price && o.entry) ? (pn.price / o.entry - 1) * 100 : o.pnl_pct }; };
   h += sells.map(o => { const w = withNow(o); return `<div class="act-row">
@@ -3423,25 +3310,28 @@ function renderActionScreen(data) {
         <div><div class="lbl">נקנתה ב-</div><span class="mono">${usd(o.entry)}</span></div>
       </div><div style="font-size:12px; margin-top:6px;">${priceTag(w.pn)}</div>${tech(o)}</div>`; }).join("");
   if (held.length) {
-    h += `<div style="font-size:13px; font-weight:700; color:var(--text-dim); margin:14px 2px 6px;">מוחזקות · אין מה לעשות איתן היום</div>`;
-    h += held.map(o => { const w = withNow(o); return `<div class="act-row">
-      <div class="head"><div><span class="tk" style="font-size:15px;">${o.ticker}</span> <span style="font-size:11.5px; color:var(--text-faint);">למכור בסגירה של ${fmtDateIL(o.exit_estimate)}${heldCount[o.ticker] > 1 ? " · מוחזקת בשתי האסטרטגיות - אצלך פוזיציה אחת" : ""}</span></div><div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>
-      <div style="font-size:11.5px; color:var(--text-faint); margin-top:2px;">נקנתה ${usd(o.entry)} · ${priceTag(w.pn)}</div>${tech(o)}</div>`; }).join("");
+    // v6.25.0: one compact line per holding, collapsed - nothing to do with them today
+    const avgHeld = (() => { const v = held.map(o => withNow(o).pnl).filter(x => x != null); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; })();
+    h += `<details class="held-list"><summary><span>מוחזקות (${held.length}) · אין מה לעשות איתן היום</span><span class="mono" style="color:${col(avgHeld)};">${avgHeld == null ? "" : "ממוצע " + signedPct(avgHeld, 1)}</span></summary>
+      <div class="act-row" style="padding:4px 14px;">` + held.map(o => { const w = withNow(o); return `<div class="picks-row">
+        <div><b>${o.ticker}</b> <span class="muted-sm">למכור ${fmtDateIL(o.exit_estimate)}${heldCount[o.ticker] > 1 ? " · בשתי האסטרטגיות" : ""}</span>
+          <div class="muted-sm">נקנתה ${usd(o.entry)} · ${priceTag(w.pn)}</div></div>
+        <div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>`; }).join("") + `</div></details>`;
   }
   const b = (pk.boxes || {}).short || {};
   if (b.days) {
     h += `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-      <div><div style="font-size:12.5px; color:var(--text-dim);">ההמלצות בפועל מאז ${fmtDateIL(b.start_date)}</div><div style="font-size:11.5px; color:var(--text-faint);">S&amp;P 500 באותם ימים: <span style="color:${col(b.spy_pct)};">${signedPct(b.spy_pct, 2)}</span></div></div>
+      <div><div style="font-size:12.5px; color:var(--text-dim);">ההמלצות בפועל מאז ${fmtDateIL(b.start_date)}</div><div style="font-size:12.5px; color:var(--text-faint);">S&amp;P 500 באותם ימים: <span style="color:${col(b.spy_pct)};">${signedPct(b.spy_pct, 2)}</span></div></div>
       <div class="mono" style="font-size:22px; font-weight:800; color:${col(b.cum_pct)};">${signedPct(b.cum_pct, 2)}</div></div>`;
   }
-  h += renderLongCompact(data);
-  h += exitTestBlock(pk.exit_test, col, true);
-  h += `<div class="act-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px;">
+  // v6.25.0: long-term (🧪) lives in היום › מלא and the exit test in מעבדה - this screen is only what to do
+  h += `<details class="held-list"><summary><span>⚙️ כמה כסף למסחר קצר? (לחישוב גודל כל קנייה)</span></summary>
+    <div class="act-row" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
       <div style="font-size:12.5px; flex:1; min-width:160px;">סכום למסחר קצר (חצי ל-A, חצי ל-B). לא נשמר בשרת.</div>
-      <input id="shortCapitalInput" type="number" inputmode="numeric" placeholder="למשל 40000" value="${cap || ""}" style="width:120px; padding:8px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit;">
+      <input id="shortCapitalInput" aria-label="סכום למסחר קצר בדולרים" type="number" inputmode="numeric" placeholder="למשל 40000" value="${cap || ""}" style="width:120px; padding:8px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit;">
       <button type="button" onclick="localStorage.setItem('shortCapital', document.getElementById('shortCapitalInput').value || ''); renderActionScreen(window.__lastActionData || {});" style="min-height:40px; padding:0 14px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit;">שמור</button></div>
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:4px 2px 0;">עמלה לפי המסלול שלך: 0.1% לעסקה, מינימום $8. מתחת ל-$4,000 לעסקה העמלה עוברת 0.2% לצד, וזה כבר אוכל חלק ניכר מהיתרון. כדי להריץ את שתי האסטרטגיות כמו שנבדקו בלי לשלם יותר מדי עמלות, צריך בערך $120,000. עם פחות, עדיף רק A (בערך $40,000).</div>`;
-  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. הקנייה והמכירה לפי זמן - כך נבדק. הרמות הטכניות 🧪 מוצגות כדי לבדוק אותן קדימה - במחקר על 26 שנה מכירה לפיהן הורידה את הרווח, ולכן הכלל המומלץ נשאר מכירה בתאריך. מידע בלבד, לא ייעוץ השקעות.</div>`;
+    <div class="muted-sm" style="line-height:1.6; margin:4px 2px 0;">עמלה לפי המסלול שלך: 0.1% לעסקה, מינימום $8. מתחת ל-$4,000 לעסקה העמלה עוברת 0.2% לצד, וזה כבר אוכל חלק ניכר מהיתרון. כדי להריץ את שתי האסטרטגיות כמו שנבדקו צריך בערך $120,000. עם פחות, עדיף רק A (בערך $40,000).</div></details>`;
+  h += `<div class="muted-sm" style="line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. קונים ומוכרים לפי תאריך - כך זה נבדק. מידע בלבד, לא ייעוץ השקעות.</div>`;
   el.innerHTML = h;
 }
 
@@ -3469,7 +3359,7 @@ function winnersChart(series) {
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; display:block; margin:6px 0;">
     <line x1="${P}" x2="${W - P}" y1="${y(100)}" y2="${y(100)}" stroke="var(--border)" stroke-dasharray="3 3"/>
     ${line("ew", "var(--text-faint)", 1.5)}${line("spy", "#6aa0e0", 1.5)}${line("port", "#e0b04a", 2.5)}</svg>
-    <div style="font-size:11px; color:var(--text-faint); display:flex; gap:12px; justify-content:center;">
+    <div style="font-size:12px; color:var(--text-faint); display:flex; gap:12px; justify-content:center;">
       <span><span style="color:#e0b04a;">━</span> התיק</span><span><span style="color:#6aa0e0;">━</span> S&amp;P 500</span><span>━ ממוצע כל המניות</span></div>`;
 }
 
@@ -3478,7 +3368,7 @@ function winnersExplain(x) {
   const days = (x.worst_days || []).map(d => `${fmtDateIL(d.date)}: ${d.pct}%${d.earnings ? " 📊" : ""}`).join(" · ");
   const heads = (x.headlines || []).map(h => `<div style="margin-top:4px;">${h.tag ? `<b>${h.tag}</b> · ` : ""}${h.url ? `<a href="${h.url}" target="_blank" rel="noopener" style="color:var(--text-dim);">${h.title}</a>` : h.title}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}</div>`).join("");
   return `<div style="font-size:12px; color:var(--text-dim); line-height:1.6; margin-top:4px;">${x.summary || ""}</div>
-    <details style="font-size:11.5px; color:var(--text-faint); margin-top:4px;"><summary>ימי הירידה וכותרות</summary>
+    <details style="font-size:12.5px; color:var(--text-faint); margin-top:4px;"><summary>ימי הירידה וכותרות</summary>
       <div style="margin-top:4px;">ימי הירידה החדים: ${days || "—"}${(x.worst_days || []).some(d => d.earnings) ? " (📊 = יום דוח רבעוני)" : ""}</div>${heads || `<div style="margin-top:4px;">לא נמצאו כותרות לימים האלה.</div>`}
       <div style="margin-top:4px;">הכותרות מתויגות לפי מילות מפתח - לפעמים התיוג טועה, כדאי לקרוא את הכותרת עצמה.</div></details>`;
 }
@@ -3491,31 +3381,31 @@ function renderWinners(w) {
   let h = "";
   if (w.series && w.series.length) {
     h += `<div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("🏆 התיק", st.port_pct, `היום: <span style="color:${col(st.daily_pct)};">${signedPct(st.daily_pct, 2)}</span>`)}${box("S&amp;P 500", st.spy_pct)}${box("ממוצע המניות", st.ew_pct)}</div>`;
-    h += `<div style="font-size:11.5px; color:var(--text-faint); text-align:center;">מאז ${fmtDateIL(st.since)} · ${st.beat_spy}/${st.trades} מניות מקדימות את ה-S&amp;P · ${st.beat_ew}/${st.trades} את ממוצע המניות</div>`;
+    h += `<div style="font-size:12.5px; color:var(--text-faint); text-align:center;">מאז ${fmtDateIL(st.since)} · ${st.beat_spy}/${st.trades} מניות מקדימות את ה-S&amp;P · ${st.beat_ew}/${st.trades} את ממוצע המניות</div>`;
     h += winnersChart(w.series);
     const bk = st.by_kind || {};
     const kl = { market: "🌍 ירידת שוק", sector: "🏭 ירידת ענף", company: "🏢 בעיה של החברה" };
     const kinds = Object.keys(bk).map(k => `${kl[k]}: ${bk[k].n} מניות, ${signedPct(bk[k].avg_vs_ew_pct, 1)} מול הממוצע`).join(" · ");
-    if (kinds) h += `<div style="font-size:11.5px; color:var(--text-dim); margin:4px 0 10px;">לפי סוג הירידה: ${kinds}</div>`;
+    if (kinds) h += `<div style="font-size:12.5px; color:var(--text-dim); margin:4px 0 10px;">לפי סוג הירידה: ${kinds}</div>`;
   }
   const pos = w.positions || [];
   h += `<div style="font-size:14px; font-weight:800; margin:10px 0 4px;">מוחזקות (${pos.length}/${(w.rule || {}).max_positions || 20})</div>`;
   h += pos.length ? pos.map(p => `<div class="picks-card">
       <div style="display:flex; justify-content:space-between; gap:8px;">
-        <div><b>${p.ticker}</b> <span style="font-size:11px; color:var(--text-dim);">${p.name || ""} · ${p.sector || ""}</span>
-          <div style="font-size:11px; color:var(--text-faint);">נכנסה ${fmtDateIL(p.entry_date)}${p.entry_price ? ` ב-$${p.entry_price}` : ""} · עוד ${p.sessions_left ?? "—"} ימי מסחר · ${(p.explanation || {}).kind_label || ""}</div></div>
+        <div><b>${p.ticker}</b> <span style="font-size:12px; color:var(--text-dim);">${p.name || ""} · ${p.sector || ""}</span>
+          <div style="font-size:12px; color:var(--text-faint);">נכנסה ${fmtDateIL(p.entry_date)}${p.entry_price ? ` ב-$${p.entry_price}` : ""} · עוד ${p.sessions_left ?? "—"} ימי מסחר · ${(p.explanation || {}).kind_label || ""}</div></div>
         <div style="text-align:left; white-space:nowrap;"><div class="mono" style="font-weight:800; color:${col(p.ret_pct)};">${signedPct(p.ret_pct, 1)}</div>
-          <div style="font-size:11px; color:var(--text-faint);">S&amp;P ${signedPct(p.spy_pct, 1)} · ממוצע ${signedPct(p.ew_pct, 1)}</div></div></div>
+          <div style="font-size:12px; color:var(--text-faint);">S&amp;P ${signedPct(p.spy_pct, 1)} · ממוצע ${signedPct(p.ew_pct, 1)}</div></div></div>
       ${winnersExplain(p.explanation)}</div>`).join("")
     : `<div style="font-size:12.5px; color:var(--text-dim);">עוד אין מניות מוחזקות.</div>`;
   const pend = w.pending || [];
-  if (pend.length) h += `<div style="font-size:14px; font-weight:800; margin:12px 0 4px;">🆕 ממתינות לקנייה בפתיחה הבאה</div>` + pend.map(p => `<div class="picks-card"><b>${p.ticker}</b> <span style="font-size:11px; color:var(--text-dim);">${p.name || ""} · ירדה ${Math.abs(p.drawdown_pct)}% · EV/EBIT ${p.ev_ebit}</span>${winnersExplain(p.explanation)}</div>`).join("");
+  if (pend.length) h += `<div style="font-size:14px; font-weight:800; margin:12px 0 4px;">🆕 ממתינות לקנייה בפתיחה הבאה</div>` + pend.map(p => `<div class="picks-card"><b>${p.ticker}</b> <span style="font-size:12px; color:var(--text-dim);">${p.name || ""} · ירדה ${Math.abs(p.drawdown_pct)}% · EV/EBIT ${p.ev_ebit}</span>${winnersExplain(p.explanation)}</div>`).join("");
   const waiting = (w.candidates || []).filter(c => c.status === "waiting");
   if (waiting.length) h += `<div style="font-size:12px; color:var(--text-faint); margin-top:10px;">עומדות בתנאים אבל אין מקום פנוי: ${waiting.map(c => c.ticker).join(", ")}</div>`;
   const closed = (w.closed || []).slice().reverse();
-  if (closed.length) h += `<div style="font-size:14px; font-weight:800; margin:12px 0 4px;">נסגרו</div>` + closed.map(c => `<div class="picks-row"><div><b>${c.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">${fmtDateIL(c.entry_date)} → ${fmtDateIL(c.exit_date)}</span></div><div class="mono" style="color:${col(c.ret_pct)};">${signedPct(c.ret_pct, 1)} <span style="font-size:11px; color:var(--text-faint);">(S&amp;P ${signedPct(c.spy_pct, 1)})</span></div></div>`).join("");
+  if (closed.length) h += `<div style="font-size:14px; font-weight:800; margin:12px 0 4px;">נסגרו</div>` + closed.map(c => `<div class="picks-row"><div><b>${c.ticker}</b> <span style="font-size:12px; color:var(--text-faint);">${fmtDateIL(c.entry_date)} → ${fmtDateIL(c.exit_date)}</span></div><div class="mono" style="color:${col(c.ret_pct)};">${signedPct(c.ret_pct, 1)} <span style="font-size:12px; color:var(--text-faint);">(S&amp;P ${signedPct(c.spy_pct, 1)})</span></div></div>`).join("");
   const lastSel = (w.selection_log || []).slice(-1)[0];
-  h += `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-top:12px;">${w.research_note || ""}<br>${lastSel ? `בחירה אחרונה: ${fmtDateIL(lastSel.date)}${lastSel.error ? " - נכשלה (ה-SEC לא ענה), תנסה שוב בשבוע הבא" : ` - ${lastSel.qualified} עמדו בתנאים, ${(lastSel.added || []).length} נוספו`} · ` : ""}בחירה חדשה כל יום שישי · עודכן ${w.updated_at ? fmtDateIL(w.updated_at.slice(0, 10)) : "—"}</div>`;
+  h += `<div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-top:12px;">${w.research_note || ""}<br>${lastSel ? `בחירה אחרונה: ${fmtDateIL(lastSel.date)}${lastSel.error ? " - נכשלה (ה-SEC לא ענה), תנסה שוב בשבוע הבא" : ` - ${lastSel.qualified} עמדו בתנאים, ${(lastSel.added || []).length} נוספו`} · ` : ""}בחירה חדשה כל יום שישי · עודכן ${w.updated_at ? fmtDateIL(w.updated_at.slice(0, 10)) : "—"}</div>`;
   el.innerHTML = h;
 }
 
@@ -3531,7 +3421,7 @@ function renderPicks(data) {
     const head = { up: "ההמלצות עובדות", down: "ההמלצות לא מצליחות כרגע", wait: "עוד מוקדם לשפוט" }[t];
     th.innerHTML = `<div class="picks-thumbs ${t}"><span class="hand">${hand}</span>
       <div><div style="font-size:16px; font-weight:800; color:${t === "up" ? "var(--up)" : t === "down" ? "var(--down)" : "var(--text)"};">${head}</div>
-      <div style="font-size:11.5px; color:var(--text-faint); line-height:1.5;">${pk.thumbs_reason || ""}<br>הכלל: 3 ההמלצות מול ה-S&amp;P 500 באותם ימים</div></div></div>`;
+      <div style="font-size:12.5px; color:var(--text-faint); line-height:1.5;">${pk.thumbs_reason || ""}<br>הכלל: 3 ההמלצות מול ה-S&amp;P 500 באותם ימים</div></div></div>`;
   }
   const bx = document.getElementById("picksBoxes");
   if (bx) {
@@ -3555,11 +3445,11 @@ function renderPicks(data) {
   if (lc) {
     const longs = pk.long || [];
     const warns = (pk.warnings || []).filter(w => w.horizon === "long").slice(-4).reverse();
-    let h = `<div class="pc-title">🏛 טווח ארוך <span style="font-size:11px; color:var(--text-faint); font-weight:400;">· 🧪 עוד לא מוכח · מתחלפות רק באזהרה או ברענון החודשי</span></div>`;
+    let h = `<div class="pc-title">🏛 טווח ארוך <span style="font-size:12px; color:var(--text-faint); font-weight:400;">· 🧪 עוד לא מוכח · מתחלפות רק באזהרה או ברענון החודשי</span></div>`;
     h += longs.length ? longs.map(l => {
       const ch = l.entry_price ? (l.last_price / l.entry_price - 1) * 100 : null;
-      return `<div class="picks-row"><div style="min-width:0;"><div style="font-weight:800;">${l.ticker} <span style="font-size:11px; color:var(--text-dim); font-weight:400;">${l.company_name || ""}</span></div>
-        <div style="font-size:11px; color:var(--text-faint);">נכנסה ${fmtDateIL(l.entry_date)} ב-$${Number(l.entry_price).toFixed(2)} · ציון איכות ${l.long_term_score ?? "—"}</div></div>
+      return `<div class="picks-row"><div style="min-width:0;"><div style="font-weight:800;">${l.ticker} <span style="font-size:12px; color:var(--text-dim); font-weight:400;">${l.company_name || ""}</span></div>
+        <div style="font-size:12px; color:var(--text-faint);">נכנסה ${fmtDateIL(l.entry_date)} ב-$${Number(l.entry_price).toFixed(2)} · ציון איכות ${l.long_term_score ?? "—"}</div></div>
         <div class="mono" style="color:${col(ch)}; white-space:nowrap;">${pct(ch, 1)}</div></div>`;
     }).join("") : `<div style="font-size:13px; color:var(--text-dim); padding:6px 0;">אין כרגע מניה שעומדת בתנאים.</div>`;
     if (warns.length) h += warns.map(w => `<div style="font-size:12px; margin-top:6px; color:${w.level === "sell" ? "var(--down)" : "var(--text-dim)"};">${w.level === "sell" ? "🔴 נמכרה" : "⚠️ לבדיקה"} · ${w.ticker} · ${fmtDateIL(w.date)}: ${w.reason}</div>`).join("");
@@ -3601,7 +3491,7 @@ function renderForwardEval(data) {
     const t = v.t_independent != null ? `t=${v.t_independent}` : "t: מעט מדי ימים";
     return `<div style="padding:8px 0; border-bottom:1px solid var(--border);">
       <div style="font-size:13px; font-weight:700;">${label}</div>
-      <div style="font-size:11.5px; color:var(--text-dim); line-height:1.7;">
+      <div style="font-size:12.5px; color:var(--text-dim); line-height:1.7;">
         ${v.positive_days}/${v.days} ימים עם IC חיובי · ${t} (${v.independent_days} ימים בלתי תלויים)<br>
         Top10 מול היקום: <span class="mono" style="color:${col(v.mean_top10_excess_pct)};">${signedPct(v.mean_top10_excess_pct, 2)}</span>
         · עשירון עליון מול תחתון: <span class="mono" style="color:${col(v.mean_decile_spread_pct)};">${signedPct(v.mean_decile_spread_pct, 2)}</span>
@@ -3609,32 +3499,12 @@ function renderForwardEval(data) {
     </div>`;
   }).join("");
   const dc = data.data_clean || {};
-  const cleanNote = dc.version ? `<div style="font-size:11px; color:var(--text-faint); margin-top:8px;">🧹 ${dc.suspect_entries} רשומות עם מחיר כניסה שגוי (פיצול/פעולה קונצרנית) הוצאו מכל הממוצעים והסימולציות · נבדק ${fmtDateIL((dc.done_at || "").slice(0, 10))}</div>` : "";
+  const cleanNote = dc.version ? `<div style="font-size:12px; color:var(--text-faint); margin-top:8px;">🧹 ${dc.suspect_entries} רשומות עם מחיר כניסה שגוי (פיצול/פעולה קונצרנית) הוצאו מכל הממוצעים והסימולציות · נבדק ${fmtDateIL((dc.done_at || "").slice(0, 10))}</div>` : "";
   el.innerHTML = `
     <div class="indices-row" style="grid-template-columns: repeat(${hs.length}, 1fr); margin-bottom:10px;">${tiles}</div>
     ${rows}
-    <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-top:8px;">סף ההחלטה שנקבע מראש: IC מעל 0.03 עם t מעל 2 בימים שלא חופפים, ותשואה עודפת שגבוהה מהעמלות. מידע בלבד - לא משנה אף המלצה.</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-top:8px;">סף ההחלטה שנקבע מראש: IC מעל 0.03 עם t מעל 2 בימים שלא חופפים, ותשואה עודפת שגבוהה מהעמלות. מידע בלבד - לא משנה אף המלצה.</div>
     ${cleanNote}`;
-}
-
-function renderStrategies(data) {
-  const el = document.getElementById("strategiesTable");
-  if (!el) return;
-  const rows = ((data.strategy_comparison || {}).rows) || [];
-  if (!rows.length) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">יחושב בריצה הבאה</div>`; return; }
-  const layerName = { core: "ליבה", long: "טווח ארוך", short: "טווח קצר", benchmark: "benchmark" };
-  el.innerHTML = rows.map(r => `
-    <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);">
-      <div style="min-width:0;">
-        <div style="font-size:13px; ${r.layer === "benchmark" ? "color:var(--text-dim);" : "font-weight:700;"}">${r.label}</div>
-        <div style="font-size:10.5px; color:var(--text-faint);">${layerName[r.layer] || ""} · מאז ${fmtDateIL(r.start_date)}</div>
-        ${listStatus[r.key] ? listStatusChip(r.key, { margin: "3px 0 0" }) : ""}
-      </div>
-      <div style="text-align:left;">
-        <div class="mono" style="font-weight:800; color:${r.return_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(r.return_pct, 2)}</div>
-        <div class="mono" style="font-size:10.5px; color:var(--text-faint);">$${Math.round(r.value).toLocaleString("en-US")}${r.key !== "sp500" && r.vs_sp500_pct != null ? ` · פער ${signedPct(r.vs_sp500_pct, 2)}` : ""}</div>
-      </div>
-    </div>`).join("");
 }
 
 // ---------- v6.1.0: daily-return tiles for each list ----------
@@ -3681,123 +3551,6 @@ function recCard(title, body, accent) {
       <div style="font-size:14px; font-weight:800; margin-bottom:8px;">${title}</div>
       ${body}
     </div>`;
-}
-
-function renderRecommendations(data) {
-  const el = document.getElementById("recsBody");
-  if (!el) return;
-  const r = data.recommendations;
-  if (!r) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">ההמלצות יחושבו בריצה הבאה (עד 15 דקות), או לחץ "נתח עכשיו".</div>`; return; }
-  const small = t => `<div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-top:6px;">${t}</div>`;
-  const parts = [];
-
-  // header
-  parts.push(`<div style="font-size:11px; color:var(--text-faint); margin-bottom:10px;">עודכן ${new Date(r.generated_at).toLocaleString("he-IL")} · מבוסס כללים קבועים על נתוני האפליקציה · <b>לא ייעוץ השקעות</b></div>`);
-
-  // 1. exposure & allocation
-  const ex = r.exposure || {};
-  const full = r.exposure_pct >= 100;
-  parts.push(recCard("🧭 מצב השוק ומה עושים", `
-    <div style="font-size:13px; line-height:1.7;">
-      ${full ? "S&amp;P 500 מעל ממוצע 200 יום" : "S&amp;P 500 מתחת לממוצע 200 יום"}${ex.pct_vs_sma != null ? ` (<span class="mono">${signedPct(ex.pct_vs_sma)}</span>)` : ""} → <b>חשיפה ${r.exposure_pct}% למניות</b>${r.cash_pct ? `, <b>${r.cash_pct}% מזומן</b>` : ""}.
-    </div>
-    <div style="display:grid; grid-template-columns:repeat(${r.cash_pct ? 4 : 3},1fr); gap:6px; margin-top:8px;">
-      ${[["🧭 מדד", r.layers.core], ["🏛 ארוך", r.layers.long], ["⚡ קצר", r.layers.short]].concat(r.cash_pct ? [["💵 מזומן", r.cash_pct]] : [])
-        .map(([n, v]) => `<div class="index-tile"><div class="index-label">${n}</div><div class="mono" style="font-weight:800;">${v}%</div></div>`).join("")}
-    </div>
-    ${small("חלוקה מוצעת בלבד. ההחלטה ומשקלי התיק האמיתיים הם שלך.")}`, full ? "var(--up)" : "#ffd76a"));
-
-  // 2. short term
-  // v6.4.0: short term = the two research-validated strategies (theory lab stages 1-3)
-  const book = data.strategy_book || {};
-  const bookStat = (k) => {
-    const b = book[k];
-    if (!b) return "";
-    const st = b.stats || {};
-    return `<div class="index-tile" style="padding:7px 4px; text-align:center;">
-      <div class="index-label">${b.label}</div>
-      <div class="mono" style="font-weight:800; color:${(b.total_return_pct ?? 0) >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(b.total_return_pct, 1)}</div>
-      <div class="index-label">${st.closed ?? 0} עסק' · הצלחה ${st.win_rate_pct ?? "—"}%</div>
-      <div class="index-label">S&amp;P באותה תקופה ${b.spy_same_window_pct != null ? signedPct(b.spy_same_window_pct, 1) : "—"}</div>
-    </div>`;
-  };
-  const bookTrack = (book.A || book.B) ? `
-    <div style="font-size:12px; line-height:1.6; margin-bottom:8px;">📏 <b>הרקורד של שתי האסטרטגיות</b> בתיקי נייר מ-${fmtDateIL((book.A || book.B).start_date)} (חושב לאחור לפי אותם כללים, כולל עמלות):</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px;">${bookStat("A")}${bookStat("B")}</div>` : "";
-  const tr = data.rec_trade_record;
-  const oldRecord = tr && tr.n ? `<details style="margin-top:8px;"><summary style="font-size:11px; color:var(--text-faint); cursor:pointer;">הכללים הקודמים (הוחלפו ב-2.10.26)</summary>
-      <div style="font-size:11px; color:var(--text-faint); padding:4px 0; line-height:1.6;">${tr.closed} עסקאות סגורות · הצלחה ${tr.win_rate_pct ?? "—"}% · ממוצע לעסקה ${tr.avg_trade_pct != null ? signedPct(tr.avg_trade_pct, 2) : "—"}. הוחלפו כי הפסידו - נשמרים להשוואה.</div></details>` : "";
-  let shortBody;
-  if (r.short.length) {
-    shortBody = r.short.map(x => !x.strategy ? `
-      <div style="border:1px dashed var(--border); border-radius:10px; padding:9px 12px; margin-bottom:8px; font-size:12px; color:var(--text-faint);">
-        ${x.ticker} - המלצה לפי הכללים הקודמים. תוחלף באותות של האסטרטגיות החדשות בריצה הבאה.
-      </div>` : `
-      <div style="border:1px solid ${x.strategy === "A" ? "var(--border)" : "#ffd76a55"}; border-radius:10px; padding:10px 12px; margin-bottom:8px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="font-weight:800; font-size:15px;">${(listStatus["book_" + x.strategy] || {}).status === "warning" ? `⚠️ ${x.ticker} · האסטרטגיה מפגרת בזמן אמת` : `✅ לקנות ${x.ticker}`} <span style="font-size:11px; font-weight:600; color:var(--text-dim);">${x.strategy_label}</span></span>
-          <span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span>
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; font-size:12px; text-align:center;">
-          <div>כניסה<br><span style="font-weight:700;">בפתיחה הבאה</span><br><span class="mono" style="font-size:11px; color:var(--text-faint);">סגירה אחרונה ${fmtTickerPrice(x.ticker, x.price)}</span></div>
-          <div>⏱ יציאה<br><span style="font-weight:700;">בסגירה של ~${fmtDateIL(x.exit_estimate)}</span><br><span style="font-size:11px; color:var(--text-faint);">${x.hold_sessions} ימי מסחר · בלי סטופ ובלי יעד</span></div>
-        </div>
-        <div style="font-size:11px; color:var(--text-dim); margin-top:6px;">${x.why}${x.sector ? ` · ${x.sector}` : ""}${x.already_held ? ` · <span style="color:#ffd76a;">כבר מוחזקת בתיק האסטרטגיה</span>` : ""}</div>
-      </div>`).join("");
-  } else {
-    shortBody = `<div style="font-size:13px; font-weight:700; margin-bottom:6px;">⏸ אין אות קנייה היום</div>
-      <div style="font-size:12px; color:var(--text-dim);">אף מניית S&amp;P 500 לא עונה היום על התנאים של שתי האסטרטגיות. זה תקין - האותות מגיעים בגלים, בעיקר אחרי ימים סוערים בשוק.</div>`;
-  }
-  const near = "";
-  parts.push(recCard("⚡ טווח קצר · אסטרטגיות שנבדקו על 26 שנה", `<div>${listStatusChip("book_A", { withLabel: true })} ${listStatusChip("book_B", { withLabel: true })}</div>` + bookTrack + shortBody + near + oldRecord + small(`${r.short_rules}${r.book_session ? ` · מחושב לפי סגירת ${fmtDateIL(r.book_session)}` : ""}`)));
-
-  // 3. long term
-  let longBody;
-  if (!(r.long_sectors || []).length) {
-    longBody = `<div style="font-size:12px; color:var(--text-dim);">רשימת הטווח הארוך עוד נבנית - נאספו ${r.long_coverage_pct ?? 0}% מהדוחות של S&amp;P 500. ההמלצה תופיע כשהרשימה מוכנה.</div>`;
-  } else {
-    const lead = r.long_sectors[0];
-    longBody = `
-      <div style="font-size:13px; line-height:1.7; margin-bottom:8px;">📌 <b>הסקטור המוביל: ${r.long_lead_sector}</b> - ${lead.count} מניות ברשימת האיכות, ציון ממוצע <span class="mono">${lead.avg_long_term_score}</span>, ${lead.enter_count} בתזמון כניסה.</div>
-      ${(() => {
-        const stats = x => `${x.sector || ""} · מחיר <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span> · איכות <span class="mono">${x.quality_score != null ? Number(x.quality_score).toFixed(0) : "—"}</span> · אנליסטים <span class="mono">${x.analyst_score != null ? Number(x.analyst_score).toFixed(0) : "—"}</span> · תזמון <span class="mono">${x.timing_score != null ? Number(x.timing_score).toFixed(0) : "—"}</span>${x.trend_met != null ? ` · מגמה <span class="mono">${x.trend_met}/${x.trend_total}</span>` : ""}${x.value_tag ? ` · <span style="color:#7fd8ff;">💎 זולה מול עצמה</span>` : ""}`;
-        const enterHtml = (r.long || []).map(x => `
-          <div style="border:1px solid var(--border); border-radius:10px; padding:9px 12px; margin-bottom:6px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">${isProven("long_enter") ? `✅ לקנות ${x.ticker}` : `🧪 ${x.ticker} · ניסוי`} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">משקל ${x.weight_pct}%</span></div>
-            <div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${stats(x)}</div>
-          </div>`).join("");
-        const dipHtml = (r.long_dip || []).map(x => `
-          <div style="border:1px solid #ffd76a66; border-radius:10px; padding:9px 12px; margin-bottom:6px;">
-            <div style="display:flex; justify-content:space-between;"><span style="font-weight:800;">🧪 ${x.ticker} · בתיקון · ניסוי <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${x.company_name || ""}</span></span><span class="mono" style="font-size:12px; color:var(--text-dim);">${x.first_tranche_pct}% עכשיו מתוך ${x.weight_pct}%</span></div>
-            <div style="font-size:11px; color:var(--text-dim); margin-top:3px;">${stats(x)}</div>
-            <div style="font-size:11px; color:#ffd76a; margin-top:3px;">חברה איכותית שהמגמה הארוכה שלה שבורה, עם תזמון קצר חיובי. כניסה בשלבים - שליש עכשיו, והשאר רק אם המגמה משתפרת.</div>
-          </div>`).join("");
-        return (enterHtml || dipHtml) ? enterHtml + dipHtml
-          : `<div style="font-size:12px; color:var(--text-dim);">⏳ אף מניה ברשימה לא בתזמון כניסה היום - להמתין.</div>`;
-      })()}
-      ${(r.long_watch || []).length ? `<div style="font-size:11.5px; color:var(--text-dim); margin-top:6px;">👀 במעקב (איכותיות, מחכות לתזמון): ${r.long_watch.map(w => `<b>${w.ticker}</b>`).join(", ")}</div>` : ""}
-      ${r.long_rules ? `<div style="font-size:10.5px; color:var(--text-faint); margin-top:6px; line-height:1.6;">${r.long_rules}</div>` : ""}`;
-  }
-  parts.push(recCard("🏛 טווח ארוך (חודשים עד שנים)", `<div>${listStatusChip("long_enter", { withLabel: true })} ${listStatusChip("long_dip", { withLabel: true })}</div>` + longBody + small("הרשימה מתעדכנת פעם בחודש לפי איכות עסקית ודירוג אנליסטים. ציון האיכות לא נבדק היסטורית - נמדד מהיום.")));
-
-  // 4. holdings warnings
-  const w = r.warnings || [];
-  parts.push(recCard("⚠️ מה לבדוק בתיקים שלך", w.length
-    ? w.map(x => `<div style="font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--border);"><b>${x.ticker}</b> <span style="font-size:11px; color:var(--text-faint);">(${x.source} · <span class="mono">${fmtTickerPrice(x.ticker, x.price)}</span>)</span><br><span style="color:#ff9a8a;">${x.reasons.join(" · ")}</span>${x.note ? `<br><span style="font-size:11px; color:var(--text-dim);">↔️ ${x.note}</span>` : ""}</div>`).join("")
-      + small("זו לא המלצת מכירה אוטומטית - סימן לבדוק את המניה ב'בדוק מניה' ולהחליט.")
-    : `<div style="font-size:12px; color:var(--text-dim);">✅ אין כרגע איתותי אזהרה על המניות בתיקים שלך.</div>`
-    + ((r.not_scanned || []).length ? small(`לא נבדקו (מחוץ לטווח הסריקה): ${r.not_scanned.join(", ")}`) : "")));
-
-  // 5. what works
-  const wk = r.working || [];
-  if (wk.length) {
-    parts.push(recCard("📊 מה עובד עכשיו (מול S&amp;P 500)", wk.map(x => `
-      <div style="display:flex; justify-content:space-between; font-size:12px; padding:5px 0; border-bottom:1px solid var(--border);">
-        <span>${x.label} <span style="color:var(--text-faint); font-size:10.5px;">מאז ${fmtDateIL(x.start_date)}</span></span>
-        <span class="mono" style="font-weight:700; color:${x.vs_sp500_pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(x.vs_sp500_pct, 2)}</span>
-      </div>`).join("") + small("תקופות קצרות הן בעיקר רעש. משמעות אמיתית מתחילה אחרי כמה חודשים.")));
-  }
-  el.innerHTML = parts.join("");
 }
 
 // ---------- v6.3.0: 📒 portfolios tab ----------
@@ -3974,30 +3727,20 @@ function renderBookCard(b, desc) {
   </div>`;
 }
 
-function renderPortfolios(data) {
-  const el = document.getElementById("portfoliosBody");
-  if (!el) return;
-  const book = data.strategy_book || {};
-  el.innerHTML = renderLivePortfolioCard(data)
-    + renderBookCard(book.A, "מניית S&P 500 שירדה 12%+ ב-5 ימים מעל ממוצע 200 · החזקה 10 ימי מסחר")
-    + renderBookCard(book.B, "פער פתיחה 5%+ בווליום פי 3 וסגירה חזקה, כשה-S&P מעל ממוצע 200 · החזקה 60 ימי מסחר")
-    + renderMonthlyPortfolioCard(data);
-}
-
 // ---------- v6.6.0: 🚨 unusual moves + 📚 event log ----------
 function moveHeadlinesHtml(ev) {
-  const fil = (ev.filings || []).map(f => `<div style="font-size:11.5px; margin-top:4px;">📄 <a href="${safeUrl(f.url) || "#"}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">דיווח רשמי ${f.form} (${fmtDateIL(f.date)})</a>: ${(f.labels || []).join(", ") || "ללא פירוט סעיפים"}</div>`).join("");
+  const fil = (ev.filings || []).map(f => `<div style="font-size:12.5px; margin-top:4px;">📄 <a href="${safeUrl(f.url) || "#"}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">דיווח רשמי ${f.form} (${fmtDateIL(f.date)})</a>: ${(f.labels || []).join(", ") || "ללא פירוט סעיפים"}</div>`).join("");
   return fil + moveHeadlinesOnly(ev);
 }
 
 function moveHeadlinesOnly(ev) {
-  if (!(ev.headlines || []).length) return `<div style="font-size:11px; color:var(--text-faint); margin-top:4px;">לא נמצאו כותרות מהימים האחרונים</div>`;
+  if (!(ev.headlines || []).length) return `<div style="font-size:12px; color:var(--text-faint); margin-top:4px;">לא נמצאו כותרות מהימים האחרונים</div>`;
   // v6.8.3: Hebrew translation first (when available), the English original underneath
   return ev.headlines.map(h => {
     const main = h.title_he || h.title;
     const link = safeUrl(h.url) ? `<a href="${safeUrl(h.url)}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${main}</a>` : main;
-    const orig = h.title_he ? `<div dir="ltr" style="font-size:10.5px; color:var(--text-faint); text-align:left; margin-top:1px;">${h.title}</div>` : "";
-    return `<div style="font-size:11.5px; margin-top:5px; line-height:1.5;">• ${link}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}${orig}</div>`;
+    const orig = h.title_he ? `<div dir="ltr" style="font-size:12px; color:var(--text-faint); text-align:left; margin-top:1px;">${h.title}</div>` : "";
+    return `<div style="font-size:12.5px; margin-top:5px; line-height:1.5;">• ${link}${h.publisher ? ` <span style="color:var(--text-faint);">(${h.publisher})</span>` : ""}${orig}</div>`;
   }).join("");
 }
 
@@ -4022,44 +3765,18 @@ function renderMovesCard(data) {
   el.innerHTML = `
     <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px; border:1px solid #ff9a8a66;">
       <div style="font-size:13px; font-weight:800; margin-bottom:2px;">🚨 תנועות חריגות · ${fmtDateIL(last)}</div>
-      <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">מניות מהרשימות שלך שזזו 7% ומעלה. מידע בלבד - לא משנה אף המלצה.</div>
+      <div style="font-size:12px; color:var(--text-faint); margin-bottom:6px;">מניות מהרשימות שלך שזזו 7% ומעלה. מידע בלבד - לא משנה אף המלצה.</div>
       <button type="button" id="refreshNewsBtn" class="top-toggle-btn" style="font-size:12px; padding:5px 12px; margin-bottom:6px;">🔄 חפש חדשות שוב</button>
       ${shown.sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).map(ev => `
         <div style="padding:8px 0; border-top:1px solid var(--border);">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-weight:800;">${ev.ticker} <span style="font-weight:400; font-size:11px; color:var(--text-faint);">${(ev.lists || []).join(" · ")}</span></span>
+            <span style="font-weight:800;">${ev.ticker} <span style="font-weight:400; font-size:12px; color:var(--text-faint);">${(ev.lists || []).join(" · ")}</span></span>
             <span class="mono" style="font-weight:800; color:${ev.pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(ev.pct, 1)}</span>
           </div>
-          <div style="font-size:11.5px; color:var(--text-dim); margin-top:2px;">📰 סיבה משוערת: <b>${ev.category_label}</b></div>
+          <div style="font-size:12.5px; color:var(--text-dim); margin-top:2px;">📰 סיבה משוערת: <b>${ev.category_label}</b></div>
           ${moveHeadlinesHtml(ev)}
         </div>`).join("")}
     </div>`;
-}
-
-function renderEventLog(data) {
-  const el = document.getElementById("eventLogBody");
-  if (!el) return;
-  const st = data.move_event_stats || {};
-  const rows = st.rows || [];
-  const evs = (data.move_events || []).slice().reverse();
-  if (!evs.length) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">עוד אין אירועים. כל תנועה של 7%+ במניה מהרשימות שלך תירשם כאן, יחד עם מה שקרה לה 5, 10 ו-20 ימי מסחר אחר כך.</div>`; return; }
-  const cell = (v, n) => v == null ? `<span style="color:var(--text-faint);">—</span>` : `<span class="mono" style="color:${v >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(v, 1)}</span><span style="font-size:9.5px; color:var(--text-faint);"> (${n})</span>`;
-  el.innerHTML = `
-    <div style="font-size:11px; color:var(--text-faint); margin-bottom:8px; line-height:1.6;">${st.total_events || evs.length} אירועים · התשואה הממוצעת אחרי האירוע, מסגירת יום האירוע. בסוגריים: על כמה אירועים זה מחושב - פחות מ-20 זה עדיין רעש.</div>
-    <div style="display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:4px; font-size:11px; color:var(--text-faint); padding-bottom:4px; border-bottom:1px solid var(--border);">
-      <span>סוג · כיוון</span><span>5 ימים</span><span>10 ימים</span><span>20 ימים</span>
-    </div>
-    ${rows.map(r => `<div style="display:grid; grid-template-columns:1.6fr repeat(3,1fr); gap:4px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
-      <span>${r.direction === "down" ? "🔻" : "🔺"} ${r.label} <span style="color:var(--text-faint);">(${r.events})</span></span>
-      <span>${cell(r.avg_5d_pct, r.n_5d)}</span><span>${cell(r.avg_10d_pct, r.n_10d)}</span><span>${cell(r.avg_20d_pct, r.n_20d)}</span>
-    </div>`).join("")}
-    <details style="margin-top:8px;"><summary style="font-size:12px; color:var(--text-dim); cursor:pointer;">אירועים אחרונים (${evs.length})</summary>
-      ${evs.slice(0, 30).map(ev => `<div style="padding:7px 0; border-top:1px solid var(--border); font-size:12px;">
-        <b>${ev.ticker}</b> <span class="mono" style="color:${ev.pct >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(ev.pct, 1)}</span> <span style="color:var(--text-faint);">· ${fmtDateIL(ev.date)} · ${ev.category_label}</span>
-        <span style="float:left; font-size:11px;">${["5", "10", "20"].map(k => ev.outcome && ev.outcome[k] != null ? `${k}י׳ ${signedPct(ev.outcome[k], 1)}` : "").filter(Boolean).join(" · ") || `<span style="color:var(--text-faint);">ממתין לתוצאה</span>`}</span>
-        ${(ev.headlines || [])[0] ? `<div style="font-size:11px; color:var(--text-dim); margin-top:2px;">${ev.headlines[0].title_he || ev.headlines[0].title}</div>` : ""}
-      </div>`).join("")}
-    </details>`;
 }
 
 // ---------- v6.9.0: 🔔 early-warning news for held stocks ----------
@@ -4074,35 +3791,17 @@ function renderHoldingNewsCard(data) {
   el.innerHTML = `
     <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px; border:1px solid #ffd76a66;">
       <div style="font-size:13px; font-weight:800; margin-bottom:2px;">🔔 עדכונים למניות בתיקים שלך</div>
-      <div style="font-size:11px; color:var(--text-faint); margin-bottom:6px;">דוחות מתקרבים, דיווחים רשמיים וכותרות כבדות - גם בלי תנועת מחיר. מידע בלבד.</div>
+      <div style="font-size:12px; color:var(--text-faint); margin-bottom:6px;">דוחות מתקרבים, דיווחים רשמיים וכותרות כבדות - גם בלי תנועת מחיר. מידע בלבד.</div>
       ${recent.slice(0, 12).map(ev => {
         const u = safeUrl(ev.url);
         const txt = u ? `<a href="${u}" target="_blank" rel="noopener" style="color:var(--text); text-decoration:underline; text-decoration-color:var(--border-hi);">${ev.text}</a>` : ev.text;
         return `<div style="padding:7px 0; border-top:1px solid var(--border); font-size:12px; line-height:1.5;">
-          ${icon[ev.kind] || "•"} <b>${ev.ticker}</b> <span style="font-size:10.5px; color:var(--text-faint);">${(ev.lists || []).join(" · ")} · ${fmtDateIL(ev.date)}</span><br>
+          ${icon[ev.kind] || "•"} <b>${ev.ticker}</b> <span style="font-size:12px; color:var(--text-faint);">${(ev.lists || []).join(" · ")} · ${fmtDateIL(ev.date)}</span><br>
           ${txt}${ev.publisher ? ` <span style="color:var(--text-faint);">(${ev.publisher})</span>` : ""}
-          ${ev.title && ev.title !== ev.text ? `<div dir="ltr" style="font-size:10.5px; color:var(--text-faint); text-align:left;">${ev.title}</div>` : ""}
+          ${ev.title && ev.title !== ev.text ? `<div dir="ltr" style="font-size:12px; color:var(--text-faint); text-align:left;">${ev.title}</div>` : ""}
         </div>`;
       }).join("")}
     </div>`;
-}
-
-function renderHoldingNewsLog(data) {
-  const el = document.getElementById("holdingNewsLogBody");
-  if (!el) return;
-  const rows = ((data.holding_news_stats || {}).rows) || [];
-  if (!rows.length) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">עוד אין עדכונים. כל דוח מתקרב, דיווח רשמי או כותרת כבדה על מניה שבתיקים יירשמו כאן, יחד עם מה שקרה לה 5, 10 ו-20 ימי מסחר אחר כך.</div>`; return; }
-  const cell = (v, n) => v == null ? `<span style="color:var(--text-faint);">—</span>` : `<span class="mono" style="color:${v >= 0 ? "var(--up)" : "var(--down)"};">${signedPct(v, 1)}</span><span style="font-size:9.5px; color:var(--text-faint);"> (${n})</span>`;
-  const icon = { earnings: "📅", filing: "📄", headline: "⚠️" };
-  el.innerHTML = `
-    <div style="display:grid; grid-template-columns:1.8fr repeat(3,1fr); gap:4px; font-size:11px; color:var(--text-faint); padding-bottom:4px; border-bottom:1px solid var(--border);">
-      <span>סוג העדכון</span><span>5 ימים</span><span>10 ימים</span><span>20 ימים</span>
-    </div>
-    ${rows.map(r => `<div style="display:grid; grid-template-columns:1.8fr repeat(3,1fr); gap:4px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border);">
-      <span>${icon[r.kind] || "•"} ${r.label} <span style="color:var(--text-faint);">(${r.events})</span></span>
-      <span>${cell(r.avg_5d_pct, r.n_5d)}</span><span>${cell(r.avg_10d_pct, r.n_10d)}</span><span>${cell(r.avg_20d_pct, r.n_20d)}</span>
-    </div>`).join("")}
-    <div style="font-size:10.5px; color:var(--text-faint); margin-top:6px;">התשואה הממוצעת של המניה מסגירת יום העדכון. פחות מ-20 אירועים בשורה - עדיין רעש.</div>`;
 }
 
 function renderDataFreshnessNote(data) {
@@ -4131,6 +3830,7 @@ function renderDataFreshnessNote(data) {
 
 async function loadPredictions() {
   const section = document.getElementById("predictionsSection");
+  predictionsPromise = predictionsPromise || Promise.resolve();
   try {
     await loadCurrentPrices();
     const res = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/predictions.json?t=${Date.now()}`);
@@ -4186,6 +3886,8 @@ async function loadPredictions() {
     renderHomeDashboardTiles();
   } catch (e) {
     section.classList.add("hidden");
+  } finally {
+    window.__predictionsLoaded = true;   // QA waits on this
   }
 }
 
@@ -4230,7 +3932,7 @@ function renderTrackRecord(history, acc) {
     list.innerHTML = `<div class="predictions-empty">עדיין אין תחזיות חזקות שנבדקו</div>`;
   } else {
     list.innerHTML = `
-      <div style="font-size:11.5px; color:var(--text-faint); padding-bottom:8px;">
+      <div style="font-size:12.5px; color:var(--text-faint); padding-bottom:8px;">
         ${shownHits} הצלחות מתוך ${gradedStrong.length} התחזיות המוצגות למטה (${shownRate}%) - בדיוק אלה שנספרו בריבועים למעלה.
         סה"כ נבדקו עד היום ${acc.strong_total} תחזיות חזקות (${acc.strong_only}% ממוצע כולל, כולל תחזיות ישנות יותר שלא מוצגות כאן).
       </div>
@@ -4308,7 +4010,7 @@ function showLiveEstimateDetail(show) {
         <span class="mono ${cls}" style="font-weight:600;">${d.pct >= 0 ? "+" : ""}${d.pct.toFixed(2)}%</span>
       </div>`;
     }).join("")}
-    <p style="margin-top:12px; font-size:11.5px; color:var(--text-faint);">
+    <p style="margin-top:12px; font-size:12.5px; color:var(--text-faint);">
       ממוצע שווה-משקל בין המניות האלה = הערכת התשואה החיה (${lastLiveEstimate.avg >= 0 ? "+" : ""}${lastLiveEstimate.avg.toFixed(2)}%).
     </p>`;
 }
@@ -4378,14 +4080,14 @@ function showAccuracyExplanation() {
     html += `
       <p>הריבוע הזה מציג את הדיוק <b>היומי</b> (לא ממוצע מצטבר!) של <b>Top 10</b> - עשר המניות עם עוצמת החיזוי הגבוהה ביותר, ביום המסחר האחרון שכבר ניתן היה לבדוק (לפי ציון, קבוע - לא תלוי במיון שבחרת ברשימה).</p>
       <p>ביום <b class="mono">${acc.top10_daily_date}</b>: <b class="mono" style="color:var(--up);">${acc.top10_daily_hits}</b> מתוך <b class="mono">${acc.top10_daily_total}</b> תחזיות Top 10 התממשו בכיוון הנכון = <b class="mono" style="color:var(--up);">${acc.top10_accuracy_daily}%</b>.</p>
-      <p style="font-size:11.5px; color:var(--text-faint); margin-top:10px;">
+      <p style="font-size:12.5px; color:var(--text-faint); margin-top:10px;">
         זה שונה מהריבוע "אחוז הצלחה Top 10" שבתוך סימולציית ה-$100,000 למטה, שמציג ממוצע מצטבר על כל הימים שנבדקו עד כה (<b class="mono">${acc.top10_accuracy != null ? acc.top10_accuracy + "%" : "—"}</b> על <b class="mono">${acc.top10_total || 0}</b> תחזיות בסה"כ) - שני המספרים תקינים, הם פשוט עונים על שאלות שונות.
       </p>`;
   } else {
     html += `
       <p>עדיין אין תחזיות Top 10 שניתן היה לבדוק (צריך יום מלא לעבור מאז הפרסום) - לכן הריבוע מציג במקום זאת את הדיוק על <b>כל השוק</b> שנותח (ארה"ב + ישראל יחד, לא רק המניות המצומצמות).</p>
       <p><b class="mono">${acc.total_graded}</b> תחזיות נבדקו בסה"כ עד כה, מהן <b class="mono">${Math.round(acc.total_graded * acc.overall / 100)}</b> התממשו בכיוון הנכון = <b class="mono">${acc.overall}%</b>.</p>
-      <p style="font-size:11.5px; color:var(--text-faint); margin-top:10px;">
+      <p style="font-size:12.5px; color:var(--text-faint); margin-top:10px;">
         לשם השוואה: מתוך המניות המצומצמות (25) בלבד, ${acc.strong_hits} מתוך ${acc.strong_total} הצליחו (${acc.strong_only}%) - זה מספר שונה כי הוא מסתכל רק על תת-הקבוצה הזו, לא על כל השוק. ברגע שיהיו תחזיות Top 10 שנבדקו, הריבוע הזה יעבור להציג אותן במקום.
       </p>`;
   }
@@ -4399,211 +4101,6 @@ document.getElementById("accExplainCloseBtn").addEventListener("click", () => {
 document.getElementById("accExplainOverlay").addEventListener("click", (e) => {
   if (e.target.id === "accExplainOverlay") document.getElementById("accExplainOverlay").classList.add("hidden");
 });
-
-function renderFactorAnalysis(analysis) {
-  const section = document.getElementById("factorAnalysisSection");
-  if (!analysis || !analysis.factors || !analysis.factors.length) {
-    section.classList.add("hidden");
-    return;
-  }
-
-  document.getElementById("factorAnalysisSummary").innerHTML =
-    `בסיס השוואה: <b class="mono">${analysis.baseline}%</b> הצלחה על <b class="mono">${analysis.baseline_n}</b> תחזיות שנבדקו בסה"כ (כל השוק - ארה"ב וישראל יחד, לא רק המניות המצומצמות). ` +
-    `כל טריגר מוצג רק אחרי לפחות ${analysis.min_sample} מקרים, כדי לא להסיק ממדגם קטן מדי. "מהבסיס" = כמה יותר/פחות טוב הטריגר הזה לעומת הממוצע הכללי.`;
-
-  const list = document.getElementById("factorAnalysisList");
-  list.innerHTML = analysis.factors.map(f => {
-    const edgeClass = f.edge >= 0 ? "prediction-dir-up" : "prediction-dir-down";
-    const edgeText = `${f.edge >= 0 ? "+" : ""}${f.edge}`;
-    return `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px; font-weight:600;">${f.label}</span>
-          <span class="mono ${edgeClass}" style="font-weight:700;">${f.hit_rate}%</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>n=${f.n}</span>
-          <span class="mono ${edgeClass}">${edgeText} מהבסיס</span>
-        </div>
-      </div>`;
-  }).join("");
-
-  section.classList.remove("hidden");
-}
-
-function renderFormulaComparison(fc) {
-  window.__dashboardData.sinceChange = (fc && fc.since_change) || null;
-  const section = document.getElementById("rrExperimentSection");
-  if (!fc || !fc.formulas || !fc.formulas.length) {
-    section.classList.add("hidden");
-    return;
-  }
-  const hasAnyData = fc.formulas.some(f => f.accuracy != null || f.total_return_pct != null);
-  if (!hasAnyData) {
-    section.classList.add("hidden");
-    return;
-  }
-
-  document.getElementById("formulaComparisonNote").textContent = fc.note || "";
-
-  const sinceBox = document.getElementById("formulaSinceChangeBox");
-  if (fc.since_change && fc.since_change.live_since) {
-    const sc = fc.since_change;
-    const accCls = sc.accuracy == null ? "" : (sc.accuracy >= 50 ? "prediction-dir-up" : "prediction-dir-down");
-    const accText = sc.accuracy != null ? `${sc.accuracy}% <span style="font-size:10px; color:var(--text-faint);">(n=${sc.total || 0})</span>` : "—";
-    const retCls = sc.portfolio_return_pct == null ? "" : (sc.portfolio_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-    const retText = sc.portfolio_return_pct != null ? `${sc.portfolio_return_pct >= 0 ? "+" : ""}${sc.portfolio_return_pct}%` : "—";
-    sinceBox.innerHTML = `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px; border-color:var(--accent, #4a9eff);">
-        <div style="font-size:12px; font-weight:700; color:var(--text-dim);">✨ מאז שינוי הנוסחה (${sc.live_since}) - בלי היסטוריה ישנה מעורבבת</div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px;">הצלחת Top 10</span>
-          <span class="mono ${accCls}" style="font-weight:700;">${accText}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>תשואת תיק מדומה</span>
-          <span class="mono ${retCls}">${retText}</span>
-        </div>
-      </div>`;
-  } else {
-    sinceBox.innerHTML = "";
-  }
-
-  const list = document.getElementById("formulaComparisonList");
-  list.innerHTML = fc.formulas.map(f => {
-    const accCls = f.accuracy == null ? "" : (f.accuracy >= 50 ? "prediction-dir-up" : "prediction-dir-down");
-    const accText = f.accuracy != null
-      ? `${f.accuracy}% <span style="font-size:10px; color:var(--text-faint);">(n=${f.total || 0})</span>`
-      : "—";
-    const retCls = f.total_return_pct == null ? "" : (f.total_return_pct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-    const retText = f.total_return_pct != null ? `${f.total_return_pct >= 0 ? "+" : ""}${f.total_return_pct}%` : "—";
-    return `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px; font-weight:600;">${f.label}</span>
-          <span class="mono ${accCls}" style="font-weight:700;">${accText}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>תיק מדומה מצטבר</span>
-          <span class="mono ${retCls}">${retText}</span>
-        </div>
-      </div>`;
-  }).join("");
-
-  section.classList.remove("hidden");
-}
-
-function renderBenchmarkComparison(bc) {
-  const section = document.getElementById("benchmarkComparisonSection");
-  if (!bc || !bc.entries) {
-    section.classList.add("hidden");
-    return;
-  }
-  const order = ["top10", "my_portfolio", "index_sim_sp500", "index_sim_ta125"];
-  const hasAnyData = order.some(k => bc.entries[k] && bc.entries[k].total_return_pct != null);
-  if (!hasAnyData) {
-    section.classList.add("hidden");
-    return;
-  }
-
-  const fmtPct = (v) => v == null ? "—" : `${v >= 0 ? "+" : ""}${v.toFixed(2)}%`;
-  const pctCls = (v) => v == null ? "" : (v >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-  const fmtIls = (v) => v == null ? "—" : `$${Math.round(v).toLocaleString("en-US")}`;
-
-  const list = document.getElementById("benchmarkComparisonList");
-  list.innerHTML = order.filter(k => bc.entries[k]).map(k => {
-    const e = bc.entries[k];
-    return `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px; font-weight:600;">${e.label}</span>
-          <span class="mono ${pctCls(e.total_return_pct)}" style="font-weight:700;">${fmtPct(e.total_return_pct)}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>מאז שינוי הנוסחה${bc.since_formula_change ? " (" + bc.since_formula_change + ")" : ""}</span>
-          <span class="mono ${pctCls(e.return_since_formula_change_pct)}">${fmtPct(e.return_since_formula_change_pct)}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>שווי $100,000 מדומה${k === "top10" ? "" : (k === "my_portfolio" ? "" : " (Buy&Hold)")}</span>
-          <span class="mono">${fmtIls(e.value)}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
-          <span>Max Drawdown / תנודתיות</span>
-          <span class="mono">${e.max_drawdown_pct != null ? e.max_drawdown_pct.toFixed(2) + "%" : "—"} / ${e.volatility_pct != null ? e.volatility_pct.toFixed(2) + "%" : "—"}</span>
-        </div>
-      </div>`;
-  }).join("");
-
-  section.classList.remove("hidden");
-}
-
-function renderMonthlyPortfolio(mp, prices) {
-  const section = document.getElementById("monthlyPortfolioSection");
-  if (!mp || !mp.holdings || !mp.holdings.length) {
-    section.classList.add("hidden");
-    window.__tabState.monthlyWarnedCount = 0;
-    updateTabLabels();
-    renderSectorAllocationDonut("monthlySectorDonut", []);
-    return;
-  }
-  window.__tabState.monthlyWarnedCount = mp.holdings.filter(h => h.warned).length;
-  updateTabLabels();
-  renderSectorAllocationDonut("monthlySectorDonut", mp.holdings.map(h => latestPredictionsByTicker[h.ticker]).filter(Boolean));
-
-  const returns = mp.holdings
-    .map(h => {
-      const live = prices[h.ticker];
-      const current = live && live.price != null ? live.price : h.entry_price;
-      return h.entry_price ? (current - h.entry_price) / h.entry_price * 100 : null;
-    })
-    .filter(r => r != null);
-  const avgPct = returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
-  const avgCls = avgPct == null ? "" : (avgPct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-  const avgText = avgPct == null ? "—" : `${avgPct >= 0 ? "+" : ""}${avgPct.toFixed(2)}%`;
-  // simple average across holdings (equal-weight assumption - the monthly
-  // portfolio has no quantity/weight field, just a fixed Top10 snapshot
-  // held for the cycle) - not a compounding daily sim like "התיק שלי"/Top10
-  // have, since there's no need to replay day-by-day: entry_price already
-  // IS the fixed starting point for this cycle.
-  const impliedIls = avgPct != null ? Math.round(100000 * (1 + avgPct / 100)) : null;
-
-  const summary = document.getElementById("monthlyPortfolioSummary");
-  summary.innerHTML = `
-    מחזור נוכחי: <b class="mono">${mp.start_date}</b> → רענון הבא: <b class="mono">${mp.next_refresh_date}</b> · ${mp.holdings.length} מניות
-    <div style="margin-top:8px; font-size:14px;">
-      תשואה מצטברת של המחזור (ממוצע פשוט בין ההחזקות): <b class="mono ${avgCls}">${avgText}</b>
-      ${impliedIls != null ? `<span style="color:var(--text-faint);"> (≈ $${impliedIls.toLocaleString("en-US")} אם הושקעו $100,000 בחלוקה שווה בתחילת המחזור)</span>` : ""}
-    </div>`;
-
-  const list = document.getElementById("monthlyPortfolioList");
-  list.innerHTML = mp.holdings.map(h => {
-    const live = prices[h.ticker];
-    const current = live && live.price != null ? live.price : h.entry_price;
-    const pct = h.entry_price ? ((current - h.entry_price) / h.entry_price * 100) : null;
-    const cls = pct == null ? "" : (pct >= 0 ? "prediction-dir-up" : "prediction-dir-down");
-    const pctText = pct == null ? "—" : `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
-    const entryPriceText = h.entry_price != null ? h.entry_price.toFixed(2) : "—";
-    const currentPriceText = current != null ? current.toFixed(2) : "—";
-    const warnBadge = h.warned ? `<span class="track-outcome wrong">🚨 הופעלה אזהרה</span>` : "";
-    const earlyWarnBadge = (!h.warned && h.early_warned) ? `<span class="track-outcome" style="background:rgba(230,180,40,0.15); color:#c99a1f;">⚠️ איתות מקדים</span>` : "";
-    const backupTag = h.backup_pick
-      ? `<span style="color:var(--text-faint); font-size:10.5px; margin-inline-start:5px;" title="לא עמדה במלוא הקריטריונים המחמירים - נכנסה כי הייתה הקרובה ביותר, כדי שהתיק לא יישאר עם פחות מ-10 מניות">(גיבוי)</span>`
-      : "";
-    return `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
-        <div style="display:flex; justify-content:space-between;">
-          <span class="t-ticker mono">${h.ticker}${backupTag}</span>
-          <span class="mono" style="color:var(--text-faint);">כניסה ${h.entry_date} · ${entryPriceText}</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span class="mono ${cls}" style="font-weight:700;">מחיר נוכחי: ${currentPriceText} (${pctText})</span>
-          ${warnBadge}${earlyWarnBadge}
-        </div>
-      </div>`;
-  }).join("");
-
-  section.classList.remove("hidden");
-}
 
 function showDailyPnl(show) {
   document.getElementById("dailyPnlOverlay").classList.toggle("hidden", !show);
@@ -4620,7 +4117,7 @@ function showDailyPnl(show) {
         <span class="mono ${cls}" style="font-weight:600;">${txt}</span>
       </div>`;
     }).join("")}
-    <p style="margin-top:12px; font-size:11.5px; color:var(--text-faint);">
+    <p style="margin-top:12px; font-size:12.5px; color:var(--text-faint);">
       ממוצע שווה-משקל בין המניות האלה = השינוי היומי של התיק המדומה (${lastDailyPnlEntry.return_pct >= 0 ? "+" : ""}${lastDailyPnlEntry.return_pct}%).
     </p>`;
 }
@@ -4710,11 +4207,11 @@ function buildChartSvg(chart) {
       <text x="${ML}" y="${H - 4}" font-size="8" text-anchor="start" fill="var(--text-faint)">כ-${n} ימי מסחר אחרונים</text>
       <text x="${W - MR}" y="${H - 4}" font-size="8" text-anchor="end" fill="var(--text-faint)">היום ←</text>
     </svg>
-    <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-top:8px; color:var(--text-dim);">
+    <div style="display:flex; justify-content:space-between; font-size:12.5px; margin-top:8px; color:var(--text-dim);">
       <span><span style="color:var(--down);">▬▬</span> התנגדות: <b class="mono">${chart.resistance}</b>${chart.resistance_projected ? " (מוערך)" : ""}</span>
       <span><span style="color:var(--up);">▬▬</span> תמיכה: <b class="mono">${chart.support}</b>${chart.support_projected ? " (מוערך)" : ""}</span>
     </div>
-    <div style="font-size:11px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
+    <div style="font-size:12px; color:var(--text-faint); margin-top:6px; line-height:1.5;">
       העיגול המודגש (⭕) מסביב לנקודה מראה איזו נקודת שיא/שפל היסטורית ספציפית נבחרה כרמת התמיכה/ההתנגדות הנוכחית - זו הנקודה הכי קרובה למחיר של היום, מהצד הרלוונטי.
     </div>`;
 }
@@ -4914,7 +4411,7 @@ function showHotPickExplanation() {
     html += `<p style="color:var(--text); font-weight:700; margin:16px 0 6px;">📉 ניתוח טכני חזותי</p>` + buildChartSvg(chart);
   }
 
-  html += `<p style="font-size:11px; color:var(--text-faint); margin-top:14px;">
+  html += `<p style="font-size:12px; color:var(--text-faint); margin-top:14px;">
     זהו פירוק שקוף של הנוסחה האוטומטית בלבד - לא ייעוץ השקעות. הניקוד מבוסס על נתונים היסטוריים וסטטיסטיים ואינו מבטיח תוצאה עתידית.
   </p>`;
 
@@ -5085,7 +4582,7 @@ function renderMyPortfolioEditList() {
   list.innerHTML = myHoldings.map((h, i) => `
     <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);">
       <span style="font-size:12.5px;"><b class="mono">${h.ticker}</b>${h.name ? " · " + h.name : ""} · <span class="mono">${h.quantity}</span> יח'</span>
-      <button class="icon-btn danger" data-mp-del="${i}" style="padding:3px 9px; font-size:11px;">🗑</button>
+      <button class="icon-btn danger" data-mp-del="${i}" style="padding:3px 9px; font-size:12px;">🗑</button>
     </div>`).join("");
   list.querySelectorAll("[data-mp-del]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -5211,7 +4708,7 @@ function renderMyPortfolio(snapshot, sim) {
           <span>Top 10 (תיק $100,000) ${!iWinCum ? "🏆" : ""}</span>
           <span class="mono ${realReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${realReturn >= 0 ? "+" : ""}${realReturn}%</span>
         </div>
-        <div style="font-size:10.5px; color:var(--text-faint); margin-top:2px;">מספר ה-Top 10 כאן כולל גם היסטוריה מלפני שינוי הנוסחה (1.9.2026) - המספר הנקי "מאז השינוי" נמצא בסקשן "השוואת נוסחאות".</div>
+        <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">מספר ה-Top 10 כאן כולל גם היסטוריה מלפני שינוי הנוסחה (1.9.2026) - המספר הנקי "מאז השינוי" נמצא בסקשן "השוואת נוסחאות".</div>
       </div>`;
   }
   document.getElementById("myPortfolioCompare").innerHTML = compareHtml;
@@ -5222,10 +4719,10 @@ function renderMyPortfolio(snapshot, sim) {
     return `
       <div class="track-row" style="flex-direction:column; align-items:stretch; gap:4px;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:13px; font-weight:600;">${r.name || r.ticker} <span class="mono" style="font-size:11px; color:var(--text-faint);">${r.ticker}</span></span>
+          <span style="font-size:13px; font-weight:600;">${r.name || r.ticker} <span class="mono" style="font-size:12px; color:var(--text-faint);">${r.ticker}</span></span>
           <span class="mono ${cls}" style="font-weight:700;">${r.pct_change >= 0 ? "+" : ""}${r.pct_change}%</span>
         </div>
-        <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-faint);">
+        <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-faint);">
           <span>מחיר: <span class="mono">${r.price_native}</span> · שווי: <span class="mono">₪${r.value_ils.toLocaleString("he-IL", {maximumFractionDigits:0})}</span></span>
           <span>משקל בתיק: <span class="mono">${r.weight_pct != null ? r.weight_pct + "%" : "—"}</span></span>
         </div>
@@ -5652,6 +5149,7 @@ function switchSubtab(subtabId) {
   activeSubtab = subtabId;
   renderSubTabBar();
   applyVisibility();
+  if (!(activeTab === "home" && subtabId === "action")) ensurePredictions();
 }
 
 function switchTab(tabId) {
@@ -5668,6 +5166,7 @@ function switchTab(tabId) {
   renderSubTabBar();
   applyVisibility();
   updateContextActionBtn();
+  if (!(tabId === "home" && activeSubtab === "action") && typeof ensurePredictions === "function") ensurePredictions();
   window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
 }
 TAB_IDS.forEach(id => {
@@ -5807,7 +5306,7 @@ function renderHomeDashboardVerdict() {
   container.innerHTML = `
     <div class="panel" style="padding:14px 16px; margin-bottom:14px;">
       <div style="font-size:15px; font-weight:700; margin-bottom:6px;" class="${v.tierClass}">${v.tier}</div>
-      <div style="font-size:11px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">
+      <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">
         ציון יומי מבוסס-כללים (${v.total >= 0 ? "+" : ""}${v.total}) - נחשב מחדש כל יום מהנתונים של אותו יום בלבד, לא קשור לסבב הביקורת החודשי שבו נעשים שינויים באפליקציה.
       </div>
       <div style="font-size:13px;">💡 ${v.recommendation}</div>
@@ -5864,9 +5363,10 @@ if (cfg && cfg.owner && cfg.repo && cfg.token) {
   document.getElementById("cfgRepo").value = repo;
   document.getElementById("cfgToken").value = token;
   loadWatchlist().then(() => { ensureUids(); render(); });
-  loadToday();
   loadCurrentPrices().then(maybeAutoRefreshPrices);
-  loadPredictions();
+  // v6.25.0: the home action screen needs only today.json (~35KB); the big
+  // predictions.json (~18MB) loads when another screen is opened
+  loadToday().then(ok => { if (!ok) ensurePredictions(); });
   loadStarred();
   loadMyHoldings();
 } else {
