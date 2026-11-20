@@ -1137,6 +1137,8 @@ const CHANGELOG = [
   { version: "6.24.0", date: "2026-11-20", items: [
     "🐞 מחירים חיים חסרים (backend 5.32.0): מניות שנבחרו בריצה היומית אחרי שנשמרו המחירים (למשל AMD ו-SWKS בקנייה של אסטרטגיה A ב-19.11) נשארו בלי מחיר חי עד הרענון הבא. עכשיו בסוף כל ריצה נבדק שלכל מניה שמוצגת יש מחיר, ומה שחסר נמשך מיד.",
     "🐞 התיק החודשי: כשאין מחיר חי מוצג 'אין מחיר עדכני' במקום מחיר הכניסה (שנראה כמו 0.0%), והמניה לא נכנסת לממוצע.",
+    "🚨 תוקן (20.11): המסך נשאר ריק או תקוע על 'טוען...'. ל-Yahoo עדיין לא היה מחיר סגירה של 19.11 ל-OKTA, PLTR ו-PANW, ולכן נשמר בקובץ הנתונים ערך לא חוקי (NaN) שהדפדפן לא מצליח לקרוא. עכשיו עסקה בלי מחיר סגירה נשארת פתוחה עד שיש מחיר, כל קובץ נשמר בלי ערכים כאלה, והאפליקציה מדלגת עליהם - ואם קובץ בכל זאת לא נקרא, מופיע פס אדום במקום מסך ריק.",
+    "🔒 אבטחה: insider.json ו-today.json עוברים עכשיו את אותו ניקוי של טקסט חיצוני כמו שאר קבצי הנתונים (לפני כן הם לא עברו אותו).",
   ]},
   { version: "6.23.0", date: "2026-11-16", items: [
     "📊 מבחן היציאה (backend 5.31.0): הקוביות מציגות ממוצע לעסקה במקום סכום אחוזים (שירד מתחת ל-100%- ונראה כמו מחיקת תיק), את הפער הממוצע מול ה-S&P באותם ימים, מספר העסקאות, ותיק ניסיוני של $100,000 שעובר מעסקה לעסקה (ריבית דריבית).",
@@ -1571,7 +1573,32 @@ function deepSanitize(x) {
   if (x && typeof x === "object") { for (const k of Object.keys(x)) x[k] = deepSanitize(x[k]); return x; }
   return x;
 }
-async function safeJson(res) { return deepSanitize(await res.json()); }
+// v6.24.0 (20.11.2026): a bare NaN from the engine made JSON.parse throw and
+// blanked the whole app. Bare NaN / Infinity tokens are read as null, and a
+// file that still can't be read shows a red banner instead of an empty screen.
+const BAD_NUM_RE = /([:\[,]\s*)(?:NaN|-?Infinity)(?=\s*[,\]}])/g;
+function parseDataText(txt) {
+  try { return JSON.parse(txt); } catch (e) { return JSON.parse(txt.replace(BAD_NUM_RE, "$1null")); }
+}
+function showDataLoadError(url) {
+  const name = String(url || "").split("?")[0].split("/").pop() || "קובץ נתונים";
+  let el = document.getElementById("dataLoadError");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "dataLoadError";
+    el.setAttribute("role", "alert");
+    el.style.cssText = "position:sticky; top:0; z-index:50; margin:8px; padding:10px 12px; border-radius:10px; background:#5a1d1d; color:#fff; font-size:13px; font-weight:700;";
+    document.body.prepend(el);
+  }
+  const names = new Set((el.dataset.files || "").split(",").filter(Boolean)); names.add(name);
+  el.dataset.files = [...names].join(",");
+  el.textContent = `⚠️ לא הצלחתי לקרוא את ${[...names].join(", ")} - חלק מהמסך חסר. אל תפעל לפי המסך עד שזה יתוקן.`;
+}
+async function safeJson(res) {
+  const txt = await res.text();
+  try { return deepSanitize(parseDataText(txt)); }
+  catch (e) { console.error("data file unreadable", res.url, e); showDataLoadError(res.url); throw e; }
+}
 // an (already-escaped) URL is used only if it is plain http(s)
 function safeUrl(u) {
   if (!u) return null;
@@ -3160,7 +3187,7 @@ async function loadInsider() {
   try {
     const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/insider.json?t=${Date.now()}`);
     if (!r.ok) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">מתחיל בריצת הערב הקרובה.</div>`; return; }
-    renderInsider(await r.json());
+    renderInsider(await safeJson(r));  // v6.24.0: was unescaped, and NaN-unsafe
   } catch (e) { el.innerHTML = `<div style="font-size:12px; color:var(--text-faint);">לא הצלחתי לטעון את הנתונים.</div>`; }
 }
 
@@ -3320,7 +3347,7 @@ async function loadToday() {
   try {
     const r = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/today.json?t=${Date.now()}`);
     if (!r.ok) return;
-    const t = await r.json();
+    const t = await safeJson(r);  // v6.24.0: escaped + NaN-safe like every other data file
     renderActionScreen(t);
     renderFreshness(t);
   } catch (e) { /* the full load below renders everything anyway */ }

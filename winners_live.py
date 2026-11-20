@@ -71,9 +71,21 @@ def load_state():
             "research_note": RESEARCH_NOTE}
 
 
+def _json_safe(o):
+    """NaN / Infinity -> null: browsers can't parse a bare NaN (20.11.2026)."""
+    if isinstance(o, float) or type(o).__module__ == "numpy" and hasattr(o, "dtype") and o.dtype.kind == "f":
+        o = float(o)
+        return o if o == o and o not in (float("inf"), float("-inf")) else None
+    if isinstance(o, dict):
+        return {k: _json_safe(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [_json_safe(v) for v in o]
+    return o
+
+
 def save_state(st):
     st["updated_at"] = datetime.now(timezone.utc).isoformat()
-    WINNERS_FILE.write_text(json.dumps(st, ensure_ascii=False, indent=1, default=float), encoding="utf-8")
+    WINNERS_FILE.write_text(json.dumps(_json_safe(st), ensure_ascii=False, indent=1, default=float, allow_nan=False), encoding="utf-8")
 
 
 def telegram(text):

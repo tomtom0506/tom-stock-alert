@@ -32,6 +32,7 @@
 - כל רשומת Top10 מסומנת ב-`engine_version`. כך מאבחנים איזו גרסה חישבה את הנתונים.
 - `watchlist.json` = "המניות שלי". `my_portfolio.json` = "התיק שלי" (אחזקות אמיתיות).
 - `daily_qa_check.py` רץ כל יום ב-07:00 שעון ישראל ושולח סיכום לטלגרם.
+- קבצי JSON נכתבים דרך `json_safe` (NaN/Infinity → null). NaN בקובץ = האפליקציה לא נטענת בדפדפן.
 - בדיקות יחידה: `python -m unittest discover -s tests` (תיקייה `tests/`).
 - סקריפטי מחקר (VectorBT וכו') נמצאים רק בתיקיית `research/` ולעולם לא רצים ב-cron החי.
 

@@ -29,6 +29,16 @@ def _j(name, default):
     raw = local(name)
     try: return json.loads(raw) if raw else default
     except ValueError: return default
+# v6.24.0 (20.11.2026 - a bare NaN blanked the app; Python's json reads it, browsers don't):
+# every data file must be STRICT JSON, exactly as a browser parses it
+def _strict(raw):
+    def bad(c): raise ValueError(c)
+    json.loads(raw, parse_constant=bad)
+for _f in ("predictions.json", "today.json", "current_prices.json", "winners.json", "insider.json", "watchlist.json", "my_portfolio.json"):
+    _raw = local(_f)
+    if _raw is None: continue
+    try: _strict(_raw); check(True, f"data file is browser-readable JSON: {_f}")
+    except ValueError as e: check(False, f"data file is browser-readable JSON: {_f} (bad value: {str(e)[:60]})")
 _store = _j("predictions.json", {}) or {}
 _prices = (_j("current_prices.json", {}) or {}).get("prices") or {}
 _need = {}
@@ -49,6 +59,8 @@ check(not _miss, f"live price for every listed ticker ({len(_need)} tickers){' m
 with sync_playwright() as pw:
     b = pw.chromium.launch(); pg = b.new_page(viewport={"width": 390, "height": 844})
     errs = []; pg.on("pageerror", lambda e: errs.append(str(e)))
+    # v6.24.0: the app catches its render errors and only logs them - catch those too
+    cerrs = []; pg.on("console", lambda m: cerrs.append(m.text) if m.type == "error" and not m.text.startswith("Failed to load resource") else None)
     def route(r):
         u = r.request.url
         if "raw.githubusercontent.com" in u:
@@ -113,6 +125,8 @@ with sync_playwright() as pw:
     except Exception as e:
         check(False, f"add-to-watchlist: works ({str(e).splitlines()[0][:80]})")
     check(not errs, f"no JS errors {errs[:2]}")
+    check(not cerrs, f"no errors logged by the app {[c[:120] for c in cerrs[:2]]}")
+    check(pg.evaluate("() => !document.getElementById('dataLoadError')"), "no 'could not read data file' banner")
     b.close()
 report = "\n".join(fails + notes) + f"\n\n{len(fails)} failed / {len(fails) + len(notes)} checks"
 print(report)

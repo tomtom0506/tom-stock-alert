@@ -86,9 +86,21 @@ def load_json(path, default):
     return default
 
 
+def json_safe(o):
+    """v5.32.0: NaN / Infinity -> null. Python writes them as bare NaN, which
+    no browser can parse - one bad number blanked the whole app (20.11.2026)."""
+    if isinstance(o, (float, np.floating)):
+        return float(o) if math.isfinite(o) else None
+    if isinstance(o, dict):
+        return {k: json_safe(v) for k, v in o.items()}
+    if isinstance(o, (list, tuple)):
+        return [json_safe(v) for v in o]
+    return o
+
+
 def save_json(path, data):
     with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(json_safe(data), f, ensure_ascii=False, indent=2, allow_nan=False, default=float)
 
 
 def send_telegram_message(text, parse_mode=None, kind=None):
@@ -6515,20 +6527,26 @@ def simulate_picks_short(log, O, C, spy=None):
         if not (np.isfinite(Ov[e, j]) and Ov[e, j] > 0):
             continue
         entry_px = Ov[e, j] * (1 + slip)
-        if p["exit_i"] <= last:
+        # v5.32.0 (20.11.2026): Yahoo had no 19.11 close yet for OKTA/PLTR/PANW,
+        # the trade closed at NaN and predictions.json stopped loading in the
+        # browser. No real close at the exit session -> the trade stays open.
+        if p["exit_i"] <= last and np.isfinite(Cv[p["exit_i"], j]):
             px = Cv[p["exit_i"], j] * (1 - slip)
             pnl = (px * (1 - fee)) / (entry_px / (1 - fee)) - 1
             out["closed"].append({"ticker": p["ticker"], "strategy": p["strategy"], "entry_date": idx[e].strftime("%Y-%m-%d"),
                                   "exit_date": idx[p["exit_i"]].strftime("%Y-%m-%d"), "pnl_pct": round(pnl * 100, 2)})
         else:
             px = Cv[last, j]
+            if not np.isfinite(px):
+                fin = np.flatnonzero(np.isfinite(Cv[e:last + 1, j]))
+                px = Cv[e + fin[-1], j] if len(fin) else np.nan
             out["open"].append({"ticker": p["ticker"], "strategy": p["strategy"],
                                 "strategy_label": BOOK_STRATEGIES[p["strategy"]]["label"],
                                 "entry_date": idx[e].strftime("%Y-%m-%d"), "entry": round(float(entry_px), 2),
                                 "last": round(float(px), 2) if np.isfinite(px) else None,
                                 "pnl_pct": round((px / entry_px - 1) * 100, 2) if np.isfinite(px) else None,
-                                "sessions_left": int(p["exit_i"] - last),
-                                "exit_estimate": _add_sessions(idx[last].strftime("%Y-%m-%d"), int(p["exit_i"] - last))})
+                                "sessions_left": max(0, int(p["exit_i"] - last)),
+                                "exit_estimate": _add_sessions(idx[last].strftime("%Y-%m-%d"), max(0, int(p["exit_i"] - last)))})
     out["value"] = round(value, 2)
     out["start_date"] = idx[k0].strftime("%Y-%m-%d")
     if spy is not None and len(spy):
@@ -6572,6 +6590,8 @@ def compare_exits_forward(log, O, H, L, C, spy):
             spy0 = float(spy_s.iloc[e - 1])
 
             def res(k, px):
+                if not np.isfinite(px):
+                    return None  # v5.32.0: no real price that day -> not closed yet
                 r = (px * (1 - slip) * (1 - fee)) / (entry / (1 - fee)) - 1
                 return {"exit_date": idx[k].strftime("%Y-%m-%d"), "pnl_pct": round(r * 100, 2),
                         "spy_pct": round((float(spy_s.iloc[k]) / spy0 - 1) * 100, 2)}
@@ -6586,7 +6606,7 @@ def compare_exits_forward(log, O, H, L, C, spy):
                 if tgt and np.isfinite(h) and h >= tgt:
                     p_res, why = res(k, max(o, tgt) if k > e and np.isfinite(o) else tgt), "target"
                     break
-            if p_res is None and x <= last:
+            if p_res is None and t_res is not None:
                 p_res, why = dict(t_res), "time"
             # v5.28.0: the friend's exit - same stop, FAR target
             far = pk.get("tech_target_far")
@@ -6600,7 +6620,7 @@ def compare_exits_forward(log, O, H, L, C, spy):
                     if far and np.isfinite(h) and h >= far:
                         f_res, fwhy = res(k, max(o, far) if k > e and np.isfinite(o) else far), "target"
                         break
-                if f_res is None and x <= last:
+                if f_res is None and t_res is not None:
                     f_res, fwhy = dict(t_res), "time"
             now = (Cv[last, j] / entry - 1) * 100 if np.isfinite(Cv[last, j]) else None
             trades.append({"ticker": pk["ticker"], "strategy": pk["strategy"], "signal_date": sig_date,
@@ -7076,7 +7096,7 @@ def save_prediction_store(store, archive=True):
                               "note": "older history is in archive/predictions_history_YYYY-MM.json"}
     out = {"history": live, **out}
     with open(PREDICTIONS_FILE, "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, separators=(",", ":"))
+        json.dump(json_safe(out), f, ensure_ascii=False, separators=(",", ":"), allow_nan=False, default=float)
 
 
 # ===========================================================================
@@ -7115,7 +7135,7 @@ def write_today_json(store):
                  for k in ("A", "B")},
     }
     with open(TODAY_FILE, "w", encoding="utf-8") as f:
-        json.dump(out, f, ensure_ascii=False, separators=(",", ":"), default=float)
+        json.dump(json_safe(out), f, ensure_ascii=False, separators=(",", ":"), allow_nan=False, default=float)
 
 
 def main():
