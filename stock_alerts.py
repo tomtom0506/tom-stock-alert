@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.34.0"
+BACKEND_VERSION = "5.35.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -7278,6 +7278,17 @@ def retire_old_keys(store):
     print(f"Cleanup v2: removed {len(gone)} retired keys")
 
 
+def spy_vs_sma_chart(spy_closes, points=130, window=200):
+    """Pure: the last `points` sessions as [date, close, sma200 or None] - small enough for today.json."""
+    days = sorted(spy_closes)
+    closes = [float(spy_closes[d]) for d in days]
+    out = []
+    for i in range(max(0, len(days) - points), len(days)):
+        sma = sum(closes[i - window + 1:i + 1]) / window if i >= window - 1 else None
+        out.append([days[i], round(closes[i], 2), round(sma, 2) if sma is not None else None])
+    return out
+
+
 def write_today_json(store):
     ex = dict(store.get("exposure") or {})
     ex.pop("series", None)
@@ -7288,6 +7299,8 @@ def write_today_json(store):
         # v5.33.0: the home screen renders from today.json alone (predictions.json loads on demand)
         "market_regime": store.get("market_regime"), "market_breadth": store.get("market_breadth"),
         "list_status": store.get("list_status"),
+        # v5.35.0: the home chart - S&P 500 vs its 200-day average (why exposure is 50% or 100%)
+        "spy_chart": spy_vs_sma_chart(store.get("spy_closes") or {}),
         "book": {k: {x: v for x, v in ((store.get("strategy_book") or {}).get(k) or {}).items()
                      if x in ("label", "start_date", "total_return_pct", "spy_same_window_pct", "stats", "holdings")}
                  for k in ("A", "B")},

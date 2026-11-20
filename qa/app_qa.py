@@ -148,6 +148,18 @@ with sync_playwright() as pw:
         pg.evaluate("() => switchTab('mine')"); pg.wait_for_timeout(400)
         _rv = pg.evaluate("() => { const e = document.getElementById('myReviewSection'); return e && e.offsetParent !== null ? e.innerText : ''; }")
         check("התיק שלך מול הליבה" in _rv and "לא ייעוץ השקעות" in _rv, "mine: portfolio-vs-core card shown, with the disclaimer")
+    # v6.27.0: the charts draw (SVG present, real paths) wherever their data exists
+    pg.evaluate("() => switchTab('results')"); pg.wait_for_timeout(400)
+    _bars = pg.evaluate("() => document.querySelectorAll('#resultsGapBars [title]').length")
+    check(_bars >= 2, f"results: gap-vs-S&P bars drawn ({_bars})")
+    if (_store.get("my_portfolio_sim") or {}).get("daily_log") and _store.get("spy_closes") and (_store.get("my_portfolio_review") or {}).get("mine_pct") is not None:
+        pg.evaluate("() => switchTab('mine')"); pg.wait_for_timeout(400)
+        _np = pg.evaluate("() => document.querySelectorAll('#myVsCoreChart svg path').length")
+        check(_np == 3, f"mine: portfolio-vs-core chart has 3 lines ({_np})")
+    if len(_today.get("spy_chart") or []) >= 10:
+        pg.evaluate("() => { switchTab('home'); switchSubtab('action'); document.querySelectorAll('#homeActionSection details').forEach(d => d.open = true); }"); pg.wait_for_timeout(300)
+        _np = pg.evaluate("() => document.querySelectorAll('#spyChart svg path').length")
+        check(_np == 2, f"home: S&P vs 200-day chart has 2 lines ({_np})")
     # v6.26.0: Top10 was stopped 20.11.2026 - it must not come back on any screen
     pg.evaluate("() => switchTab('lab')"); pg.wait_for_timeout(300)
     check("top10" not in pg.evaluate("() => (SUBTABS.lab || []).map(s => s.id).join(',')"), "Top10: no lab sub-tab")

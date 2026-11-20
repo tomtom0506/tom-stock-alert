@@ -141,6 +141,14 @@
   .act-row { border:1px solid var(--border); border-radius:14px; padding:12px 14px; margin-bottom:8px; }
   /* v6.25.0: compact collapsible lists + one readable "small" text size */
   .muted-sm { font-size:12px; color:var(--text-faint); }
+  /* v6.27.0: charts - validated categorical pair (dataviz palette, dark/light steps), benchmark in neutral gray */
+  :root { --viz-1:#3987e5; --viz-2:#d95926; --viz-bench:#8b95a8; --viz-grid:#2c3647; }
+  body.light-theme { --viz-1:#2a78d6; --viz-2:#eb6834; --viz-bench:#5a6477; --viz-grid:#d9dee6; }
+  .viz { position:relative; margin:6px 0 4px; }
+  .viz svg { display:block; width:100%; height:auto; overflow:visible; }
+  .viz-tip { position:absolute; top:0; pointer-events:none; background:var(--panel); border:1px solid var(--border); border-radius:8px; padding:5px 8px; font-size:12px; line-height:1.5; white-space:nowrap; box-shadow:0 4px 14px rgba(0,0,0,.25); display:none; z-index:5; }
+  .viz-legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--text-dim); margin-top:4px; }
+  .viz-legend i { display:inline-block; width:14px; height:3px; border-radius:2px; vertical-align:middle; margin-inline-end:5px; }
   /* v6.25.0: touch targets - tabs, sub-tabs and close buttons at least 44px */
   .top-tab-btn, .sub-tab-btn, .home-more-toggle { min-height:44px; }
   .modal-close-btn { min-width:44px; min-height:44px; }
@@ -1014,6 +1022,7 @@ const CHANGELOG = [
   { version: "6.27.0", date: "2026-11-20", items: [
     "🧘 מצב רגוע (ברירת מחדל): 'היום › פעולה' מציג רק את אסטרטגיה B, שמחזיקה 60 ימי מסחר, ואת התוצאה שלה בפועל מול ה-S&P. אסטרטגיה A (10 ימים, יותר קניות ומכירות) מוסתרת, ואפשר להציג אותה בלחיצה.",
     "💼 'התיק שלך מול הליבה' (לשונית התיק שלי): התיק האמיתי שלך מול ה-S&P 500 ומול המדד עם כלל החשיפה, מאותו תאריך. לכל אחזקה: שינוי המחיר, המרחק מהשיא השנתי, וסימון כשהיא מתחת לממוצע 200 הימים או תופסת יותר מ-20% מהתיק. עובדות בלבד, לא המלצה.",
+    "📊 גרפים במקום טבלאות: 'ביצועים' נפתח בגרף עמודות - כמה כל אסטרטגיה הקדימה (ירוק) או פיגרה (אדום) אחרי ה-S&P, והטבלה המלאה בלחיצה. ב'התיק שלי' - גרף קו של התיק שלך מול הליבה ומול ה-S&P. במסך הבית - 'למה 50%?': ה-S&P מול ממוצע 200 הימים. בכל גרף נגיעה מציגה את הערכים של אותו יום.",
     "📅 סיכום שבועי בטלגרם, כל ראשון ב-08:30: אחוז החשיפה, הקניות והמכירות של B השבוע, והתיק שלך מול ה-S&P ומול הליבה.",
     "🐞 Top10 עוד הופיע בלשונית 'התיק שלי' אחרי שהופסק ב-6.26.0: בהשוואה 'מי ניחש טוב יותר' ובתגית של תנועות חריגות. בדיקת ה-QA דאז לא עברה על הלשונית הזו. ההשוואה הוסרה ('התיק שלך מול הליבה' מחליף אותה), Top10 כבר לא נחשב 'רשימה שלך' בסריקת התנועות, ובדיקת ה-QA עוברת עכשיו על כל המסכים.",
     "🐞 תוקן (backend 5.34.0): ההיסטוריה של 'התיק שלי' נשמרה רק ל-90 יום, ומהיום ה-91 תאריך ההתחלה היה זז קדימה בזמן שהתשואה עדיין נספרה מההתחלה האמיתית. ההשוואה ל-S&P הייתה נעשית על תקופה לא נכונה. עכשיו תאריך ההתחלה קבוע.",
@@ -3156,13 +3165,15 @@ function renderResults(data) {
   // v6.26.0: Top10 stopped 20.11.2026 (keep-or-kill decision) - out of the table, the result stays on record below
   const sorted = rows.filter(r => r.key !== "top10").sort((a, b) => (order[a.tag] ?? 9) - (order[b.tag] ?? 9));
   let h = `<div class="section-title">ביצועים מול ה-S&amp;P 500</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">כל שורה נמדדת מול ה-S&amp;P באותם ימים בדיוק, מהתאריך שבו היא התחילה. "פער" = כמה יותר (או פחות) מה-S&amp;P.</div>
+    <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">כמה כל אחד הקדים (ירוק) או פיגר (אדום) אחרי ה-S&amp;P, באותם ימים בדיוק מהתאריך שבו התחיל.</div>
+    <div id="resultsGapBars"></div>
+    <details class="held-list"><summary><span>📋 הטבלה המלאה</span></summary>
     <div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>מה</th><th>מאז</th><th>תשואה</th><th>S&amp;P</th><th>פער</th></tr></thead><tbody>`;
   h += sorted.map(r => `<tr><td>${r.label} ${TAG_HTML[r.tag] || ""}${liveWarnTag(r.key)}</td><td style="white-space:nowrap; color:var(--text-faint);">${fmtDateIL(r.start_date)}</td>
       <td class="mono" style="color:${col(r.return_pct)};">${signedPct(r.return_pct, 1)}</td>
       <td class="mono" style="color:var(--text-dim);">${signedPct(r.sp500_same_window_pct, 1)}</td>
       <td class="mono" style="font-weight:800; color:${col(r.vs_sp500_pct)};">${r.key === "sp500" ? "—" : signedPct(r.vs_sp500_pct, 1)}</td></tr>`).join("");
-  h += `</tbody></table></div>
+  h += `</tbody></table></div></details>
     <div class="muted-sm" style="line-height:1.6; margin:6px 2px 0;">⚡ Top10 הופסק ב-20.11.2026: מ-21.8 עד 19.11 ‎-25.1%‎ מול ‎-6.5%‎ ל-S&amp;P 500 (פער ‎-18.6%‎), הקדים את המדד בחודש אחד מתוך 4. ההיסטוריה נשמרת בארכיון.</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin:6px 2px 14px;">שורות A/B מראות רק מה שקרה בזמן אמת, מאז שהאסטרטגיות עלו (1.10), כולל עמלות. הפירוט למטה כולל גם את הסימולציה על השנה האחרונה - היא מחושבת מחדש כל יום על חלון נע, ולכן המספר הכולל שלה זז גם בלי עסקאות.</div>`;
   const sb = data.strategy_book || data.book || {};
@@ -3172,6 +3183,9 @@ function renderResults(data) {
     h += renderBookCard(sb.B, "פער פתיחה 5%+ בווליום פי 3 וסגירה חזקה, כשה-S&P מעל ממוצע 200 · החזקה 60 ימי מסחר");
   }
   el.innerHTML = h;
+  // v6.27.0: one picture first - each row's gap vs the S&P over its own days; the full table is one tap below
+  vizGapBars(document.getElementById("resultsGapBars"), sorted.filter(r => r.key !== "sp500" && r.vs_sp500_pct != null)
+    .map(r => ({ label: String(r.label).split(" · ")[0].replace(/^אסטרטגיה /, "").replace(/ - החזקה רגילה$/, ""), value: r.vs_sp500_pct })));
 }
 
 function renderLabExit(data) {
@@ -3188,7 +3202,8 @@ function renderExposureLine(data) {
   return `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
     <div><div style="font-size:13px; font-weight:700;">השוק: ${up ? "מעל " : "מתחת ל"}ממוצע 200 ימים ${TAG_HTML.proven}</div>
     <div style="font-size:12.5px; color:var(--text-faint);">ה-S&amp;P ${signedPct(ex.pct_vs_sma, 1)} מהממוצע · ${up ? "חשיפה מלאה למניות" : "כלל החשיפה: חצי מזומן"}</div></div>
-    <div style="font-size:20px; font-weight:800; color:${up ? "var(--up)" : "var(--down)"};">${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%</div></div>`;
+    <div style="font-size:20px; font-weight:800; color:${up ? "var(--up)" : "var(--down)"};">${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%</div></div>
+    ${spyChartPoints(data).length >= 10 ? `<details class="held-list" style="margin-top:-2px;"><summary><span>📈 למה ${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%? ה-S&amp;P מול ממוצע 200 הימים</span></summary><div class="act-row" style="padding:8px 12px;"><div id="spyChart"></div><div class="muted-sm" style="line-height:1.5;">כשהקו הכחול מעל הקו המקווקו - חשיפה מלאה. מתחתיו - חצי במזומן. זה הכלל שעבר מחקר.</div></div></details>` : ""}`;
 }
 
 function renderFreshness(data) {
@@ -3364,11 +3379,150 @@ function renderActionScreen(data) {
     <div class="muted-sm" style="line-height:1.6; margin:4px 2px 0;">עמלה לפי המסלול שלך: 0.1% לעסקה, מינימום $8. מתחת ל-$4,000 לעסקה העמלה עוברת 0.2% לצד, וזה כבר אוכל חלק ניכר מהיתרון. כדי להריץ את שתי האסטרטגיות כמו שנבדקו צריך בערך $120,000. עם פחות, עדיף רק A (בערך $40,000).</div></details>`;
   h += `<div class="muted-sm" style="line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. קונים ומוכרים לפי תאריך - כך זה נבדק. מידע בלבד, לא ייעוץ השקעות.</div>`;
   el.innerHTML = h;
+  try { renderSpyChart(data); } catch (e) { console.error("spy chart failed", e); }
   const ct = document.getElementById("calmToggleBtn");
   if (ct) ct.addEventListener("click", () => {
     try { localStorage.setItem("calmMode", calm ? "0" : "1"); } catch (e) {}
     renderActionScreen(window.__lastActionData || data);
   });
+}
+
+// ---------- v6.27.0: charts (plain SVG, one axis, hover tooltip, legend + end labels) ----------
+function vizLine(el, opt) {
+  // opt: { series:[{name, color, points:[[iso, value]], dash}], fmt(v), height, base }
+  if (!el) return;
+  const W = 340, H = opt.height || 150, L = 44, R = 10, T = 8, B = 18;
+  const all = opt.series.flatMap(s => s.points.map(p => p[1])).filter(v => v != null && isFinite(v));
+  if (all.length < 2) { el.innerHTML = ""; return; }
+  const dates = [...new Set(opt.series.flatMap(s => s.points.map(p => p[0])))].sort();
+  let lo = Math.min(...all), hi = Math.max(...all);
+  if (opt.base != null) { lo = Math.min(lo, opt.base); hi = Math.max(hi, opt.base); }
+  const pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
+  // RTL app, but time still runs left -> right like every price chart
+  const x = d => L + dates.indexOf(d) * (W - L - R) / Math.max(1, dates.length - 1);
+  const y = v => T + (hi - v) * (H - T - B) / (hi - lo);
+  // clean tick values (1/2/2.5/5 x 10^k), measured from the base when there is one (0% for an index of 100)
+  const ref = opt.base != null ? opt.base : 0;
+  const raw = (hi - lo) / 3, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(st => st >= raw) || 10 * mag;
+  const ticks = [];
+  for (let v = ref + Math.ceil((lo - ref) / step) * step; v <= hi; v += step) ticks.push(v);
+  const grid = ticks.map(v => `<line x1="${L}" x2="${W - R}" y1="${y(v).toFixed(1)}" y2="${y(v).toFixed(1)}" stroke="var(--viz-grid)" stroke-width="1"/>
+    <text x="${L - 6}" y="${(y(v) + 4).toFixed(1)}" font-size="10" fill="var(--text-faint)" text-anchor="end">${opt.fmt(v)}</text>`).join("");
+  const baseLine = opt.base != null ? `<line x1="${L}" x2="${W - R}" y1="${y(opt.base).toFixed(1)}" y2="${y(opt.base).toFixed(1)}" stroke="var(--text-faint)" stroke-width="1"/>` : "";
+  const paths = opt.series.map(s => {
+    const pts = s.points.filter(p => p[1] != null);
+    if (!pts.length) return "";
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join("");
+    const lp = pts[pts.length - 1];
+    return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"${s.dash ? ' stroke-dasharray="5 4"' : ""}/>
+      <circle cx="${x(lp[0]).toFixed(1)}" cy="${y(lp[1]).toFixed(1)}" r="4" fill="${s.color}" stroke="var(--panel)" stroke-width="2"/>`;
+  }).join("");
+  const first = dates[0], last = dates[dates.length - 1];
+  const axis = `<text x="${L}" y="${H - 3}" font-size="10" fill="var(--text-faint)">${fmtDateIL(first)}</text>
+    <text x="${W - R}" y="${H - 3}" font-size="10" fill="var(--text-faint)" text-anchor="end">${fmtDateIL(last)}</text>`;
+  el.innerHTML = `<div class="viz" dir="ltr"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${opt.label || ""}">${grid}${baseLine}${paths}${axis}
+      <line class="viz-cross" x1="0" x2="0" y1="${T}" y2="${H - B}" stroke="var(--text-faint)" stroke-width="1" style="display:none"/>
+      <rect x="${L}" y="0" width="${W - L - R}" height="${H}" fill="transparent" style="cursor:crosshair"/></svg>
+    <div class="viz-tip"></div></div>
+    <div class="viz-legend">${opt.series.map(s => { const lv = [...s.points].reverse().find(p => p[1] != null);
+      return `<span><i style="background:${s.color};"></i>${s.name}${lv ? ` <b class="mono" style="color:var(--text);">${opt.fmt(lv[1])}</b>` : ""}</span>`; }).join("")}</div>`;
+  const svg = el.querySelector("svg"), tip = el.querySelector(".viz-tip"), cross = el.querySelector(".viz-cross");
+  const move = ev => {
+    const r = svg.getBoundingClientRect();
+    const px = ((ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left) * W / r.width;
+    const i = Math.max(0, Math.min(dates.length - 1, Math.round((px - L) / ((W - L - R) / Math.max(1, dates.length - 1)))));
+    const d = dates[i], cx = x(d);
+    cross.setAttribute("x1", cx); cross.setAttribute("x2", cx); cross.style.display = "";
+    tip.innerHTML = `<div class="muted-sm">${fmtDateIL(d)}</div>` + opt.series.map(s => { const p = s.points.find(q => q[0] === d);
+      return p && p[1] != null ? `<div><i style="display:inline-block; width:10px; height:3px; background:${s.color}; vertical-align:middle; margin-inline-end:4px;"></i>${s.name}: <b class="mono">${opt.fmt(p[1])}</b></div>` : ""; }).join("");
+    tip.style.display = "block";
+    const left = cx * r.width / W;
+    tip.style.left = Math.max(0, Math.min(r.width - tip.offsetWidth, left - tip.offsetWidth / 2)) + "px";
+  };
+  const hide = () => { tip.style.display = "none"; cross.style.display = "none"; };
+  svg.addEventListener("mousemove", move); svg.addEventListener("touchstart", move, { passive: true });
+  svg.addEventListener("touchmove", move, { passive: true }); svg.addEventListener("mouseleave", hide); svg.addEventListener("touchend", () => setTimeout(hide, 1500));
+}
+
+function vizGapBars(el, rows) {
+  // rows: [{label, value}] - gap vs the S&P, diverging around 0, value at the bar tip
+  if (!el || !rows.length) { if (el) el.innerHTML = ""; return; }
+  const max = Math.max(...rows.map(r => Math.abs(r.value)), 1);
+  el.innerHTML = `<div style="margin:4px 0 10px;">${rows.map(r => {
+    const w = Math.abs(r.value) / max * 30;
+    const up = r.value >= 0;
+    return `<div style="display:grid; grid-template-columns:38% 1fr; align-items:center; gap:8px; min-height:30px;" title="${r.label}: ${signedPct(r.value, 1)} מול ה-S&amp;P">
+      <div style="font-size:12.5px; color:var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.label}</div>
+      <div style="position:relative; height:18px;" dir="ltr">
+        <div style="position:absolute; top:-4px; bottom:-4px; left:50%; width:1px; background:var(--text-faint);"></div>
+        <div style="position:absolute; top:3px; height:12px; ${up ? `left:50%; border-radius:0 4px 4px 0;` : `right:50%; border-radius:4px 0 0 4px;`} width:${w}%; background:${up ? "var(--up)" : "var(--down)"};"></div>
+        <div class="mono" style="position:absolute; top:0; font-size:12px; color:var(--text); ${up ? `left:calc(50% + ${w}% + 4px);` : `right:calc(50% + ${w}% + 4px);`}">${signedPct(r.value, 1)}</div>
+      </div></div>`; }).join("")}
+    <div class="muted-sm" style="display:grid; grid-template-columns:38% 1fr; gap:8px; margin-top:2px;"><span></span><span dir="ltr" style="display:flex; justify-content:space-between;"><span>◀ פחות מה-S&amp;P</span><span>יותר מה-S&amp;P ▶</span></span></div></div>`;
+}
+
+// the core (S&P + exposure rule) and the S&P as index=100 series from the same start - same rule as the backend
+function coreSeriesSince(spyCloses, exposureSeries, startIso) {
+  const days = Object.keys(spyCloses || {}).sort();
+  const i0 = days.findIndex(d => d >= startIso);
+  if (i0 < 0) return { spy: [], core: [] };
+  const from = Math.max(0, i0 - 1);           // the close before the first tracked day = 100
+  const above = Object.fromEntries(exposureSeries || []);
+  const spy = [], core = [];
+  let c = 100, flag = null;
+  for (let i = from; i < days.length; i++) {
+    const d = days[i];
+    if (i > from) {
+      const prev = days[i - 1];
+      flag = above[prev] != null ? above[prev] : flag;
+      const r = spyCloses[d] / spyCloses[prev] - 1;
+      c *= 1 + r * (flag === false ? 0.5 : 1);
+    }
+    spy.push([d, spyCloses[d] / spyCloses[days[from]] * 100]);
+    core.push([d, c]);
+  }
+  return { spy, core };
+}
+
+function renderMyVsCoreChart(data) {
+  const el = document.getElementById("myVsCoreChart");
+  if (!el) return;
+  const sim = data.my_portfolio_sim || {};
+  const log = sim.daily_log || [];
+  const start = sim.start_date || (log[0] || {}).date;
+  if (!start || log.length < 3 || !data.spy_closes) { el.innerHTML = ""; return; }
+  const { spy, core } = coreSeriesSince(data.spy_closes, (data.exposure || {}).series, start);
+  if (!spy.length) { el.innerHTML = ""; return; }
+  const mine = [[spy[0][0], 100], ...log.filter(e => e.date >= start).map(e => [e.date, Number(e.value)])];
+  vizLine(el, { label: "התיק שלך מול הליבה ומול ה-S&P 500", base: 100, height: 160, fmt: v => { const d = Math.round((v - 100) * 10) / 10; return (d > 0 ? "+" : "") + (Number.isInteger(d) ? d : d.toFixed(1)) + "%"; },
+    series: [{ name: "התיק שלך", color: "var(--viz-1)", points: mine },
+             { name: "ליבה: מדד + חשיפה", color: "var(--viz-2)", points: core },
+             { name: "S&P 500", color: "var(--viz-bench)", points: spy, dash: true }] });
+}
+
+// today.json carries spy_chart; predictions.json carries the raw closes - same points either way
+function spyChartPoints(data) {
+  if ((data.spy_chart || []).length) return data.spy_chart;
+  const c = data.spy_closes || {};
+  const days = Object.keys(c).sort(), v = days.map(d => Number(c[d]));
+  const out = [];
+  for (let i = Math.max(0, days.length - 130); i < days.length; i++) {
+    let sma = null;
+    if (i >= 199) { let t = 0; for (let k = i - 199; k <= i; k++) t += v[k]; sma = t / 200; }
+    out.push([days[i], v[i], sma]);
+  }
+  return out;
+}
+
+function renderSpyChart(data) {
+  const el = document.getElementById("spyChart");
+  if (!el) return;
+  const pts = spyChartPoints(data);
+  if (pts.length < 10) { el.innerHTML = ""; return; }
+  vizLine(el, { label: "ה-S&P 500 מול ממוצע 200 הימים", height: 120, fmt: v => "$" + Math.round(v),
+    series: [{ name: "S&P 500 (SPY)", color: "var(--viz-1)", points: pts.map(p => [p[0], p[1]]) },
+             { name: "ממוצע 200 ימים", color: "var(--viz-bench)", points: pts.map(p => [p[0], p[2]]), dash: true }] });
 }
 
 // ---------- v6.27.0: 💼 my portfolio vs the core - facts only, no advice ----------
@@ -3387,6 +3541,7 @@ function renderMyReview(rv) {
       <div class="mono" style="font-weight:700; color:${col(h.since_start_pct)};">${h.since_start_pct == null ? "—" : signedPct(h.since_start_pct, 1)}</div></div>`).join("");
   el.innerHTML = `<div class="section-title">💼 התיק שלך מול הליבה</div>
     <div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("התיק שלך", rv.mine_pct, TAG_HTML.mine)}${box("ליבה: מדד + חשיפה", rv.core_pct, TAG_HTML.proven)}${box("S&amp;P 500", rv.spy_pct)}</div>
+    <div id="myVsCoreChart"></div>
     <div style="font-size:13px; color:var(--text-dim); line-height:1.6; margin:2px 2px 8px;">מאז ${fmtDateIL(rv.start_date)}.${gapCore != null ? ` התיק ${gapCore >= 0 ? "הקדים" : "פיגר אחרי"} את הליבה ב-<b class="mono" style="color:${col(gapCore)};">${Math.abs(gapCore).toFixed(1)}%</b>.` : ""}</div>
     <div class="act-row" style="padding:4px 14px;"><div class="muted-sm" style="margin:6px 0 2px;">שינוי מחיר המניה מאז ${fmtDateIL(rv.start_date)} (לא ממחיר הקנייה שלך)</div>${rows}</div>
     <div class="muted-sm" style="line-height:1.6; margin:4px 2px 14px;">"ליבה" = ה-S&amp;P 500 עם כלל החשיפה שעבר מחקר (חצי מזומן כשהמדד מתחת לממוצע 200 הימים). הסימונים הם עובדות על האחזקה, לא המלצה לקנות או למכור. מידע בלבד, לא ייעוץ השקעות.</div>`;
@@ -3942,7 +4097,7 @@ async function loadPredictions() {
     renderPortfolioSim(data.portfolio_sim, acc);
     lastPortfolioSimReal = data.portfolio_sim || null;
     renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
-    try { renderMyReview(data.my_portfolio_review); } catch (e) { console.error("my review render failed", e); }
+    try { renderMyReview(data.my_portfolio_review); renderMyVsCoreChart(data); } catch (e) { console.error("my review render failed", e); }
     window.__dashboardData.monthlyPortfolioSim = data.monthly_portfolio_sim || null;
     renderHomeDashboardTiles();
   } catch (e) {
