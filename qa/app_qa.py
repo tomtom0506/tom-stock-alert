@@ -83,6 +83,9 @@ with sync_playwright() as pw:
     _today = _j("today.json", {}) or {}
     if _today.get("market_regime"):
         check(not pg.evaluate("() => !!window.__predictionsLoaded"), "home: first screen does not load predictions.json")
+    # v6.25.0: on a 390px phone the header cut "עודכן לפני..." to "המ..." - it must be fully visible
+    trunc = pg.evaluate("() => { const e = document.querySelector('.brand-sub'); return !e || e.scrollWidth > e.clientWidth + 1 || !e.innerText.trim(); }")
+    check(not trunc, "header: data-freshness line fully visible on a phone")
     pg.evaluate("() => document.querySelectorAll('#homeActionSection details').forEach(d => d.open = true)")
     act = pg.inner_text("#homeActionSection")
     buys = set(re.findall(r"קנה ([A-Z.\-]+)", act)); sells = set(re.findall(r"מכור ([A-Z.\-]+)", act))

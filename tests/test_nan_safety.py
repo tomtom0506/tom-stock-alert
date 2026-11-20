@@ -111,3 +111,18 @@ class JsonSafeWritersTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TodayJsonHomeFieldsTest(unittest.TestCase):
+    """v5.33.0: the home screen renders from today.json alone - it must carry
+    the market badge and list statuses (else the app falls back to the 18MB file)."""
+    def test_home_fields_present(self):
+        tmp = Path(tempfile.mkdtemp())
+        store = {"market_regime": {"regime": "bull"}, "market_breadth": {"pct": 55.0},
+                 "list_status": {"book_A": {"status": "warning"}}, "picks": {}}
+        with mock.patch.object(sa, "TODAY_FILE", tmp / "t.json"):
+            sa.write_today_json(store)
+        out = json.loads((tmp / "t.json").read_text(encoding="utf-8"))
+        self.assertEqual(out["market_regime"], {"regime": "bull"})
+        self.assertEqual(out["market_breadth"], {"pct": 55.0})
+        self.assertEqual(out["list_status"]["book_A"]["status"], "warning")
