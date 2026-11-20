@@ -90,6 +90,12 @@ with sync_playwright() as pw:
     act = pg.inner_text("#homeActionSection")
     buys = set(re.findall(r"קנה ([A-Z.\-]+)", act)); sells = set(re.findall(r"מכור ([A-Z.\-]+)", act))
     check(not (buys & sells), f"action: no ticker both buy and sell (buy={sorted(buys)}, sell={sorted(sells)})")
+    # v6.27.0: calm mode is the default - only strategy B (60 sessions); A's 10-session trades stay hidden
+    _ba = ((_today.get("picks") or {}).get("book_actions") or {})
+    _a_only = {x.get("ticker") for k in ("buys", "sell_due") for x in ((_ba.get("A") or {}).get(k) or [])} - \
+              {x.get("ticker") for k in ("buys", "sell_due", "holdings") for x in ((_ba.get("B") or {}).get(k) or [])}
+    check(not (_a_only & (buys | sells)), f"calm mode: no strategy-A action shown by default {sorted(_a_only & (buys | sells))}")
+    check(pg.evaluate("() => !!document.getElementById('calmToggleBtn')") or not _ba, "calm mode: toggle to show A is there")
     check("בדיקה עצמית מצאה בעיה" not in act, "action: self-check banner absent")
     n_pos = len(re.findall(r"נקנתה", act)); n_time = len(re.findall(r"נכון ל-|סגירה אחרונה", act))
     check(n_time >= n_pos, f"action: every holding shows price time ({n_pos} positions, {n_time} price stamps)")
@@ -137,11 +143,16 @@ with sync_playwright() as pw:
         check(False, f"add-to-watchlist: works ({str(e).splitlines()[0][:80]})")
     check(not errs, f"no JS errors {errs[:2]}")
     check(not cerrs, f"no errors logged by the app {[c[:120] for c in cerrs[:2]]}")
+    # v6.27.0: "my portfolio vs the core" shows whenever the engine computed it
+    if (_store.get("my_portfolio_review") or {}).get("mine_pct") is not None:
+        pg.evaluate("() => switchTab('mine')"); pg.wait_for_timeout(400)
+        _rv = pg.evaluate("() => { const e = document.getElementById('myReviewSection'); return e && e.offsetParent !== null ? e.innerText : ''; }")
+        check("התיק שלך מול הליבה" in _rv and "לא ייעוץ השקעות" in _rv, "mine: portfolio-vs-core card shown, with the disclaimer")
     # v6.26.0: Top10 was stopped 20.11.2026 - it must not come back on any screen
     pg.evaluate("() => switchTab('lab')"); pg.wait_for_timeout(300)
     check("top10" not in pg.evaluate("() => (SUBTABS.lab || []).map(s => s.id).join(',')"), "Top10: no lab sub-tab")
     vis_top10 = pg.evaluate("() => [...document.querySelectorAll('[data-tab]')].filter(e => e.offsetParent !== null && /Top ?10/.test(e.innerText) && !/הופסק/.test(e.innerText)).map(e => e.id)")
-    for _t, _s in (("home", "full"), ("results", None), ("lab", "longterm")):
+    for _t, _s in (("home", "action"), ("home", "full"), ("mine", None), ("results", None), ("lab", "longterm"), ("lab", "winners"), ("lab", "exit"), ("lab", "insider")):  # v6.27.0: every screen (6.26.0 missed "mine")
         pg.evaluate(f"() => {{ switchTab('{_t}'); {'switchSubtab(%r);' % _s if _s else ''} }}"); pg.wait_for_timeout(400)
         vis_top10 += pg.evaluate("() => [...document.querySelectorAll('[data-tab]')].filter(e => e.offsetParent !== null && /Top ?10/.test(e.innerText) && !/הופסק/.test(e.innerText)).map(e => e.id)")
     check(not vis_top10, f"Top10: not shown on any screen {sorted(set(vis_top10))}")

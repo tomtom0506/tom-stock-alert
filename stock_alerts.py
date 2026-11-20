@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.33.0"
+BACKEND_VERSION = "5.34.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -491,11 +491,169 @@ def update_my_portfolio(store):
         sim["daily_log"].append({
             "date": pending_date, "return_pct": sim["pending_return_pct"], "value": round(sim["value"], 3),
         })
-        sim["daily_log"] = sim["daily_log"][-90:]
+        # v5.34.0: the start date is pinned - trimming the log used to move it
+        # forward while total_return_pct still counted from the real start,
+        # so the S&P comparison window would silently shift (from day 91 on)
+        sim.setdefault("start_date", sim["daily_log"][0]["date"])
+        sim["daily_log"] = sim["daily_log"][-400:]
         sim["pending_date"] = today_str
         sim["pending_return_pct"] = snapshot["weighted_return_pct"]
 
     sim["total_return_pct"] = round((sim["value"] / 100 - 1) * 100, 2)
+    if not sim.get("start_date") and sim.get("daily_log"):
+        sim["start_date"] = sim["daily_log"][0]["date"]
+    try:
+        build_my_portfolio_review(store, holdings)
+    except Exception as e:
+        print(f"My-portfolio review failed: {type(e).__name__}: {e}")
+
+
+# ---------- v5.34.0: "my portfolio vs the core" (facts only, no advice) ----------
+MY_REVIEW_CONCENTRATION_PCT = 20.0
+
+
+def core_return_since(spy_closes, exposure_series, start):
+    """Pure: S&P 500 with the proven exposure rule (100% above the 200-day
+    average, else 50% in cash at 0%) from `start` to the last close. The
+    decision of day d-1's close applies to day d. Returns (core_pct, spy_pct)."""
+    days = sorted(d for d in spy_closes if d >= start)
+    if len(days) < 2:
+        return None, None
+    above = dict(exposure_series or [])
+    core, last_flag = 1.0, None
+    for d0, d1 in zip(days, days[1:]):
+        flag = above.get(d0, last_flag)
+        last_flag = flag
+        r = spy_closes[d1] / spy_closes[d0] - 1
+        core *= 1 + r * (1.0 if flag in (True, None) else 0.5)
+    spy = spy_closes[days[-1]] / spy_closes[days[0]] - 1
+    return round((core - 1) * 100, 2), round(spy * 100, 2)
+
+
+def review_holding(closes, start, weight_pct):
+    """Pure: facts about one holding from its daily closes (a pandas Series).
+    since_start_pct uses the first close on/after `start`."""
+    c = closes.dropna()
+    if c.empty:
+        return None
+    after = c[c.index >= pd.Timestamp(start)]
+    base = float(after.iloc[0]) if len(after) else None
+    last = float(c.iloc[-1])
+    sma200 = float(c.iloc[-200:].mean()) if len(c) >= 200 else None
+    high = float(c.iloc[-252:].max())
+    flags = []
+    if sma200 is not None and last < sma200:
+        flags.append("below_sma200")
+    if weight_pct is not None and weight_pct > MY_REVIEW_CONCENTRATION_PCT:
+        flags.append("concentrated")
+    return {
+        "since_start_pct": round((last / base - 1) * 100, 2) if base else None,
+        "vs_sma200_pct": round((last / sma200 - 1) * 100, 2) if sma200 else None,
+        "from_high_pct": round((last / high - 1) * 100, 2) if high else None,
+        "weight_pct": weight_pct, "flags": flags,
+    }
+
+
+def build_my_portfolio_review(store, holdings):
+    """Once a day: the real portfolio since its start vs the S&P and vs the
+    core (index + exposure rule), and plain facts per holding. Information
+    only - the app shows no buy/sell advice on these holdings."""
+    sim = store.get("my_portfolio_sim") or {}
+    start = sim.get("start_date")
+    today_str = date.today().isoformat()
+    tickers = sorted(h.get("ticker") for h in holdings if h.get("ticker"))
+    old = store.get("my_portfolio_review") or {}
+    if not start or (old.get("computed_on") == today_str and old.get("tickers") == tickers):
+        return
+    core_pct, spy_pct = core_return_since(store.get("spy_closes") or {},
+                                          (store.get("exposure") or {}).get("series") or [], start)
+    weights = {r["ticker"]: r.get("weight_pct") for r in (store.get("my_portfolio_snapshot") or {}).get("rows", []) if r.get("ok")}
+    rows = []
+    for t in tickers:
+        try:
+            hist = yf.Ticker(t).history(period="14mo", auto_adjust=True)["Close"]
+            hist.index = hist.index.tz_localize(None)
+            r = review_holding(hist, start, weights.get(t))
+        except Exception as e:
+            print(f"review {t} failed: {type(e).__name__}")
+            r = None
+        if r is None:   # no price history: the concentration fact still holds
+            w = weights.get(t)
+            r = {"since_start_pct": None, "vs_sma200_pct": None, "from_high_pct": None, "weight_pct": w,
+                 "flags": ["concentrated"] if w is not None and w > MY_REVIEW_CONCENTRATION_PCT else []}
+        rows.append({"ticker": t, **r})
+    store["my_portfolio_review"] = {
+        "computed_on": today_str, "start_date": start, "tickers": tickers,
+        "mine_pct": sim.get("total_return_pct"), "spy_pct": spy_pct, "core_pct": core_pct,
+        "holdings": rows,
+    }
+
+
+# ---------- v5.34.0: one Telegram summary a week (Sunday morning, Israel) ----------
+def weekly_digest_due(now_il, last_sent_week):
+    """Pure: Sunday from 08:30 Israel time, once per ISO week."""
+    week = now_il.strftime("%G-W%V")
+    return now_il.weekday() == 6 and (now_il.hour, now_il.minute) >= (8, 30) and last_sent_week != week, week
+
+
+def build_weekly_digest(store, today=None):
+    """Pure: the Sunday message - exposure, this week's B actions (the calm,
+    60-session strategy), and the real portfolio vs S&P and core."""
+    today = today or date.today()
+    ex = store.get("exposure") or {}
+    ba = ((store.get("picks") or {}).get("book_actions") or {})
+    b = ba.get("B") or {}
+    a = ba.get("A") or {}
+    week_end = (today + timedelta(days=7)).isoformat()
+    lines = ["📅 סיכום שבועי - מה עושים השבוע"]
+    if ex.get("recommended_exposure_pct") is not None:
+        lines.append(f"🧭 ליבה: {ex['recommended_exposure_pct']}% במניות "
+                     f"(ה-S&P {'מעל' if ex.get('above_sma') else 'מתחת ל'}ממוצע 200 הימים)")
+    dd = lambda iso: f"{iso[8:10]}.{iso[5:7]}" if iso else ""
+    buys = [x["ticker"] for x in (b.get("buys") or []) if not x.get("net")]
+    sells = [f"{x['ticker']} ({dd(x.get('exit_estimate'))})" for x in (b.get("sell_due") or [])]
+    soon = [f"{x['ticker']} ({dd(x.get('exit_estimate'))})" for x in (b.get("holdings") or [])
+            if (x.get("exit_estimate") or "9999") <= week_end]
+    lines.append("🚀 אסטרטגיה B (החזקה 60 יום): "
+                 + ("; ".join(p for p in (f"לקנות: {', '.join(buys)}" if buys else "",
+                                          f"למכור: {', '.join(sells + soon)}" if (sells or soon) else "") if p)
+                    or "אין קנייה ואין מכירה השבוע"))
+    if b.get("holdings") is not None:
+        lines.append(f"   מחזיקה {len(b.get('holdings') or [])} מניות")
+    a_cnt = len([x for x in (a.get("buys") or []) if not x.get("net")]) + len(a.get("sell_due") or [])
+    if a_cnt:
+        lines.append(f"🔄 אסטרטגיה A (מסחר קצר, 10 ימים): {'פעולה אחת' if a_cnt == 1 else f'{a_cnt} פעולות'} - באפליקציה בלבד")
+    rv = store.get("my_portfolio_review") or {}
+    if rv.get("start_date") and rv.get("mine_pct") is not None:
+        d = rv["start_date"]
+        lines.append(f"💼 התיק שלך מאז {d[8:10]}.{d[5:7]}: {rv['mine_pct']:+.1f}% · "
+                     f"S&P {rv['spy_pct']:+.1f}% · ליבה {rv['core_pct']:+.1f}%" if rv.get("spy_pct") is not None and rv.get("core_pct") is not None
+                     else f"💼 התיק שלך מאז {d[8:10]}.{d[5:7]}: {rv['mine_pct']:+.1f}%")
+        flags = []
+        for h in rv.get("holdings") or []:
+            f = h.get("flags") or []
+            if "concentrated" in f:
+                flags.append(f"{h['ticker']} {h.get('weight_pct'):.0f}% מהתיק")
+            if "below_sma200" in f:
+                flags.append(f"{h['ticker']} מתחת לממוצע 200")
+        if flags:
+            lines.append("⚠️ לשים לב: " + " · ".join(flags))
+    lines.append("מידע בלבד, לא ייעוץ השקעות.")
+    return "\n".join(lines)
+
+
+def maybe_send_weekly_digest(store, state):
+    try:
+        from zoneinfo import ZoneInfo
+        now_il = datetime.now(ZoneInfo("Asia/Jerusalem"))
+    except Exception:
+        now_il = datetime.now(timezone.utc) + timedelta(hours=2)
+    due, week = weekly_digest_due(now_il, state.get("weekly_digest_week"))
+    if not due:
+        return False
+    send_telegram_message(build_weekly_digest(store, now_il.date()), kind="weekly_digest")
+    state["weekly_digest_week"] = week
+    return True
 
 
 # ---------- market-wide big-move alerts ----------
@@ -5921,10 +6079,7 @@ def _followed_lists(store):
         add(h["ticker"], "תיק חודשי")
     for p in ((store.get("long_term_picks") or {}).get("picks") or []):
         add(p["ticker"], "טווח ארוך")
-    today = date.today().isoformat()
-    for e in store.get("history", []):
-        if e.get("date") == today and e.get("top10"):
-            add(e["ticker"], "Top10")
+    # v5.34.0: Top10 was stopped 20.11.2026 - its picks are no longer "your lists"
     for h in load_json(MY_PORTFOLIO_FILE, []) or []:
         add(h.get("ticker"), "התיק שלי")
     return lists
@@ -7201,6 +7356,10 @@ def main():
         except Exception as e:
             print(f"Missing live prices failed: {type(e).__name__}: {e}")
         try:
+            maybe_send_weekly_digest(prediction_store, state)   # v5.34.0 - Sunday is an off day
+        except Exception as e:
+            print(f"Weekly digest failed: {type(e).__name__}: {e}")
+        try:
             write_today_json(prediction_store)
         except Exception as e:
             print(f"today.json failed: {type(e).__name__}: {e}")
@@ -7313,6 +7472,10 @@ def main():
         fill_missing_live_prices(prediction_store)
     except Exception as e:
         print(f"Missing live prices failed: {type(e).__name__}: {e}")
+    try:
+        maybe_send_weekly_digest(prediction_store, state)
+    except Exception as e:
+        print(f"Weekly digest failed: {type(e).__name__}: {e}")
     try:
         write_today_json(prediction_store)
     except Exception as e:

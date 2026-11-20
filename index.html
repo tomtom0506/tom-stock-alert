@@ -868,6 +868,7 @@
 
   <div class="loading hidden" id="loadingMsg">טוען...</div>
 
+  <div id="myReviewSection" class="hidden" data-tab="mine"></div>
   <div id="myPortfolioSection" class="hidden" data-tab="mine">
     <div class="section-title" id="myPortfolioToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       💼 התיק שלי <span id="myPortfolioArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
@@ -1004,12 +1005,19 @@
 </div>
 
 <script>
-const APP_VERSION = "6.26.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.27.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.27.0", date: "2026-11-20", items: [
+    "🧘 מצב רגוע (ברירת מחדל): 'היום › פעולה' מציג רק את אסטרטגיה B, שמחזיקה 60 ימי מסחר, ואת התוצאה שלה בפועל מול ה-S&P. אסטרטגיה A (10 ימים, יותר קניות ומכירות) מוסתרת, ואפשר להציג אותה בלחיצה.",
+    "💼 'התיק שלך מול הליבה' (לשונית התיק שלי): התיק האמיתי שלך מול ה-S&P 500 ומול המדד עם כלל החשיפה, מאותו תאריך. לכל אחזקה: שינוי המחיר, המרחק מהשיא השנתי, וסימון כשהיא מתחת לממוצע 200 הימים או תופסת יותר מ-20% מהתיק. עובדות בלבד, לא המלצה.",
+    "📅 סיכום שבועי בטלגרם, כל ראשון ב-08:30: אחוז החשיפה, הקניות והמכירות של B השבוע, והתיק שלך מול ה-S&P ומול הליבה.",
+    "🐞 Top10 עוד הופיע בלשונית 'התיק שלי' אחרי שהופסק ב-6.26.0: בהשוואה 'מי ניחש טוב יותר' ובתגית של תנועות חריגות. בדיקת ה-QA דאז לא עברה על הלשונית הזו. ההשוואה הוסרה ('התיק שלך מול הליבה' מחליף אותה), Top10 כבר לא נחשב 'רשימה שלך' בסריקת התנועות, ובדיקת ה-QA עוברת עכשיו על כל המסכים.",
+    "🐞 תוקן (backend 5.34.0): ההיסטוריה של 'התיק שלי' נשמרה רק ל-90 יום, ומהיום ה-91 תאריך ההתחלה היה זז קדימה בזמן שהתשואה עדיין נספרה מההתחלה האמיתית. ההשוואה ל-S&P הייתה נעשית על תקופה לא נכונה. עכשיו תאריך ההתחלה קבוע.",
+  ]},
   { version: "6.26.0", date: "2026-11-20", items: [
     "⚡ Top10 הופסק (החלטת keep-or-kill, הוקדמה מ-30.11): מ-21.8 הוא ירד 25.1% כשה-S&P ירד 6.5%, ניחש נכון את הכיוון רק ב-41% מהמקרים בנובמבר, והקדים את המדד בחודש אחד מתוך 4. הלשונית יצאה מהמעבדה, השורה יצאה מטבלת הביצועים (התוצאה נשמרת בהערה מתחתיה), ונתוני ההיסטוריה נשמרים בארכיון.",
     "🧱 'שלוש שכבות התיק' (היום › מלא): שכבת הטווח הקצר היא עכשיו אסטרטגיות A ו-B שעברו מחקר, במקום Top10.",
@@ -3256,24 +3264,30 @@ function renderActionScreen(data) {
   const usd = v => v == null ? "—" : `$${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   // v6.17.0: the screen mirrors the tested A/B books - fixed slots, a buy only when a slot is free
   const ba = pk.book_actions;
-  // v6.21.0: one person follows both books - net them per ticker (backend marks b.net / h.net)
-  const allBuys = ba ? [...(ba.A || {}).buys || [], ...(ba.B || {}).buys || []] : (pk.short_buy || []);
-  const buys = allBuys.filter(b => !b.net);
-  const transfers = allBuys.filter(b => b.net === "transfer");
-  const alreadyHeld = allBuys.filter(b => b.net === "already_held");
-  const sells = (ba ? [...(ba.A || {}).sell_due || [], ...(ba.B || {}).sell_due || []] : (pk.short_sell_due || [])).filter(h => !h.net);
-  const heldRaw = ba ? [...(ba.A || {}).holdings || [], ...(ba.B || {}).holdings || []]
+  // v6.27.0: calm mode (default, Tomer 20.11.2026: "not buying and selling every day") - only B,
+  // the 60-session strategy. A (10 sessions) stays one tap away. With one book there is nothing to net.
+  let calm = true;
+  try { calm = localStorage.getItem("calmMode") !== "0"; } catch (e) {}
+  const books = ba ? (calm ? ["B"] : ["A", "B"]) : [];
+  const netOk = x => calm || !x.net;
+  const allBuys = ba ? books.flatMap(k => (ba[k] || {}).buys || []) : (pk.short_buy || []);
+  const buys = allBuys.filter(netOk);
+  const transfers = calm ? [] : allBuys.filter(b => b.net === "transfer");
+  const alreadyHeld = calm ? [] : allBuys.filter(b => b.net === "already_held");
+  const sells = (ba ? books.flatMap(k => (ba[k] || {}).sell_due || []) : (pk.short_sell_due || [])).filter(netOk);
+  const heldRaw = ba ? books.flatMap(k => (ba[k] || {}).holdings || [])
                      : (pk.short_open || []).filter(o => !sells.some(x => x.ticker === o.ticker));
+  const aHidden = calm && ba && ba.A ? ((ba.A.buys || []).length + (ba.A.sell_due || []).length) : 0;
   const heldCount = {};
   heldRaw.forEach(h => { heldCount[h.ticker] = (heldCount[h.ticker] || 0) + 1; });
   const held = heldRaw.filter((h, i) => heldRaw.findIndex(x => x.ticker === h.ticker) === i);
   const cap = Number(localStorage.getItem("shortCapital") || 0);
-  const sizeOf = key => { const a = (ba || {})[key]; return (cap && a) ? cap / 2 / a.slots : null; };
+  const sizeOf = key => { const a = (ba || {})[key]; return (cap && a) ? cap / books.length / a.slots : null; };
   const feeOf = usdAmt => Math.min(Math.max(usdAmt * 0.001, 8), 500);
   const sizing = b => {
     const amt = sizeOf(b.strategy);
     const w = ((ba || {})[b.strategy] || {}).weight_pct;
-    if (!amt) return `<div><div class="lbl">כמה</div><b>${w ? (w / 2).toFixed(1) + "%" : "—"}</b> מהסכום למסחר קצר</div>`;
+    if (!amt) return `<div><div class="lbl">כמה</div><b>${w ? (w / books.length).toFixed(1) + "%" : "—"}</b> מהסכום למסחר קצר</div>`;
     const sh = b.ref_price ? Math.floor(amt / b.ref_price) : null;
     const fp = feeOf(amt) / amt * 100;
     return `<div><div class="lbl">כמה</div><b class="mono">${usd(amt)}</b>${sh ? ` · כ-${sh} מניות` : ""}${fp > 0.2 ? `<div style="font-size:12px; color:var(--down);">עמלה ${fp.toFixed(2)}% לצד - גבוה. כדאי לפחות $4,000 לעסקה</div>` : ""}</div>`;
@@ -3282,7 +3296,10 @@ function renderActionScreen(data) {
   const okLv = (v, pct) => v && pct != null && Math.abs(pct) <= 40;
   const tech = p => (okLv(p.tech_target, p.tech_target_pct) || okLv(p.tech_stop, p.tech_stop_pct)) ? `<div class="act-tech">🧪 רמות טכניות (ניסוי): ${okLv(p.tech_target, p.tech_target_pct) ? `יעד ${usd(p.tech_target)} (${signedPct(p.tech_target_pct, 1)})` : ""}${okLv(p.tech_target, p.tech_target_pct) && okLv(p.tech_stop, p.tech_stop_pct) ? " · " : ""}${okLv(p.tech_stop, p.tech_stop_pct) ? `סטופ ${usd(p.tech_stop)} (${signedPct(p.tech_stop_pct, 1)})` : ""}</div>` : "";
   let h = (window.__priceRefreshing ? `<div class="act-row" style="font-size:12px; color:#e08a2e;">המחירים ישנים מ-15 דקות - מעדכן עכשיו (כ-2 דקות)...</div>` : "")
-    + renderExposureLine(data) + `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:10px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום ${TAG_HTML.proven}</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`;
+    + renderExposureLine(data) + `<div style="display:flex; justify-content:space-between; align-items:baseline; margin:10px 2px 8px;"><div style="font-size:22px; font-weight:800;">מה עושים היום ${TAG_HTML.proven}</div><div style="font-size:12px; color:var(--text-faint);">אחרי המסחר של ${fmtDateIL(pk.session)}</div></div>`
+    + (ba ? `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; gap:8px; padding:8px 14px;">
+        <div style="font-size:13px; line-height:1.5;">${calm ? `<b>מצב רגוע</b> · רק אסטרטגיה B (החזקה 60 יום)${aHidden ? `<div class="muted-sm">אסטרטגיה A (10 ימים) מוסתרת · ${aHidden} פעולות שלה היום</div>` : ""}` : "<b>A ו-B</b> · כולל מסחר קצר של 10 ימים"}</div>
+        <button type="button" id="calmToggleBtn" style="min-height:44px; padding:0 12px; border-radius:10px; border:1px solid var(--border); background:transparent; color:inherit; font-size:13px; white-space:nowrap;">${calm ? "הצג גם A" : "מצב רגוע"}</button></div>` : "");
   if (buys.length || sells.length) {
     const parts = [];
     if (buys.length) parts.push(`לקנות ${buys.length === 1 ? "מניה אחת" : buys.length + " מניות"} בפתיחה`);
@@ -3306,8 +3323,8 @@ function renderActionScreen(data) {
         ${sizing(b)}
       </div>${tech(b)}</div>`).join("");
   if (ba) {
-    const line = k => { const a = ba[k] || {}; return a.slots ? `${a.label}: ${a.open}/${a.slots} משבצות תפוסות${a.skipped && a.skipped.length ? ` · דולגו (אין משבצת): ${a.skipped.join(", ")}` : ""}${liveWarnTag("book_" + k)}` : ""; };
-    h += `<div style="font-size:12.5px; color:var(--text-faint); line-height:1.6; margin:2px 2px 8px;">${line("A")}<br>${line("B")}<br>כך בדיוק האסטרטגיות נבדקו: מספר קבוע של מניות, וקנייה רק כשמשבצת מתפנה.</div>`;
+    const line = k => { if (!books.includes(k)) return ""; const a = ba[k] || {}; return a.slots ? `${a.label}: ${a.open}/${a.slots} משבצות תפוסות${a.skipped && a.skipped.length ? ` · דולגו (אין משבצת): ${a.skipped.join(", ")}` : ""}${liveWarnTag("book_" + k)}` : ""; };
+    h += `<div style="font-size:12.5px; color:var(--text-faint); line-height:1.6; margin:2px 2px 8px;">${[line("A"), line("B")].filter(Boolean).join("<br>")}<br>כך בדיוק האסטרטגיות נבדקו: מספר קבוע של מניות, וקנייה רק כשמשבצת מתפנה.</div>`;
   }
   const withNow = o => { const pn = priceNow(o.ticker, o.last, o.last_session || pk.session); return { pn, pnl: (pn.price && o.entry) ? (pn.price / o.entry - 1) * 100 : o.pnl_pct }; };
   h += sells.map(o => { const w = withNow(o); return `<div class="act-row">
@@ -3325,8 +3342,15 @@ function renderActionScreen(data) {
           <div class="muted-sm">נקנתה ${usd(o.entry)} · ${priceTag(w.pn)}</div></div>
         <div class="mono" style="font-weight:700; color:${col(w.pnl)};">${signedPct(w.pnl, 1)}</div></div>`; }).join("") + `</div></details>`;
   }
+  const bRow = ((data.strategy_comparison || {}).rows || []).find(r => r.key === "book_B");
+  if (calm && bRow && bRow.return_pct != null) {
+    const colr = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
+    h += `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+      <div><div style="font-size:12.5px; color:var(--text-dim);">אסטרטגיה B בפועל מאז ${fmtDateIL(bRow.start_date)}</div><div class="muted-sm">S&amp;P 500 באותם ימים: <span style="color:${colr(bRow.sp500_same_window_pct)};">${signedPct(bRow.sp500_same_window_pct, 1)}</span></div></div>
+      <div class="mono" style="font-size:22px; font-weight:800; color:${colr(bRow.return_pct)};">${signedPct(bRow.return_pct, 1)}</div></div>`;
+  }
   const b = (pk.boxes || {}).short || {};
-  if (b.days) {
+  if (!calm && b.days) {
     h += `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
       <div><div style="font-size:12.5px; color:var(--text-dim);">ההמלצות בפועל מאז ${fmtDateIL(b.start_date)}</div><div style="font-size:12.5px; color:var(--text-faint);">S&amp;P 500 באותם ימים: <span style="color:${col(b.spy_pct)};">${signedPct(b.spy_pct, 2)}</span></div></div>
       <div class="mono" style="font-size:22px; font-weight:800; color:${col(b.cum_pct)};">${signedPct(b.cum_pct, 2)}</div></div>`;
@@ -3340,6 +3364,33 @@ function renderActionScreen(data) {
     <div class="muted-sm" style="line-height:1.6; margin:4px 2px 0;">עמלה לפי המסלול שלך: 0.1% לעסקה, מינימום $8. מתחת ל-$4,000 לעסקה העמלה עוברת 0.2% לצד, וזה כבר אוכל חלק ניכר מהיתרון. כדי להריץ את שתי האסטרטגיות כמו שנבדקו צריך בערך $120,000. עם פחות, עדיף רק A (בערך $40,000).</div></details>`;
   h += `<div class="muted-sm" style="line-height:1.6; margin:8px 2px 0;">רק אסטרטגיות A/B שעברו מחקר. קונים ומוכרים לפי תאריך - כך זה נבדק. מידע בלבד, לא ייעוץ השקעות.</div>`;
   el.innerHTML = h;
+  const ct = document.getElementById("calmToggleBtn");
+  if (ct) ct.addEventListener("click", () => {
+    try { localStorage.setItem("calmMode", calm ? "0" : "1"); } catch (e) {}
+    renderActionScreen(window.__lastActionData || data);
+  });
+}
+
+// ---------- v6.27.0: 💼 my portfolio vs the core - facts only, no advice ----------
+function renderMyReview(rv) {
+  const el = document.getElementById("myReviewSection");
+  if (!el) return;
+  if (!rv || !rv.start_date || rv.mine_pct == null) { el.classList.add("hidden"); return; }
+  const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
+  const box = (label, v, tag) => `<div class="picks-box"><div class="pb-label">${label} ${tag || ""}</div><div class="pb-big mono" style="font-size:22px; color:${col(v)};">${v == null ? "—" : signedPct(v, 1)}</div></div>`;
+  const gapCore = (rv.core_pct != null) ? rv.mine_pct - rv.core_pct : null;
+  const FLAG = { below_sma200: "מתחת לממוצע 200 ימים", concentrated: "מעל 20% מהתיק" };
+  const rows = (rv.holdings || []).slice().sort((a, b) => (b.weight_pct || 0) - (a.weight_pct || 0)).map(h => `<div class="picks-row">
+      <div><b>${h.ticker}</b> <span class="muted-sm">${h.weight_pct != null ? Number(h.weight_pct).toFixed(0) + "% מהתיק" : ""}</span>
+        ${(h.flags || []).length ? `<div style="font-size:12px; color:#e0a92e;">⚠️ ${(h.flags || []).map(f => FLAG[f] || f).join(" · ")}</div>` : ""}
+        ${h.from_high_pct != null ? `<div class="muted-sm">${signedPct(h.from_high_pct, 0)} מהשיא השנתי</div>` : ""}</div>
+      <div class="mono" style="font-weight:700; color:${col(h.since_start_pct)};">${h.since_start_pct == null ? "—" : signedPct(h.since_start_pct, 1)}</div></div>`).join("");
+  el.innerHTML = `<div class="section-title">💼 התיק שלך מול הליבה</div>
+    <div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("התיק שלך", rv.mine_pct, TAG_HTML.mine)}${box("ליבה: מדד + חשיפה", rv.core_pct, TAG_HTML.proven)}${box("S&amp;P 500", rv.spy_pct)}</div>
+    <div style="font-size:13px; color:var(--text-dim); line-height:1.6; margin:2px 2px 8px;">מאז ${fmtDateIL(rv.start_date)}.${gapCore != null ? ` התיק ${gapCore >= 0 ? "הקדים" : "פיגר אחרי"} את הליבה ב-<b class="mono" style="color:${col(gapCore)};">${Math.abs(gapCore).toFixed(1)}%</b>.` : ""}</div>
+    <div class="act-row" style="padding:4px 14px;"><div class="muted-sm" style="margin:6px 0 2px;">שינוי מחיר המניה מאז ${fmtDateIL(rv.start_date)} (לא ממחיר הקנייה שלך)</div>${rows}</div>
+    <div class="muted-sm" style="line-height:1.6; margin:4px 2px 14px;">"ליבה" = ה-S&amp;P 500 עם כלל החשיפה שעבר מחקר (חצי מזומן כשהמדד מתחת לממוצע 200 הימים). הסימונים הם עובדות על האחזקה, לא המלצה לקנות או למכור. מידע בלבד, לא ייעוץ השקעות.</div>`;
+  el.classList.remove("hidden");
 }
 
 // ---------- v6.12.0: 🏆 מניות מנצחות 🧪 (winners.json, written by winners_live.py) ----------
@@ -3766,7 +3817,10 @@ function renderMovesCard(data) {
   const last = evs.reduce((m, e) => e.date > m ? e.date : m, "");
   const todayIso = new Date().toISOString().slice(0, 10);
   const fresh = (Date.parse(todayIso) - Date.parse(last)) / 864e5 <= 3;   // latest event day, if within the last 3 days (covers weekends)
-  const shown = fresh ? evs.filter(e => e.date === last) : [];
+  // v6.27.0: Top10 stopped - drop its label from older events, and events that were Top10-only
+  const shown = (fresh ? evs.filter(e => e.date === last) : [])
+    .map(e => ({ ...e, lists: (e.lists || []).filter(l => l !== "Top10") }))
+    .filter(e => e.lists.length);
   if (!shown.length) { el.innerHTML = ""; return; }
   el.innerHTML = `
     <div class="panel" style="padding:12px 16px; border-radius:14px; margin-bottom:12px; border:1px solid #ff9a8a66;">
@@ -3888,6 +3942,7 @@ async function loadPredictions() {
     renderPortfolioSim(data.portfolio_sim, acc);
     lastPortfolioSimReal = data.portfolio_sim || null;
     renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
+    try { renderMyReview(data.my_portfolio_review); } catch (e) { console.error("my review render failed", e); }
     window.__dashboardData.monthlyPortfolioSim = data.monthly_portfolio_sim || null;
     renderHomeDashboardTiles();
   } catch (e) {
@@ -4682,41 +4737,8 @@ function renderMyPortfolio(snapshot, sim) {
     headerToggle.style.color = "";
   }
 
-  // "who guessed better" - daily AND cumulative (since tracking started), my portfolio vs Top10
-  const liveTop10 = computeLiveTop10Estimate();
-  let compareHtml = "";
-  if (totalReturn != null && liveTop10 && liveTop10.avg != null) {
-    const iWinDaily = totalReturn >= liveTop10.avg;
-    compareHtml += `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:6px;">
-        <div style="font-size:12.5px; font-weight:600; color:var(--text-dim);">🆚 מי ניחש טוב יותר היום?</div>
-        <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>התיק שלי ${iWinDaily ? "🏆" : ""}</span>
-          <span class="mono ${totalReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${totalReturn >= 0 ? "+" : ""}${totalReturn.toFixed(2)}%</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>Top 10 (הערכה חיה) ${!iWinDaily ? "🏆" : ""}</span>
-          <span class="mono ${liveTop10.avg >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${liveTop10.avg >= 0 ? "+" : ""}${liveTop10.avg.toFixed(2)}%</span>
-        </div>
-      </div>`;
-  }
-  if (cumReturn != null && lastPortfolioSimReal && lastPortfolioSimReal.total_return_pct != null) {
-    const realReturn = lastPortfolioSimReal.total_return_pct;
-    const iWinCum = cumReturn >= realReturn;
-    compareHtml += `
-      <div class="track-row" style="flex-direction:column; align-items:stretch; gap:6px; margin-top:8px;">
-        <div style="font-size:12.5px; font-weight:600; color:var(--text-dim);">🆚 ומי ניחש טוב יותר מאז תחילת המעקב?</div>
-        <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>התיק שלי ${iWinCum ? "🏆" : ""}</span>
-          <span class="mono ${cumReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${cumReturn >= 0 ? "+" : ""}${cumReturn}%</span>
-        </div>
-        <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>Top 10 (תיק $100,000) ${!iWinCum ? "🏆" : ""}</span>
-          <span class="mono ${realReturn >= 0 ? "prediction-dir-up" : "prediction-dir-down"}">${realReturn >= 0 ? "+" : ""}${realReturn}%</span>
-        </div>
-        <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">מספר ה-Top 10 כאן כולל גם היסטוריה מלפני שינוי הנוסחה (1.9.2026) - המספר הנקי "מאז השינוי" נמצא בסקשן "השוואת נוסחאות".</div>
-      </div>`;
-  }
+  // v6.27.0: Top10 was stopped (20.11.2026); the comparison now lives in "התיק שלך מול הליבה" above
+  const compareHtml = "";
   document.getElementById("myPortfolioCompare").innerHTML = compareHtml;
   updateTabLabels();
 
