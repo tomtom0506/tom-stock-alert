@@ -148,7 +148,7 @@
      the app, so the narrow header keeps only the freshness line, readable */
   @media (max-width: 480px) {
     .brand { display: none; }
-    .brand-sub { white-space: normal !important; line-height: 1.3; font-size: 13.5px; color: var(--text-dim); margin-top: 0; }
+    .brand-sub { white-space: normal !important; line-height: 1.25; font-size: 13px; color: var(--text-dim); margin-top: 0; }
   }
   :focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
   .held-list { margin:12px 0 8px; }
@@ -581,7 +581,7 @@
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">📊 ביצועים</p>
         <p>כל אסטרטגיה ורשימה מול ה-S&amp;P 500 באותם ימים בדיוק. "פער" = כמה יותר או פחות מה-S&amp;P.</p>
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🧪 מעבדה</p>
-        <p>רשימות בניסוי: Top10, טווח ארוך, מניות מנצחות, מבחן יציאה וקניות של אנשי פנים. כל אחת נמדדת בזמן אמת, ותגית הסטטוס שלה מראה אם היא מקדימה או מפגרת.</p>
+        <p>רשימות בניסוי: טווח ארוך, מניות מנצחות, מבחן יציאה וקניות של אנשי פנים. כל אחת נמדדת בזמן אמת, ותגית הסטטוס שלה מראה אם היא מקדימה או מפגרת.</p>
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">🔍 בדוק מניה</p>
         <p>ניתוח לפי דרישה לכל טיקר (כדקה-שתיים): ציון תזמון לטווח קצר, ציון איכות לטווח ארוך וגרף מחיר.</p>
         <p style="color:var(--text); font-weight:700; margin:16px 0 4px;">מילון קצר</p>
@@ -612,7 +612,7 @@
   <div id="homeMoreWrap" class="home-more collapsed" data-tab="home" data-subtab="full">
   <div id="homeExposureCard" data-tab="home" data-subtab="full"></div>
   <div id="homeLayersCard" data-tab="home" data-subtab="full"></div>
-  <div class="stats-row hidden" id="statsRow" data-tab="home" data-subtab="full">
+  <div class="stats-row hidden" id="statsRow" data-tab="retired">
     <div class="stat-tile" id="statAccuracyTile" style="cursor:pointer;"><div class="stat-num mono" id="statAccuracy">—</div><div class="stat-label">אחוז הצלחת חיזוי ℹ️</div></div>
     <div class="stat-tile"><div class="stat-num mono" id="statPredictions">—</div><div class="stat-label">תחזיות חזקות היום</div></div>
     <div class="stat-tile"><div class="stat-num mono" id="statTracked">—</div><div class="stat-label">מניות במעקב</div></div>
@@ -620,13 +620,13 @@
   </div>
   </div>
 
-  <div id="forwardEvalSection" data-tab="lab" data-subtab="top10">
+  <div id="forwardEvalSection" data-tab="retired">
     <div class="section-title">📐 האם הציון מנבא? מדידה על כל היקום</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">IC = מתאם דירוג בין הציון של כל מניה לבין מה שקרה לה בפועל, על כל המניות שנסרקו (כ-750 ביום) ולא רק על 10. ‏0 = אין קשר, חיובי = מניות עם ציון גבוה עלו יותר. ה-t מחושב רק על ימים שלא חופפים, כדי לא להגזים במובהקות.</div>
     <div id="forwardEvalBody"></div>
   </div>
 
-  <div id="trackRecordSection" class="hidden" data-tab="lab" data-subtab="top10">
+  <div id="trackRecordSection" class="hidden" data-tab="retired">
     <div class="section-title" id="trackRecordToggle" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
       🔥 ביצועי תחזיות חזקות <span id="trackRecordArrow" style="font-size:13px; color:var(--text-faint);">▸ הצג פירוט</span>
     </div>
@@ -639,7 +639,7 @@
     <div class="predictions-panel hidden" id="trackListPanel"><div id="trackList"></div></div>
   </div>
 
-  <div id="portfolioSimSection" class="hidden" data-tab="lab" data-subtab="top10">
+  <div id="portfolioSimSection" class="hidden" data-tab="retired">
     <div class="section-title">💰 סימולציית תיק $100,000</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
       תיק מדומה: משקיע $100,000 בחלוקה שווה בין מניות ה-Top 10 שהומלצו לעלייה בכל יום (לפי עוצמת האות, קבוע - לא מושפע מהמיון שבחרת ברשימה למטה), ומתעדכן יום אחרי יום לפי הביצוע בפועל. הערכה בלבד - ללא עמלות/מרווחים, וללא המרות מטבע.
@@ -699,7 +699,7 @@
     <div id="winnersBody"><div style="font-size:12px; color:var(--text-faint);">טוען...</div></div>
   </div>
 
-  <div id="predictionsSection" class="hidden" data-tab="lab" data-subtab="top10">
+  <div id="predictionsSection" class="hidden" data-tab="retired">
     <div style="background:rgba(255,215,106,0.08); border:1px solid rgba(255,215,106,0.35); border-radius:10px; padding:9px 12px; margin-bottom:12px; font-size:12px; line-height:1.6; color:var(--text-dim);">
       <span id="top10StatusChip"></span><br>🧪 <b>ניסוי - טווח קצר (ימים עד שבועות).</b> מחקר של 26 שנה לא מצא לנוסחה יתרון מובהק על פני החזקה של כל המניות, ולכן זו לא בסיס להשקעה משמעותית. לכל מניה מוצגים מראש יעד וסטופ.
     </div>
@@ -755,7 +755,7 @@
     <button class="sub-tab-btn" style="margin-bottom:10px;" onclick="switchTab(preCheckTab)">← חזרה</button>
     <div class="section-title">🔍 בדוק מניה</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:12px;">
-      ניתוח לפי דרישה לכל טיקר - לא קשור לרשימת המעקב היומית. מריץ את אותן שלוש הנוסחאות שמריצות את Top 10, בתוספת דירוג אנליסטים, ונותן ציון כולל 1-100. לוקח כדקה-שתיים (מפעיל ריצה חדשה בגיטהאב, לא מיידי).
+      ניתוח לפי דרישה לכל טיקר - לא קשור לרשימת המעקב היומית. מריץ את נוסחאות הניתוח הטכני של המנוע היומי, בתוספת דירוג אנליסטים, ונותן ציון כולל 1-100. לוקח כדקה-שתיים (מפעיל ריצה חדשה בגיטהאב, לא מיידי).
     </div>
     <div style="display:flex; gap:8px; margin-bottom:10px;">
       <input class="field-input mono" id="checkStockInput" aria-label="טיקר לבדיקה" placeholder="לדוגמה: NVDA / TEVA.TA" style="flex:1;" list="checkStockSuggestions" autocomplete="off" />
@@ -1004,12 +1004,17 @@
 </div>
 
 <script>
-const APP_VERSION = "6.25.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.26.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.26.0", date: "2026-11-20", items: [
+    "⚡ Top10 הופסק (החלטת keep-or-kill, הוקדמה מ-30.11): מ-21.8 הוא ירד 25.1% כשה-S&P ירד 6.5%, ניחש נכון את הכיוון רק ב-41% מהמקרים בנובמבר, והקדים את המדד בחודש אחד מתוך 4. הלשונית יצאה מהמעבדה, השורה יצאה מטבלת הביצועים (התוצאה נשמרת בהערה מתחתיה), ונתוני ההיסטוריה נשמרים בארכיון.",
+    "🧱 'שלוש שכבות התיק' (היום › מלא): שכבת הטווח הקצר היא עכשיו אסטרטגיות A ו-B שעברו מחקר, במקום Top10.",
+    "⭐ 'מניות במעקב' ו-'חשופות קריפטו' היו בתוך לשונית Top10 ויצאו איתה. למעקב אחרי מניה: התיק שלי › המניות שלי.",
+  ]},
   { version: "6.25.0", date: "2026-11-20", items: [
     "🧹 מסך 'היום › פעולה' מציג רק מה שעושים היום. המניות המוחזקות מקופלות לשורה אחת לכל מניה, עם ממוצע. מבחן היציאה (ניסוי) נשאר רק במעבדה, הטווח הארוך ב'מלא', והגדרת הסכום למסחר במקום מקופל.",
     "⚠️ תגית 'מוכח' (עבר מחקר על 26 שנה) מופיעה עכשיו יחד עם '⚠️ מפגרת בזמן אמת' כשאסטרטגיה מפגרת אחרי ה-S&P מאז שעלתה (כרגע A). קודם הוצג רק 'מוכח'.",
@@ -2943,7 +2948,6 @@ function renderLayersCard(data) {
   const sp = by.sp500;
   const lt = data.long_term_picks || {};
   const enterCount = (lt.picks || []).filter(p => p.entry_tag === "enter" || p.entry_tag === "dip").length;
-  const topBuy = allTodayPreds.filter(p => p.top10).length;
 
   function line(icon, title, share, row, note) {
     // gap vs S&P over the row's OWN window (backend 5.10.1+); older data falls back to the plain difference
@@ -2967,7 +2971,8 @@ function renderLayersCard(data) {
       ${line("🧭", "ליבה: מדד + כלל חשיפה", "כ-70%", by.core_exposure, `חשיפה היום: ${data.exposure ? data.exposure.recommended_exposure_pct + "%" : "—"}`)}
       ${line("🏛", "טווח ארוך: מניות איכות", "כ-20%", by.long_term,
         lt.picks && lt.picks.length ? `${lt.picks.length} מניות · ${enterCount} בתזמון כניסה` : `בונה את הרשימה (${lt.fundamentals_coverage_pct ?? 0}% מהדוחות נאספו)`)}
-      ${line("⚡", "טווח קצר: Top10", "עד 10% · ניסוי", by.top10, `${topBuy} מניות היום · יעד וסטופ לכל אחת`)}
+      ${line("🔄", "טווח קצר: אסטרטגיה A", "עד 5% · מוכח", by.book_A, "קנייה אחרי ירידה חדה · החזקה 10 ימי מסחר" + liveWarnTag("book_A"))}
+      ${line("🚀", "טווח קצר: אסטרטגיה B", "עד 5% · מוכח", by.book_B, "קפיצת חדשות · החזקה 60 ימי מסחר" + liveWarnTag("book_B"))}
       <div style="font-size:12px; color:var(--text-faint); margin-top:8px;">התשואה היא מתחילת המעקב של כל שורה, והפער הוא מול S&amp;P 500 באותה תקופה בדיוק - פירוט מלא בסימולציה ← ביצועים.</div>
     </div>`;
 }
@@ -3140,7 +3145,8 @@ function renderResults(data) {
   const rows = ((data.strategy_comparison || {}).rows || []);
   const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
   const order = { proven: 0, mine: 1, benchmark: 2, experiment: 3 };
-  const sorted = rows.slice().sort((a, b) => (order[a.tag] ?? 9) - (order[b.tag] ?? 9));
+  // v6.26.0: Top10 stopped 20.11.2026 (keep-or-kill decision) - out of the table, the result stays on record below
+  const sorted = rows.filter(r => r.key !== "top10").sort((a, b) => (order[a.tag] ?? 9) - (order[b.tag] ?? 9));
   let h = `<div class="section-title">ביצועים מול ה-S&amp;P 500</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">כל שורה נמדדת מול ה-S&amp;P באותם ימים בדיוק, מהתאריך שבו היא התחילה. "פער" = כמה יותר (או פחות) מה-S&amp;P.</div>
     <div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>מה</th><th>מאז</th><th>תשואה</th><th>S&amp;P</th><th>פער</th></tr></thead><tbody>`;
@@ -3149,6 +3155,7 @@ function renderResults(data) {
       <td class="mono" style="color:var(--text-dim);">${signedPct(r.sp500_same_window_pct, 1)}</td>
       <td class="mono" style="font-weight:800; color:${col(r.vs_sp500_pct)};">${r.key === "sp500" ? "—" : signedPct(r.vs_sp500_pct, 1)}</td></tr>`).join("");
   h += `</tbody></table></div>
+    <div class="muted-sm" style="line-height:1.6; margin:6px 2px 0;">⚡ Top10 הופסק ב-20.11.2026: מ-21.8 עד 19.11 ‎-25.1%‎ מול ‎-6.5%‎ ל-S&amp;P 500 (פער ‎-18.6%‎), הקדים את המדד בחודש אחד מתוך 4. ההיסטוריה נשמרת בארכיון.</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin:6px 2px 14px;">שורות A/B מראות רק מה שקרה בזמן אמת, מאז שהאסטרטגיות עלו (1.10), כולל עמלות. הפירוט למטה כולל גם את הסימולציה על השנה האחרונה - היא מחושבת מחדש כל יום על חלון נע, ולכן המספר הכולל שלה זז גם בלי עסקאות.</div>`;
   const sb = data.strategy_book || data.book || {};
   if (typeof renderBookCard === "function" && (sb.A || sb.B)) {
@@ -3184,7 +3191,7 @@ function renderFreshness(data) {
   const txt = mins < 60 ? `עודכן לפני ${mins} דק'` : mins < 1440 ? `עודכן לפני ${Math.round(mins / 60)} שע'` : `עודכן לפני ${Math.round(mins / 1440)} ימים`;
   const day = new Date().getUTCDay(), hr = new Date().getUTCHours();
   const stale = mins > 180 && day >= 1 && day <= 5 && hr >= 13 && hr <= 22;
-  el.textContent = txt + (stale ? " · הנתונים לא עדכניים" : "");
+  el.textContent = txt + (stale ? " · לא עדכני" : "");
   el.classList.toggle("fresh-stale", stale);
 }
 
@@ -3525,7 +3532,6 @@ function renderPortfolioDailyTiles(data) {
   if (!row) return;
   const lists = [
     { label: "📅 תיק חודשי", tickers: ((data.monthly_portfolio || {}).holdings || []).map(h => h.ticker) },
-    { label: "⚡ Top10", tickers: allTodayPreds.filter(p => p.top10).map(p => p.ticker) },
     { label: "🔁 מומלצות עכשיו", tickers: (tomorrowForecastPicks || []).map(p => p.ticker) },
     { label: "🏛 טווח ארוך", tickers: ((data.long_term_picks || {}).picks || []).map(p => p.ticker) },
   ].filter(l => l.tickers.length);
@@ -5095,7 +5101,6 @@ const SUBTABS = {
     { id: "full", label: "מלא", icon: "📋" },
   ],
   lab: [
-    { id: "top10", label: "Top10", icon: "⚡" },
     { id: "longterm", label: "טווח ארוך", icon: "🏛" },
     { id: "winners", label: "מניות מנצחות", icon: "🏆" },
     { id: "exit", label: "מבחן יציאה", icon: "🎯" },
