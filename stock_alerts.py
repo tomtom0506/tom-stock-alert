@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.35.0"
+BACKEND_VERSION = "5.36.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -4797,6 +4797,7 @@ def build_strategy_comparison(store):
     add("picks_long", "3 ההמלצות לטווח ארוך (ניסוי)", "long", "picks_long")
     add("long_term", "טווח ארוך - 10 מניות איכות (ניסוי)", "long", "long_term_sim")
     add("top10", "Top10 (ניסוי, הכרעה ב-30.11)", "short", "portfolio_sim")
+    add("leveraged_exposure", "חשיפה ממונפת (ניסוי)", "core", "leveraged_exposure_sim")
     add("mine", "התיק שלי", "mine", "my_portfolio_sim")
     # v5.10.1: each row's gap vs S&P 500 is measured over THAT row's own
     # window (the long-term list started 30.9 and was being compared with
@@ -4817,15 +4818,117 @@ def build_strategy_comparison(store):
             r["vs_sp500_pct"] = round(r["return_pct"] - r["sp500_same_window_pct"], 2)
     tag_of = {"sp500": "benchmark", "core_exposure": "proven", "book_A": "proven", "book_B": "proven",
               "picks_short": "proven", "picks_long": "experiment", "long_term": "experiment", "top10": "experiment",
-              "mine": "mine"}
+              "mine": "mine", "leveraged_exposure": "experiment"}
     for r in rows:
         r["tag"] = tag_of.get(r["key"], "info")
     store["strategy_comparison"] = {"updated_at": datetime.now(timezone.utc).isoformat(), "rows": rows}
 
 
+# ---------- v5.36.0: 🧪 "leveraged exposure" - paper-only forward test ----------
+# Research 21.11.2026 (research/2026-11-21-leveraged-exposure*.md): passed 1960-1999
+# and 2000-2021, FAILED the 2021-2026 hold-out -> experiment only, never an
+# instruction on the action screen. Above the 200-day average: 50% SPY + 50% SSO
+# (150% exposure); below: 50% SPY + 50% cash. Rebalanced the session after every
+# cross and on the first session of each month.
+LEV_TARGET_ABOVE = {"SPY": 0.5, "SSO": 0.5, "CASH": 0.0}
+LEV_TARGET_BELOW = {"SPY": 0.5, "SSO": 0.0, "CASH": 0.5}
+LEV_STOP_GAP_PCT = 10.0        # stop if its drawdown exceeds the S&P's by more than 10 points
+LEV_TRADE_COST = 0.001 + 0.0005  # fee 0.1% + slippage 0.05% of traded value
+LEV_MIN_FEE = 8.0
+
+
+def simulate_leveraged_exposure(spy, sso, flags, start, cash_daily=0.0, start_value=100000.0):
+    """Pure. spy/sso: {iso: close}, flags: {iso: above_200d (bool)} at that close.
+    Returns the paper account from `start` (allocated at that close) to the last common close."""
+    days = sorted(d for d in spy if d >= start and d in sso)
+    if not days:
+        return None
+    def target(flag):
+        return LEV_TARGET_ABOVE if flag in (True, None) else LEV_TARGET_BELOW
+    def rebalance(pos, flag):
+        total = sum(pos.values())
+        tgt = target(flag)
+        cost = 0.0
+        for k in ("SPY", "SSO"):
+            traded = abs(tgt[k] * total - pos[k])
+            if traded >= 1:
+                cost += max(traded * LEV_TRADE_COST, LEV_MIN_FEE)
+        total -= cost
+        return {k: tgt[k] * total for k in tgt}, cost
+    last_flag = None
+    for d in sorted(flags):
+        if d <= days[0]:
+            last_flag = flags[d]
+    pos, costs = rebalance({"SPY": 0.0, "SSO": 0.0, "CASH": start_value}, flags.get(days[0], last_flag))
+    log = [{"date": days[0], "value_end": round(sum(pos.values()), 2),
+            "exposure_pct": 150 if flags.get(days[0], last_flag) in (True, None) else 50}]
+    prev_flag = flags.get(days[0], last_flag)
+    flipped_yesterday = False
+    for d0, d1 in zip(days, days[1:]):
+        pos["SPY"] *= spy[d1] / spy[d0]
+        pos["SSO"] *= sso[d1] / sso[d0]
+        pos["CASH"] *= 1 + cash_daily
+        flag = flags.get(d1, prev_flag)
+        if flipped_yesterday or d1[:7] != d0[:7]:
+            pos, c = rebalance(pos, prev_flag)   # act on the state known at the previous close
+            costs += c
+        flipped_yesterday = flag != prev_flag
+        prev_flag = flag
+        total = sum(pos.values())
+        lev_exp = round((pos["SPY"] + 2 * pos["SSO"]) / total * 100) if total else 0
+        log.append({"date": d1, "value_end": round(total, 2), "exposure_pct": lev_exp})
+    def max_dd(vals):
+        peak, worst = vals[0], 0.0
+        for v in vals:
+            peak = max(peak, v)
+            worst = min(worst, v / peak - 1)
+        return round(worst * 100, 2)
+    spy_vals = [spy[d] for d in days]
+    value = log[-1]["value_end"]
+    dd, spy_dd = max_dd([e["value_end"] for e in log]), max_dd(spy_vals)
+    return {"start_date": days[0], "start_value": start_value, "value": value,
+            "total_return_pct": round((value / start_value - 1) * 100, 2),
+            "spy_pct": round((spy_vals[-1] / spy_vals[0] - 1) * 100, 2),
+            "max_dd_pct": dd, "spy_max_dd_pct": spy_dd,
+            "stop_hit": (dd - spy_dd) < -LEV_STOP_GAP_PCT,
+            "exposure_pct": log[-1]["exposure_pct"], "costs_usd": round(costs, 2),
+            "daily_log": log[-400:]}
+
+
+def build_leveraged_exposure_sim(store):
+    old = store.get("leveraged_exposure_sim") or {}
+    try:
+        spy = yf.Ticker("SPY").history(period="2y", auto_adjust=True)["Close"].dropna()
+        sso = yf.Ticker("SSO").history(period="2y", auto_adjust=True)["Close"].dropna()
+    except Exception as e:
+        print(f"Leveraged exposure fetch failed: {type(e).__name__}")
+        return
+    if spy.empty or sso.empty:
+        return
+    spy_d = {ts.strftime("%Y-%m-%d"): float(v) for ts, v in spy.items()}
+    sso_d = {ts.strftime("%Y-%m-%d"): float(v) for ts, v in sso.items()}
+    flags = dict((store.get("exposure") or {}).get("series") or [])
+    common = sorted(set(spy_d) & set(sso_d))
+    start = old.get("start_date") or common[-1]          # pinned on the first run: measured forward only
+    sim = simulate_leveraged_exposure(spy_d, sso_d, flags, start, CASH_DAILY)
+    if not sim:
+        return
+    core_pct, _ = core_return_since(spy_d, list(flags.items()), start)
+    sim["core_pct"] = core_pct
+    sim["stopped_on"] = old.get("stopped_on") or (sim["daily_log"][-1]["date"] if sim["stop_hit"] else None)
+    y, m = int(start[:4]), int(start[5:7])
+    sim["review_on"] = f"{y + 1}-{m:02d}-{start[8:10]}"
+    sim["label"] = "חשיפה ממונפת (ניסוי)"
+    store["leveraged_exposure_sim"] = sim
+
+
 def update_three_layer_views(store):
     """Runs every cycle after the existing sims/benchmarks are updated."""
     compute_exposure_signal(store)
+    try:
+        build_leveraged_exposure_sim(store)
+    except Exception as e:
+        print(f"Leveraged exposure sim failed: {type(e).__name__}: {e}")
     build_equal_weight_benchmark(store)
     sp_log = (store.get("index_sim_sp500") or {}).get("daily_log") or []
     build_exposure_sim(store, _returns_from_value_log(sp_log), "core_sim_sp500_exposure", "S&P 500 + כלל חשיפה",
