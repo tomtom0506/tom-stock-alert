@@ -24,6 +24,12 @@ on:
           - theory_lab
           - theory_lab_stage4
           - vectorbt_regime_momentum_research
+          - breadth_lowvol_research
+          - strong_stocks_research
+      holdout:
+        description: "תקופת בקרה (5 שנים אחרונות) - פעם אחת בלבד, בסוף. רק ל-breadth_lowvol / strong_stocks"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -50,7 +56,16 @@ jobs:
       - name: Run
         env:
           SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
-        run: python research/${{ inputs.script || 'insider_parity_check' }}.py
+          HOLDOUT: ${{ inputs.holdout && '--holdout' || '' }}
+        run: python research/${{ inputs.script || 'insider_parity_check' }}.py $HOLDOUT
+
+      - name: Print summary to the log
+        if: always()
+        run: |
+          for f in research/output_*/*/SUMMARY.md research/output_*/SUMMARY.md; do
+            [ -f "$f" ] && { echo "===== $f ====="; cat "$f"; }
+          done
+          true
 
       - name: Upload results
         if: always()
