@@ -10,6 +10,7 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "research"))
 import breadth_lowvol_research as B  # noqa: E402
 import strong_stocks_research as S  # noqa: E402
+import leverage_exposure_research as L  # noqa: E402
 
 
 def bdays(n, start="2020-01-01"):
@@ -251,6 +252,45 @@ class EndToEndSynthetic(unittest.TestCase):
                           "member_price_coverage_by_year": {}, "bad_daily_returns_masked": 0,
                           "tickers_ever": 40, "tickers_with_prices": 40})
         self.assertIn("השערה 1", md)
+
+
+class LeverageExposure(unittest.TestCase):
+    def test_synthetic_2x(self):
+        d = bdays(3)
+        r = L.synthetic_2x(pd.Series([0.01, -0.02, 0.0], index=d), pd.Series(0.0001, index=d), fee_annual=0.0252)
+        np.testing.assert_allclose(r.values, [0.02 - 0.0001 - 0.0001, -0.04 - 0.0002, -0.0002])
+
+    def test_splice_uses_real_from_first_day(self):
+        d = bdays(4)
+        real = pd.Series([np.nan, np.nan, 0.05, 0.06], index=d)
+        synth = pd.Series([0.1, 0.2, 0.3, 0.4], index=d)
+        self.assertEqual(L.splice(real, synth).tolist(), [0.1, 0.2, 0.05, 0.06])
+
+    def test_targets_and_monthly_rebalance(self):
+        d = pd.DatetimeIndex(["2020-01-30", "2020-01-31", "2020-02-03", "2020-02-04"])
+        above = pd.Series([True, True, True, False], index=d, dtype=object)
+        tg = L.leverage_targets(above, d)
+        self.assertEqual(tg[d[0]][L.LEV], 0.5)
+        self.assertEqual(tg[d[3]], {B.ETF: B.REDUCED})
+        self.assertEqual(sorted(B.orders_from_targets(tg, d[0], d[-1])), [d[0], d[2], d[3]])
+
+    def test_sso_gets_etf_slippage(self):
+        self.assertAlmostEqual(B.trade_cost(100_000, L.LEV), 100 + 50)
+
+    def test_verdict(self):
+        spy = {"cagr": 0.08, "max_dd": -0.55}
+        self.assertTrue(L.verdict({"cagr": 0.10, "max_dd": -0.55}, spy))
+        self.assertFalse(L.verdict({"cagr": 0.0999, "max_dd": -0.40}, spy))
+        self.assertFalse(L.verdict({"cagr": 0.12, "max_dd": -0.551}, spy))
+
+    def test_leverage_simulation(self):
+        d = bdays(6)
+        rets = pd.DataFrame({B.ETF: 0.01, L.LEV: 0.02, B.CASH: 0.0}, index=d)
+        above = pd.Series(True, index=d, dtype=object)
+        eq, trades, _ = B.simulate(B.orders_from_targets(L.leverage_targets(above, d), d[0], d[-1]),
+                                   rets, d[0], d[-1], initial=100_000)
+        self.assertAlmostEqual(eq.iloc[2] / eq.iloc[1], 1.015, places=3)   # 150% exposure
+        self.assertEqual(sorted(t["asset"] for t in trades), [B.ETF, L.LEV])
 
 
 if __name__ == "__main__":
