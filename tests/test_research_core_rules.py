@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "research"))
 import breadth_lowvol_research as B  # noqa: E402
 import strong_stocks_research as S  # noqa: E402
 import leverage_exposure_research as L  # noqa: E402
+import leverage_1950_research as L50  # noqa: E402
 
 
 def bdays(n, start="2020-01-01"):
@@ -291,6 +292,35 @@ class LeverageExposure(unittest.TestCase):
                                    rets, d[0], d[-1], initial=100_000)
         self.assertAlmostEqual(eq.iloc[2] / eq.iloc[1], 1.015, places=3)   # 150% exposure
         self.assertEqual(sorted(t["asset"] for t in trades), [B.ETF, L.LEV])
+
+
+class Leverage1950(unittest.TestCase):
+    def test_window_starts_after_first_tbill_day(self):
+        irx = pd.Series([3.0, 3.1], index=pd.DatetimeIndex(["1960-01-04", "1960-01-05"]))
+        self.assertEqual(L50.window_start(irx), pd.Timestamp("1960-01-05"))
+        irx2 = pd.Series([1.0], index=pd.DatetimeIndex(["1940-01-02"]))
+        self.assertEqual(L50.window_start(irx2), pd.Timestamp("1950-01-01"))
+
+    def test_dividend_added_to_index_and_doubled_in_2x(self):
+        d = bdays(3)
+        g = pd.Series([100.0, 101.0, 101.0], index=d)
+        irx = pd.Series(0.0, index=d)
+        rets, _ = L50.build_returns(g, irx, 0.0252)
+        self.assertAlmostEqual(rets[B.ETF].iloc[2], 0.0001)
+        self.assertAlmostEqual(rets[L.LEV].iloc[2], 0.0002 - 0.0089 / 252)
+
+    def test_run_variant_on_synthetic_prices(self):
+        rng = np.random.default_rng(3)
+        d = pd.bdate_range("1958-01-01", "1965-12-31")
+        g = pd.Series(100 * np.exp(np.cumsum(rng.normal(0.0003, 0.01, len(d)))), index=d)
+        irx = pd.Series(3.0, index=d)
+        res, curves = L50.run_variant(g, irx, pd.Timestamp("1960-01-04"), d[-1], 0.035)
+        for k in ("h4_leverage", "baseline", "index_buy_hold"):
+            self.assertTrue(np.isfinite(curves[k]).all())
+            self.assertIn("1960s", res[k]["decades"])
+        md = L50.render_md({"period": ["a", "b"], "dividend_assumed": 0.035, "results": res,
+                            "results_price_only": res, "pass": False, "pass_price_only": False})
+        self.assertIn("1960s", md)
 
 
 if __name__ == "__main__":
