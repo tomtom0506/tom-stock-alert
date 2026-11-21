@@ -103,7 +103,7 @@ with sync_playwright() as pw:
     full = pg.inner_text("#homePicksSection")
     full_buys = set(re.findall(r"\n([A-Z][A-Z.\-]{0,5}) ", full)) & set(re.findall(r"[A-Z][A-Z.\-]{0,5}", "".join(re.findall(r"לקנות[^\n]*\n(?:[^\n]*\n){0,40}", full))))
     check("לקנות עכשיו - טווח קצר" not in full, "full screen: no second, competing short-term buy list")
-    for tab, subs in (("home", ["action", "full"]), ("mine", [None]), ("results", [None]), ("lab", ["longterm", "winners", "exit", "insider"])):
+    for tab, subs in (("home", ["action", "full"]), ("mine", [None]), ("results", [None]), ("lab", ["longterm", "leverage", "winners", "exit", "insider"])):
         for sb in subs:
             pg.evaluate(f"() => {{ switchTab('{tab}'); {'switchSubtab(%r);' % sb if sb else ''} }}"); pg.wait_for_timeout(700)
             try: pg.wait_for_function("() => window.__predictionsLoaded === true", timeout=30000)
@@ -160,6 +160,12 @@ with sync_playwright() as pw:
         pg.evaluate("() => { switchTab('home'); switchSubtab('action'); document.querySelectorAll('#homeActionSection details').forEach(d => d.open = true); }"); pg.wait_for_timeout(300)
         _np = pg.evaluate("() => document.querySelectorAll('#spyChart svg path').length")
         check(_np == 2, f"home: S&P vs 200-day chart has 2 lines ({_np})")
+    # v6.28.0: the leveraged experiment is clearly marked and warned, and never on the action screen
+    pg.evaluate("() => { switchTab('lab'); switchSubtab('leverage'); }"); pg.wait_for_timeout(400)
+    _lv = pg.inner_text("#labLeverageSection")
+    check("ניסוי, לא מוכח" in _lv and "1987" in _lv and "על נייר בלבד" in _lv, "lab: leveraged experiment marked 'not proven', with the 1987 warning")
+    pg.evaluate("() => { switchTab('home'); switchSubtab('action'); }"); pg.wait_for_timeout(300)
+    check("SSO" not in pg.inner_text("#homeActionSection"), "home: no leveraged (SSO) instruction on the action screen")
     # v6.26.0: Top10 was stopped 20.11.2026 - it must not come back on any screen
     pg.evaluate("() => switchTab('lab')"); pg.wait_for_timeout(300)
     check("top10" not in pg.evaluate("() => (SUBTABS.lab || []).map(s => s.id).join(',')"), "Top10: no lab sub-tab")

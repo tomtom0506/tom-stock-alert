@@ -690,6 +690,7 @@
     </div>
   </div>
 
+  <div id="labLeverageSection" data-tab="lab" data-subtab="leverage"><div id="leverageBody"></div></div>
   <div id="longTermSection" data-tab="lab" data-subtab="longterm">
     <div class="section-title">🏛 טווח ארוך - 10 מניות איכות</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:10px;">
@@ -1013,12 +1014,16 @@
 </div>
 
 <script>
-const APP_VERSION = "6.27.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.28.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.28.0", date: "2026-11-21", items: [
+    "🧪 ניסוי חדש במעבדה: 'חשיפה ממונפת' - 150% כשה-S&P מעל ממוצע 200 הימים, 50% מתחתיו. במחקר הוא ניצח את ה-S&P ב-1960–1999 וב-2000–2021, אבל נכשל ב-2021–2026, ולכן הוא תיק על נייר בלבד, לא מופיע ב'מה עושים היום', ונמדד מהיום מול ה-S&P ומול הליבה. כולל אזהרת סיכון (ירידה כמו ב-1987) וכלל עצירה.",
+    "🧭 ליד כלל החשיפה מופיעה עכשיו גם האמת על חמש השנים האחרונות: 7.4% בשנה מול 9.5% ל-S&P, עם ירידה מקסימלית קטנה יותר (20% מול 25%).",
+  ]},
   { version: "6.27.0", date: "2026-11-20", items: [
     "🧘 מצב רגוע (ברירת מחדל): 'היום › פעולה' מציג רק את אסטרטגיה B, שמחזיקה 60 ימי מסחר, ואת התוצאה שלה בפועל מול ה-S&P. אסטרטגיה A (10 ימים, יותר קניות ומכירות) מוסתרת, ואפשר להציג אותה בלחיצה.",
     "💼 'התיק שלך מול הליבה' (לשונית התיק שלי): התיק האמיתי שלך מול ה-S&P 500 ומול המדד עם כלל החשיפה, מאותו תאריך. לכל אחזקה: שינוי המחיר, המרחק מהשיא השנתי, וסימון כשהיא מתחת לממוצע 200 הימים או תופסת יותר מ-20% מהתיק. עובדות בלבד, לא המלצה.",
@@ -3201,7 +3206,8 @@ function renderExposureLine(data) {
   const up = ex.above_sma;
   return `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
     <div><div style="font-size:13px; font-weight:700;">השוק: ${up ? "מעל " : "מתחת ל"}ממוצע 200 ימים ${TAG_HTML.proven}</div>
-    <div style="font-size:12.5px; color:var(--text-faint);">ה-S&amp;P ${signedPct(ex.pct_vs_sma, 1)} מהממוצע · ${up ? "חשיפה מלאה למניות" : "כלל החשיפה: חצי מזומן"}</div></div>
+    <div style="font-size:12.5px; color:var(--text-faint);">ה-S&amp;P ${signedPct(ex.pct_vs_sma, 1)} מהממוצע · ${up ? "חשיפה מלאה למניות" : "כלל החשיפה: חצי מזומן"}</div>
+    <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">בחמש השנים האחרונות: 7.4% בשנה מול 9.5% ל-S&amp;P, אבל ירידה מקסימלית של 20% מול 25%. מגן בירידות, ועולה מעט בתשואה.</div></div>
     <div style="font-size:20px; font-weight:800; color:${up ? "var(--up)" : "var(--down)"};">${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%</div></div>
     ${spyChartPoints(data).length >= 10 ? `<details class="held-list" style="margin-top:-2px;"><summary><span>📈 למה ${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%? ה-S&amp;P מול ממוצע 200 הימים</span></summary><div class="act-row" style="padding:8px 12px;"><div id="spyChart"></div><div class="muted-sm" style="line-height:1.5;">כשהקו הכחול מעל הקו המקווקו - חשיפה מלאה. מתחתיו - חצי במזומן. זה הכלל שעבר מחקר.</div></div></details>` : ""}`;
 }
@@ -3523,6 +3529,47 @@ function renderSpyChart(data) {
   vizLine(el, { label: "ה-S&P 500 מול ממוצע 200 הימים", height: 120, fmt: v => "$" + Math.round(v),
     series: [{ name: "S&P 500 (SPY)", color: "var(--viz-1)", points: pts.map(p => [p[0], p[1]]) },
              { name: "ממוצע 200 ימים", color: "var(--viz-bench)", points: pts.map(p => [p[0], p[2]]), dash: true }] });
+}
+
+// ---------- v6.28.0: 🧪 leveraged exposure - paper-only forward test (failed the research hold-out) ----------
+function renderLeverage(data) {
+  const el = document.getElementById("leverageBody");
+  if (!el) return;
+  const s = data.leveraged_exposure_sim;
+  const col = v => v == null ? "var(--text-faint)" : (v >= 0 ? "var(--up)" : "var(--down)");
+  const head = `<div class="section-title">🧪 חשיפה ממונפת <span class="tag exp">ניסוי, לא מוכח</span></div>
+    <div style="font-size:13px; color:var(--text-dim); line-height:1.6; margin-bottom:8px;">כמו כלל החשיפה, אבל בשוק עולה עם מינוף: כשה-S&amp;P מעל ממוצע 200 הימים - 150% (חצי SPY, חצי SSO שמכפילה פי 2 את התנועה היומית). מתחת לממוצע - חצי SPY וחצי מזומן. <b>תיק על נייר בלבד</b> - לא מופיע ב"מה עושים היום".</div>
+    <div class="act-row" style="border-color:#e0a92e; font-size:13px; line-height:1.6;">⚠️ <b>הסיכון:</b> ירידה חדה ביום אחד, כמו ב-1987 (20% בערך), כשהתיק בחשיפה של 150%, יכולה לעלות בערך 30% ביום אחד - לפני שהכלל מספיק להגיב.</div>`;
+  const research = `<div class="act-row" style="padding:6px 14px;"><div class="muted-sm" style="margin:4px 0;">המחקר (21.11.2026), תשואה שנתית וירידה מקסימלית מול ה-S&amp;P:</div>
+    <table class="res-table" style="width:100%;"><thead><tr><th>תקופה</th><th>תשואה בשנה<br><span class="muted-sm">הניסוי מול S&amp;P</span></th><th>ירידה מקסימלית<br><span class="muted-sm">הניסוי מול S&amp;P</span></th><th></th></tr></thead><tbody>
+      <tr><td><span dir="ltr">1960–1999</span></td><td><b class="mono">14.8%</b> <span class="muted-sm">מול 12.2%</span></td><td><b class="mono">31%</b> <span class="muted-sm">מול 45%</span></td><td>✅</td></tr>
+      <tr><td><span dir="ltr">2000–2021</span></td><td><b class="mono">10.7%</b> <span class="muted-sm">מול 8.1%</span></td><td><b class="mono">41%</b> <span class="muted-sm">מול 55%</span></td><td>✅</td></tr>
+      <tr><td><span dir="ltr">2021–2026</span><br><span class="muted-sm">בקרה</span></td><td><b class="mono">7.1%</b> <span class="muted-sm">מול 9.5%</span></td><td><b class="mono">30%</b> <span class="muted-sm">מול 25%</span></td><td>❌</td></tr>
+    </tbody></table>
+    <div class="muted-sm" style="margin:6px 0 2px; line-height:1.5;">נכשל בתקופת הבקרה - בשוק שעובר הרבה פעמים מעל ומתחת לממוצע, המינוף נכנס ויוצא ומפסיד. לכן הוא רק נמדד מהיום והלאה.</div></div>`;
+  if (!s || !s.start_date) {
+    el.innerHTML = head + `<div class="act-row muted-sm">המדידה מתחילה בריצה הבאה של המנוע.</div>` + research;
+    return;
+  }
+  const gap = (s.max_dd_pct != null && s.spy_max_dd_pct != null) ? s.max_dd_pct - s.spy_max_dd_pct : null;
+  const box = (label, v, tag) => `<div class="picks-box"><div class="pb-label">${label} ${tag || ""}</div><div class="pb-big mono" style="font-size:22px; color:${col(v)};">${v == null ? "—" : signedPct(v, 1)}</div></div>`;
+  el.innerHTML = head
+    + (s.stopped_on ? `<div class="act-row" style="border-color:var(--down); color:var(--down); font-size:13px;"><b>⚠️ נעצר ב-${fmtDateIL(s.stopped_on)}:</b> הירידה מהשיא גדולה מזו של ה-S&amp;P ביותר מ-10 נקודות. הניסוי ממשיך להימדד, אבל לפי כלל העצירה הוא נכשל.</div>` : "")
+    + `<div class="picks-boxes" style="grid-template-columns:1fr 1fr 1fr;">${box("חשיפה ממונפת", s.total_return_pct, TAG_HTML.experiment)}${box("ליבה: מדד + חשיפה", s.core_pct, TAG_HTML.proven)}${box("S&amp;P 500", s.spy_pct)}</div>
+    <div style="font-size:13px; color:var(--text-dim); line-height:1.6; margin:2px 2px 8px;">מאז ${fmtDateIL(s.start_date)} · חשיפה עכשיו: <b class="mono">${s.exposure_pct}%</b> · ירידה מקסימלית <span class="mono">${signedPct(s.max_dd_pct, 1)}</span> מול <span class="mono">${signedPct(s.spy_max_dd_pct, 1)}</span> ל-S&amp;P · עמלות <span class="mono">$${Math.round(s.costs_usd || 0).toLocaleString("en-US")}</span></div>
+    <div id="leverageChart"></div>
+    <div class="muted-sm" style="line-height:1.6; margin:4px 2px 10px;">כלל עצירה: אם הירידה מהשיא גדולה מזו של ה-S&amp;P ביותר מ-10 נקודות (עכשיו: ${gap == null ? "—" : signedPct(gap, 1)}). סקירה ראשונה: ${fmtDateIL(s.review_on)}.</div>`
+    + research;
+  const log = s.daily_log || [];
+  if (log.length >= 3 && data.spy_closes) {
+    const { spy, core } = coreSeriesSince(data.spy_closes, (data.exposure || {}).series, s.start_date);
+    const base = log[0].value_end;
+    vizLine(document.getElementById("leverageChart"), { label: "חשיפה ממונפת מול הליבה ומול ה-S&P 500", base: 100, height: 150,
+      fmt: v => { const d = Math.round((v - 100) * 10) / 10; return (d > 0 ? "+" : "") + (Number.isInteger(d) ? d : d.toFixed(1)) + "%"; },
+      series: [{ name: "חשיפה ממונפת", color: "var(--viz-1)", points: log.map(e => [e.date, e.value_end / base * 100]) },
+               { name: "ליבה", color: "var(--viz-2)", points: core.filter(p => p[0] >= s.start_date) },
+               { name: "S&P 500", color: "var(--viz-bench)", points: spy.filter(p => p[0] >= s.start_date), dash: true }] });
+  }
 }
 
 // ---------- v6.27.0: 💼 my portfolio vs the core - facts only, no advice ----------
@@ -4098,6 +4145,7 @@ async function loadPredictions() {
     lastPortfolioSimReal = data.portfolio_sim || null;
     renderMyPortfolio(data.my_portfolio_snapshot, data.my_portfolio_sim);
     try { renderMyReview(data.my_portfolio_review); renderMyVsCoreChart(data); } catch (e) { console.error("my review render failed", e); }
+    try { renderLeverage(data); } catch (e) { console.error("leverage render failed", e); }
     window.__dashboardData.monthlyPortfolioSim = data.monthly_portfolio_sim || null;
     renderHomeDashboardTiles();
   } catch (e) {
@@ -5279,6 +5327,7 @@ const SUBTABS = {
   ],
   lab: [
     { id: "longterm", label: "טווח ארוך", icon: "🏛" },
+    { id: "leverage", label: "חשיפה ממונפת", icon: "🧪" },
     { id: "winners", label: "מניות מנצחות", icon: "🏆" },
     { id: "exit", label: "מבחן יציאה", icon: "🎯" },
     { id: "insider", label: "אנשי פנים", icon: "🕴" },
