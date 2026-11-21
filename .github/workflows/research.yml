@@ -28,8 +28,9 @@ on:
           - strong_stocks_research
           - leverage_exposure_research
           - leverage_1950_research
+          - january_losers_research
       holdout:
-        description: "תקופת בקרה (5 שנים אחרונות) - פעם אחת בלבד, בסוף. רק ל-breadth_lowvol / strong_stocks / leverage_exposure"
+        description: "תקופת בקרה (5 שנים אחרונות) - פעם אחת בלבד, בסוף. רק ל-breadth_lowvol / strong_stocks / leverage_exposure / january_losers"
         type: boolean
         default: false
 
