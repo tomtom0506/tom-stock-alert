@@ -3791,7 +3791,7 @@
   "US_FRVO_bigmove_2026-11-24": true,
   "US_CORZ_bigmove_2026-11-24": true,
   "IL_ROBO.TA_bigmove_2026-11-24": true,
-  "ANT_below_85": true,
+  "ANT_below_85": false,
   "US_AMTM_bigmove_2026-11-25": true,
   "US_ANF_bigmove_2026-11-25": true,
   "US_KSS_bigmove_2026-11-25": true,
@@ -3878,5 +3878,13 @@
   "US_LI_bigmove_2026-11-27": true,
   "US_ASTS_bigmove_2026-11-27": true,
   "US_NTNX_bigmove_2026-11-27": true,
-  "US_URBN_bigmove_2026-11-27": true
+  "US_URBN_bigmove_2026-11-27": true,
+  "US_XP_bigmove_2026-11-27": true,
+  "US_VERA_bigmove_2026-11-27": true,
+  "US_ELPC_bigmove_2026-11-27": true,
+  "US_ITUB_bigmove_2026-11-27": true,
+  "US_SBS_bigmove_2026-11-27": true,
+  "US_SNDK_bigmove_2026-11-27": true,
+  "US_COHR_bigmove_2026-11-27": true,
+  "US_AYA_bigmove_2026-11-27": true
 }
