@@ -13,6 +13,7 @@ import strong_stocks_research as S  # noqa: E402
 import leverage_exposure_research as L  # noqa: E402
 import leverage_1950_research as L50  # noqa: E402
 import january_losers_research as J  # noqa: E402
+import megacap_dip_research as M  # noqa: E402
 
 
 def bdays(n, start="2020-01-01"):
@@ -366,6 +367,77 @@ class JanuaryLosers(unittest.TestCase):
         self.assertAlmostEqual(s["hit_rate"], 0.6)
         self.assertTrue(J.verdict(s))
         self.assertFalse(J.verdict(J.summarize(rows + [{"excess": -0.11}])))
+
+
+class MegacapDip(unittest.TestCase):
+    def test_megacaps_point_in_time_and_lookup(self):
+        d = pd.bdate_range("2020-01-01", "2020-03-31")
+        close = pd.DataFrame({"A": 10.0, "B": 10.0, "C": 10.0}, index=d)
+        vol = pd.DataFrame({"A": 100.0, "B": 300.0, "C": 200.0}, index=d)
+        vol.loc[d >= "2020-02-01", "A"] = 1000.0           # A becomes the biggest from February
+        member = pd.DataFrame(True, index=d, columns=close.columns)
+        member["C"] = False
+        sets = M.megacap_sets(close, vol, member, n=1, window=10)
+        on = M.megacap_lookup(sets)
+        self.assertEqual(on(pd.Timestamp("2020-01-31")), [])             # no month end before it yet
+        self.assertEqual(on(pd.Timestamp("2020-02-03")), ["B"])          # set of 31.1 (C not a member)
+        self.assertEqual(on(pd.Timestamp("2020-03-02")), ["A"])          # set of 28.2
+
+    def test_drawdown(self):
+        d = bdays(5)
+        c = pd.DataFrame({"A": [100, 120, 90, 96, 130.0]}, index=d)
+        dd = M.drawdown_from_high(c, window=3)
+        self.assertAlmostEqual(dd["A"].iloc[2], -0.25)
+
+    def _setup(self):
+        d = bdays(8)
+        adj = pd.DataFrame({"A": [100, 80, 80, 90, 104, 110, 110, 110.0]}, index=d)
+        rets = adj.pct_change()
+        spy_ret = pd.Series(0.0, index=d)
+        dd = pd.DataFrame({"A": [0, -0.2, -0.2, -0.1, 0, 0, 0, 0.0]}, index=d)
+        return d, adj, rets, spy_ret, dd
+
+    def test_entry_next_day_and_take_profit(self):
+        d, adj, rets, spy_ret, dd = self._setup()
+        eq, tr = M.simulate_dips(d, adj, rets, spy_ret, lambda x: ["A"], dd, d[0], d[-1],
+                                 lambda day, c, h, k: c, slots=10, tp=0.30, initial=100_000)
+        self.assertEqual(tr[0]["entry"], d[2].strftime("%Y-%m-%d"))     # flagged d1, bought d2 at 80
+        self.assertEqual(tr[0]["exit"], d[5].strftime("%Y-%m-%d"))      # 104 = +30% on d4, sold d5
+        self.assertEqual(tr[0]["reason"], "tp")
+        self.assertAlmostEqual(tr[0]["return"], 110 / 80 - 1, places=6)
+        self.assertTrue(np.isfinite(eq).all())
+
+    def test_slots_and_time_stop(self):
+        d = bdays(6)
+        adj = pd.DataFrame({"A": 50.0, "B": 50.0}, index=d)
+        dd = pd.DataFrame({"A": -0.3, "B": -0.4}, index=d)
+        eq, tr = M.simulate_dips(d, adj, adj.pct_change(), pd.Series(0.0, index=d), lambda x: ["A", "B"], dd,
+                                 d[0], d[-1], lambda day, c, h, k: sorted(c, key=lambda t: dd.at[day, t]),
+                                 slots=1, max_hold=2, initial=100_000)
+        self.assertEqual(tr[0]["ticker"], "B")                           # deepest first, one slot
+        self.assertEqual(tr[0]["reason"], "time")
+
+    def test_costs_charged_both_legs(self):
+        d, adj, rets, spy_ret, dd = self._setup()
+        adj[:] = 80.0
+        eq, _ = M.simulate_dips(d, adj, adj.pct_change(), spy_ret, lambda x: ["A"], dd, d[0], d[-1],
+                                lambda day, c, h, k: c, slots=10, initial=100_000)
+        self.assertAlmostEqual(eq.iloc[-1], 100_000 - B.trade_cost(10_000, "A") - B.trade_cost(10_000, B.ETF))
+
+    def test_placebo_probability(self):
+        on = lambda x: ["A", "B"]  # noqa: E731
+        never = M.placebo_chooser(on, 0.0, 1)
+        always = M.placebo_chooser(on, 1.0, 1)
+        self.assertEqual(never(None, [], {}, 0), [])
+        self.assertEqual(len(always(None, [], {"A": 1}, 0)), 1)
+        self.assertEqual(always(None, [], {"A": 1}, 0), ["B"])
+
+    def test_verdict(self):
+        spy = {"cagr": 0.08, "max_dd": -0.5}
+        self.assertTrue(M.verdict({"cagr": 0.10, "max_dd": -0.55}, spy, 0.09))
+        self.assertFalse(M.verdict({"cagr": 0.10, "max_dd": -0.55}, spy, 0.10))
+        self.assertFalse(M.verdict({"cagr": 0.0999, "max_dd": -0.4}, spy, 0.05))
+        self.assertFalse(M.verdict({"cagr": 0.12, "max_dd": -0.551}, spy, 0.05))
 
 
 if __name__ == "__main__":
