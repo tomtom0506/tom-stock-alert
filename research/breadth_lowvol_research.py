@@ -258,8 +258,11 @@ def orders_from_targets(targets, start, end):
     return orders
 
 
+ETF_LIKE = {ETF, "SSO"}                # index funds: ETF slippage (SSO used by leverage_exposure_research)
+
+
 def slippage_of(asset):
-    return SLIP_ETF if asset == ETF else SLIP_STOCK
+    return SLIP_ETF if asset in ETF_LIKE else SLIP_STOCK
 
 
 def trade_cost(notional, asset):

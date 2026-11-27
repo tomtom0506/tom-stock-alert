@@ -26,8 +26,12 @@ on:
           - vectorbt_regime_momentum_research
           - breadth_lowvol_research
           - strong_stocks_research
+          - leverage_exposure_research
+          - leverage_1950_research
+          - january_losers_research
+          - megacap_dip_research
       holdout:
-        description: "תקופת בקרה (5 שנים אחרונות) - פעם אחת בלבד, בסוף. רק ל-breadth_lowvol / strong_stocks"
+        description: "תקופת בקרה (5 שנים אחרונות) - פעם אחת בלבד, בסוף. רק ל-breadth_lowvol / strong_stocks / leverage_exposure / january_losers / megacap_dip"
         type: boolean
         default: false
 
