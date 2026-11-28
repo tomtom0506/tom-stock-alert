@@ -174,6 +174,22 @@ with sync_playwright() as pw:
       if (!tr) return 'missing'; const b = tr.querySelectorAll('td')[1].querySelector('b'); return b ? getComputedStyle(b).color : ''; }""")
     _up = pg.evaluate("() => getComputedStyle(document.body).getPropertyValue('--up').trim()")
     check(_green != "missing" and _up not in _green and "88, 189, 147" not in _green, f"results: 2021-2026 return is not shown in green ({_green})")
+    # v6.29.1: an expired/revoked GitHub token gets a clear banner, and a week's warning before expiry
+    _tok = pg.evaluate("""() => {
+      localStorage.removeItem('tokenExpiry'); tokenState = null; renderTokenBanner();
+      const none = !document.getElementById('tokenBanner');
+      noteGithubAuth(new Response('', { status: 401 }));
+      const bad = (document.getElementById('tokenBanner') || {}).innerText || '';
+      tokenState = 'ok';
+      const soon = new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
+      noteGithubAuth(new Response('', { status: 200, headers: { 'github-authentication-token-expiration': soon } }));
+      const warn = (document.getElementById('tokenBanner') || {}).innerText || '';
+      localStorage.removeItem('tokenExpiry'); tokenState = null; renderTokenBanner();
+      return { none, bad, warn, cleared: !document.getElementById('tokenBanner'),
+               p1: parseTokenExpiry('2026-12-27 00:00:00 UTC'), p2: parseTokenExpiry('2026-12-27 02:00:00 +0200') };
+    }""")
+    check(_tok["none"] and "פג או בוטל" in _tok["bad"] and "יפוג ב-" in _tok["warn"] and _tok["cleared"], "token: banner on 401 and a week before expiry, none otherwise")
+    check(_tok["p1"] is not None and _tok["p1"] == _tok["p2"], "token: expiry header parsed in both GitHub formats")
     # v6.26.0: Top10 was stopped 20.11.2026 - it must not come back on any screen
     pg.evaluate("() => switchTab('lab')"); pg.wait_for_timeout(300)
     check("top10" not in pg.evaluate("() => (SUBTABS.lab || []).map(s => s.id).join(',')"), "Top10: no lab sub-tab")
