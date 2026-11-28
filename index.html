@@ -1014,12 +1014,15 @@
 </div>
 
 <script>
-const APP_VERSION = "6.29.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.29.1"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.29.1", date: "2026-11-28", items: [
+    "🔑 כשהטוקן של גיטהאב פג או בוטל, מופיע פס ברור בראש המסך עם קישור ליצירת טוקן חדש וההרשאות הנדרשות, במקום 'שגיאה (401)'. גיטהאב מדווח גם על תאריך התפוגה של הטוקן, ושבוע לפני מופיעה תזכורת.",
+  ]},
   { version: "6.29.0", date: "2026-11-28", items: [
     "✅ 'ביצועים' נפתח בתוצאה שכבר יש: כלל החשיפה מול ה-S&P ב-1960–1999, 2000–2021 ו-2021–2026, ובזמן אמת. ירוק רק איפה שהוא באמת טוב יותר (ירידה מקסימלית קטנה בכל התקופות). 2021–2026, שבה הוא הניב פחות, מוצג כמו שהוא.",
     "🔍 בדיקת אמינות של כלל החשיפה: כל החלטה נרשמת ברגע שהיא ניתנת, עם מחיר הסגירה, הממוצע וגרסת המנוע, ולא משוחזרת אחר כך. הבדיקה היומית מוודאת כל בוקר שהכל תקין. אחרי 20 ימי מסחר נקיים ברצף יופיע '✅ אמין לביצוע'.",
@@ -1514,6 +1517,71 @@ function showDataLoadError(url) {
   el.dataset.files = [...names].join(",");
   el.textContent = `⚠️ לא הצלחתי לקרוא את ${[...names].join(", ")} - חלק מהמסך חסר. אל תפעל לפי המסך עד שזה יתוקן.`;
 }
+// ---------- v6.29.1: GitHub token health (28.11.2026 - "שגיאה (401)" with no explanation) ----------
+// Every api.github.com response passes through here: a 401 means the token expired or was
+// revoked; GitHub also reports the token's expiry date, so the app warns a week ahead.
+const TOKEN_NEW_URL = "https://github.com/settings/personal-access-tokens/new";
+const TOKEN_WARN_DAYS = 7;
+function parseTokenExpiry(v) {
+  // "2026-12-27 00:00:00 UTC" or "2026-12-27 00:00:00 +0200"
+  if (!v) return null;
+  const m = String(v).trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})\s*(UTC|[+-]\d{2}:?\d{2})?$/);
+  if (!m) return null;
+  const tz = !m[3] || m[3] === "UTC" ? "Z" : m[3].replace(/^([+-]\d{2}):?(\d{2})$/, "$1:$2");
+  const t = Date.parse(`${m[1]}T${m[2]}${tz}`);
+  return Number.isFinite(t) ? t : null;
+}
+let tokenState = null;   // null = unknown, "ok", "invalid"
+function noteGithubAuth(res) {
+  const exp = parseTokenExpiry(res.headers && res.headers.get("github-authentication-token-expiration"));
+  if (exp) { try { localStorage.setItem("tokenExpiry", String(exp)); } catch (e) {} }
+  if (res.status === 401) tokenState = "invalid";
+  else if (res.ok) tokenState = "ok";
+  renderTokenBanner();
+}
+function tokenBannerState(now) {
+  if (tokenState === "invalid") return { kind: "invalid" };
+  let exp = null;
+  try { exp = Number(localStorage.getItem("tokenExpiry")) || null; } catch (e) {}
+  if (exp && exp - now <= TOKEN_WARN_DAYS * 864e5) return { kind: exp <= now ? "invalid" : "soon", exp };
+  return null;
+}
+function renderTokenBanner() {
+  const st = tokenBannerState(Date.now());
+  let el = document.getElementById("tokenBanner");
+  if (!st) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "tokenBanner";
+    el.setAttribute("role", "alert");
+    document.body.prepend(el);
+  }
+  const bad = st.kind === "invalid";
+  el.style.cssText = `position:sticky; top:0; z-index:49; margin:8px; padding:10px 12px; border-radius:10px; font-size:13px; line-height:1.5; color:#fff; background:${bad ? "#5a1d1d" : "#5a431d"};`;
+  const when = st.exp ? new Date(st.exp).toLocaleDateString("he-IL") : "";
+  el.innerHTML = (bad
+      ? `🔑 <b>הטוקן של גיטהאב פג או בוטל.</b> הנתונים עדיין מוצגים, אבל שמירה ו"עדכן ניתוח" לא יעבדו.`
+      : `🔑 <b>הטוקן של גיטהאב יפוג ב-${when}.</b> כדאי ליצור חדש לפני כן.`)
+    + ` <a href="${TOKEN_NEW_URL}" target="_blank" rel="noopener" style="color:#fff; text-decoration:underline;">ליצירת טוקן חדש</a>`
+    + ` · הרשאות: Contents ו-Actions, ‏Read and write, רק לריפו הזה · אחר כך להדביק ב-⚙.`;
+}
+function ghErrText(status, what) {
+  if (status === 401) return `${what} לא בוצע: הטוקן של גיטהאב פג או בוטל. צריך ליצור טוקן חדש ולהזין אותו ב-⚙ (פרטים בפס למעלה).`;
+  if (status === 403) return `${what} לא בוצע: לטוקן אין הרשאה מתאימה. צריך Contents ו-Actions: Read and write.`;
+  return `${what} נכשל (שגיאה ${status}).`;
+}
+(function watchGithubFetch() {
+  const orig = window.fetch.bind(window);
+  window.fetch = async (input, init) => {
+    const res = await orig(input, init);
+    try {
+      const u = typeof input === "string" ? input : (input && input.url) || "";
+      if (u.startsWith("https://api.github.com/")) noteGithubAuth(res);
+    } catch (e) {}
+    return res;
+  };
+})();
+
 async function safeJson(res) {
   const txt = await res.text();
   try { return deepSanitize(parseDataText(txt)); }
@@ -2145,7 +2213,7 @@ async function triggerFullRecompute(statusElId, opts) {
     } else if (res.status === 403) {
       statusEl.innerHTML = `<div class="status error">לטוקן אין הרשאת "Actions: Read and write" - צריך להוסיף אותה בהגדרות הטוקן בגיטהאב.</div>`;
     } else {
-      statusEl.innerHTML = `<div class="status error">שגיאה (${res.status}) בהפעלת הריצה</div>`;
+      statusEl.innerHTML = `<div class="status error">${ghErrText(res.status, "הפעלת הריצה")}</div>`;
     }
   } catch (e) {
     statusEl.innerHTML = `<div class="status error">${e.message || "ההפעלה נכשלה"}</div>`;
@@ -2782,7 +2850,7 @@ document.getElementById("checkStockBtn").addEventListener("click", async () => {
     if (res.status !== 204) {
       statusEl.innerHTML = res.status === 403
         ? `<div class="status error">לטוקן אין הרשאת "Actions: Read and write"</div>`
-        : `<div class="status error">שגיאה (${res.status}) בהפעלת הבדיקה</div>`;
+        : `<div class="status error">${ghErrText(res.status, "הפעלת הבדיקה")}</div>`;
       return;
     }
     statusEl.innerHTML = `<div class="status">✓ הופעל! מחפש תוצאה כל כמה שניות (עד כ-6 דקות - ריצה בגיטהאב לפעמים לוקחת יותר זמן מהרגיל, בעיקר בפעם הראשונה)...</div>`;
@@ -5054,7 +5122,7 @@ async function loadWatchlist() {
       `https://api.github.com/repos/${owner}/${repo}/contents/watchlist.json`,
       { headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" } }
     );
-    if (!res.ok) throw new Error(`שגיאה בטעינה (${res.status}). בדוק שם משתמש, ריפו וטוקן.`);
+    if (!res.ok) throw new Error(res.status === 401 || res.status === 403 ? ghErrText(res.status, "טעינת המניות שלך") : `שגיאה בטעינה (${res.status}). בדוק שם משתמש, ריפו וטוקן.`);
     const data = await res.json();
     rows = JSON.parse(base64ToUtf8(data.content));
     sha = data.sha;
