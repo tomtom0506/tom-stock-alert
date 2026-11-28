@@ -66,12 +66,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 184.03,
-   "last_price": 147.88,
-   "ret_pct": -19.8,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 149.77,
+   "ret_pct": -18.78,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "LDOS",
@@ -137,12 +137,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 119.5,
-   "last_price": 130.62,
-   "ret_pct": 9.09,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 131.78,
+   "ret_pct": 10.06,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "INTU",
@@ -208,12 +208,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 301.6,
-   "last_price": 271.72,
-   "ret_pct": -10.09,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 271.94,
+   "ret_pct": -10.01,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "LVS",
@@ -279,12 +279,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 36.85,
-   "last_price": 39.76,
-   "ret_pct": 7.69,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 41.15,
+   "ret_pct": 11.45,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "PODD",
@@ -350,12 +350,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 139.72,
-   "last_price": 142.68,
-   "ret_pct": 1.91,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 138.9,
+   "ret_pct": -0.79,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "HII",
@@ -420,13 +420,13 @@
    "selected_on": "2026-10-13",
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
-   "entry_price": 260.0,
-   "last_price": 299.34,
-   "ret_pct": 14.9,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "entry_price": 258.78,
+   "last_price": 304.48,
+   "ret_pct": 17.43,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "EFX",
@@ -492,12 +492,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 148.43,
-   "last_price": 185.68,
-   "ret_pct": 24.84,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 185.45,
+   "ret_pct": 24.69,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "FIS",
@@ -563,12 +563,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 35.01,
-   "last_price": 27.64,
-   "ret_pct": -21.21,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 28.21,
+   "ret_pct": -19.58,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "MKC",
@@ -634,12 +634,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 44.8,
-   "last_price": 49.85,
-   "ret_pct": 11.05,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 49.66,
+   "ret_pct": 10.63,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "NOC",
@@ -705,12 +705,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 485.6,
-   "last_price": 555.79,
-   "ret_pct": 14.23,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 561.47,
+   "ret_pct": 15.39,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "ORCL",
@@ -776,12 +776,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 140.0,
-   "last_price": 103.88,
-   "ret_pct": -25.95,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 107.13,
+   "ret_pct": -23.63,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "APTV",
@@ -847,12 +847,12 @@
    "entry_date": "2026-10-14",
    "exit_planned_after_sessions": 252,
    "entry_price": 43.71,
-   "last_price": 37.55,
-   "ret_pct": -14.26,
-   "spy_pct": -7.88,
-   "ew_pct": 1.06,
-   "sessions_left": 221,
-   "exit_estimate": "2027-09-30"
+   "last_price": 38.09,
+   "ret_pct": -13.03,
+   "spy_pct": -6.39,
+   "ew_pct": 2.4,
+   "sessions_left": 220,
+   "exit_estimate": "2027-10-01"
   },
   {
    "ticker": "LII",
@@ -918,12 +918,12 @@
    "entry_date": "2026-10-30",
    "exit_planned_after_sessions": 252,
    "entry_price": 348.0,
-   "last_price": 349.97,
-   "ret_pct": 0.37,
-   "spy_pct": -6.84,
-   "ew_pct": -2.06,
-   "sessions_left": 233,
-   "exit_estimate": "2027-10-18"
+   "last_price": 350.04,
+   "ret_pct": 0.39,
+   "spy_pct": -5.33,
+   "ew_pct": -0.75,
+   "sessions_left": 232,
+   "exit_estimate": "2027-10-19"
   },
   {
    "ticker": "XYL",
@@ -989,12 +989,12 @@
    "entry_date": "2026-10-30",
    "exit_planned_after_sessions": 252,
    "entry_price": 91.7,
-   "last_price": 96.42,
-   "ret_pct": 4.94,
-   "spy_pct": -6.84,
-   "ew_pct": -2.06,
-   "sessions_left": 233,
-   "exit_estimate": "2027-10-18"
+   "last_price": 95.86,
+   "ret_pct": 4.33,
+   "spy_pct": -5.33,
+   "ew_pct": -0.75,
+   "sessions_left": 232,
+   "exit_estimate": "2027-10-19"
   },
   {
    "ticker": "ALB",
@@ -1060,12 +1060,12 @@
    "entry_date": "2026-11-06",
    "exit_planned_after_sessions": 252,
    "entry_price": 99.0,
-   "last_price": 81.5,
-   "ret_pct": -17.84,
-   "spy_pct": -2.22,
-   "ew_pct": -0.3,
-   "sessions_left": 238,
-   "exit_estimate": "2027-10-25"
+   "last_price": 82.93,
+   "ret_pct": -16.4,
+   "spy_pct": -0.64,
+   "ew_pct": 1.03,
+   "sessions_left": 237,
+   "exit_estimate": "2027-10-26"
   },
   {
    "ticker": "GNRC",
@@ -1131,12 +1131,12 @@
    "entry_date": "2026-11-06",
    "exit_planned_after_sessions": 252,
    "entry_price": 179.3,
-   "last_price": 203.99,
-   "ret_pct": 13.54,
-   "spy_pct": -2.22,
-   "ew_pct": -0.3,
-   "sessions_left": 238,
-   "exit_estimate": "2027-10-25"
+   "last_price": 219.17,
+   "ret_pct": 21.99,
+   "spy_pct": -0.64,
+   "ew_pct": 1.03,
+   "sessions_left": 237,
+   "exit_estimate": "2027-10-26"
   },
   {
    "ticker": "TER",
@@ -1202,12 +1202,12 @@
    "entry_date": "2026-11-06",
    "exit_planned_after_sessions": 252,
    "entry_price": 231.58,
-   "last_price": 212.15,
-   "ret_pct": -8.57,
-   "spy_pct": -2.22,
-   "ew_pct": -0.3,
-   "sessions_left": 238,
-   "exit_estimate": "2027-10-25"
+   "last_price": 222.96,
+   "ret_pct": -3.92,
+   "spy_pct": -0.64,
+   "ew_pct": 1.03,
+   "sessions_left": 237,
+   "exit_estimate": "2027-10-26"
   },
   {
    "ticker": "VST",
@@ -1273,12 +1273,12 @@
    "entry_date": "2026-11-06",
    "exit_planned_after_sessions": 252,
    "entry_price": 119.57,
-   "last_price": 121.32,
-   "ret_pct": 1.26,
-   "spy_pct": -2.22,
-   "ew_pct": -0.3,
-   "sessions_left": 238,
-   "exit_estimate": "2027-10-25"
+   "last_price": 122.65,
+   "ret_pct": 2.37,
+   "spy_pct": -0.64,
+   "ew_pct": 1.03,
+   "sessions_left": 237,
+   "exit_estimate": "2027-10-26"
   },
   {
    "ticker": "TPL",
@@ -1344,12 +1344,12 @@
    "entry_date": "2026-11-06",
    "exit_planned_after_sessions": 252,
    "entry_price": 272.48,
-   "last_price": 261.37,
-   "ret_pct": -4.27,
-   "spy_pct": -2.22,
-   "ew_pct": -0.3,
-   "sessions_left": 238,
-   "exit_estimate": "2027-10-25"
+   "last_price": 263.51,
+   "ret_pct": -3.49,
+   "spy_pct": -0.64,
+   "ew_pct": 1.03,
+   "sessions_left": 237,
+   "exit_estimate": "2027-10-26"
   },
   {
    "ticker": "WDC",
@@ -1415,12 +1415,12 @@
    "entry_date": "2026-11-06",
    "exit_planned_after_sessions": 252,
    "entry_price": 287.0,
-   "last_price": 272.45,
-   "ret_pct": -5.26,
-   "spy_pct": -2.22,
-   "ew_pct": -0.3,
-   "sessions_left": 238,
-   "exit_estimate": "2027-10-25"
+   "last_price": 292.11,
+   "ret_pct": 1.58,
+   "spy_pct": -0.64,
+   "ew_pct": 1.03,
+   "sessions_left": 237,
+   "exit_estimate": "2027-10-26"
   }
  ],
  "pending": [],
@@ -2309,7 +2309,7 @@
  },
  "research_note": "במחקר 2011-2026 (רשימת S&P לפי ההרכב בכל תאריך): +10% לעסקה מעל ממוצע כל המניות באותם ימים, אבל t=0.31 - כלומר לא מובהק, ורוב העודף הגיע מ-2025 ו-2016. לכן זה ניסוי שנמדד מהיום.",
  "candidates_date": "2026-11-25",
- "updated_at": "2026-11-27T04:34:07.812649+00:00",
+ "updated_at": "2026-11-28T04:08:54.906440+00:00",
  "series": [
   {
    "date": "2026-10-14",
@@ -2527,22 +2527,29 @@
    "spy": 92.12,
    "ew": 101.06,
    "n": 20
+  },
+  {
+   "date": "2026-11-27",
+   "port": 104.0,
+   "spy": 93.61,
+   "ew": 102.4,
+   "n": 20
   }
  ],
  "stats": {
-  "port_pct": 2.2,
-  "spy_pct": -7.88,
-  "ew_pct": 1.06,
+  "port_pct": 4.0,
+  "spy_pct": -6.39,
+  "ew_pct": 2.4,
   "since": "2026-10-14",
-  "daily_pct": 0.78,
+  "daily_pct": 1.76,
   "trades": 20,
   "closed": 0,
-  "beat_spy": 11,
+  "beat_spy": 12,
   "beat_ew": 11,
   "by_kind": {
    "company": {
     "n": 20,
-    "avg_vs_ew_pct": -1.51
+    "avg_vs_ew_pct": -1.14
    }
   }
  }
