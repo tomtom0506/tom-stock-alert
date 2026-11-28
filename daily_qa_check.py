@@ -644,6 +644,24 @@ def generate_conclusions(daily_log):
     QA_CONCLUSIONS_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def check_exposure_reliability(store, issues, info):
+    """v5.37.0: the exposure rule must be reliable before real money follows it -
+    re-checked here independently of the engine, from the append-only decision log."""
+    from stock_alerts import exposure_reliability
+    log = store.get("exposure_log") or []
+    if not log:
+        info.append("אמינות כלל החשיפה: היומן מתחיל בריצה הבאה")
+        return
+    r = exposure_reliability(log)
+    last = r["failed"][-1] if r["failed"] and r["failed"][-1]["session"] == r["last_session"] else None
+    if last:
+        issues.append(f"אמינות כלל החשיפה נכשלה ב-{last['session']}: {', '.join(last['fails'])}")
+    if r["stale"]:
+        issues.append(f"אמינות כלל החשיפה: אין החלטה חדשה מאז {r['last_session']}")
+    info.append(f"אמינות כלל החשיפה: {min(r['clean_streak'], r['target'])}/{r['target']} ימי מסחר נקיים ברצף"
+                + (" - ✅ אמין לביצוע" if r["ready"] else ""))
+
+
 def main():
     today_str = date.today().isoformat()
 
@@ -678,6 +696,7 @@ def main():
     check_price_format(store, issues)
     check_calibration_text(store, issues)
     check_stale_sims(store, today_str, issues)
+    check_exposure_reliability(store, issues, info)
 
     daily_log = record_daily_log(store, today_str, prices_payload)
     check_dead_features(daily_log, issues)

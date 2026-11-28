@@ -166,6 +166,14 @@ with sync_playwright() as pw:
     check("ניסוי, לא מוכח" in _lv and "1987" in _lv and "על נייר בלבד" in _lv, "lab: leveraged experiment marked 'not proven', with the 1987 warning")
     pg.evaluate("() => { switchTab('home'); switchSubtab('action'); }"); pg.wait_for_timeout(300)
     check("SSO" not in pg.inner_text("#homeActionSection"), "home: no leveraged (SSO) instruction on the action screen")
+    # v6.29.0: the proven result is first in "results"; green only where it is truly better
+    pg.evaluate("() => switchTab('results')"); pg.wait_for_timeout(400)
+    _res = pg.inner_text("#resultsSection")
+    check("התוצאה שכבר יש" in _res and "2021–2026" in _res and "בדיקת אמינות" in _res, "results: proven-result card and reliability card shown")
+    _green = pg.evaluate("""() => { const tr = [...document.querySelectorAll('#resultsSection tr')].find(r => r.innerText.includes('2021–2026'));
+      if (!tr) return 'missing'; const b = tr.querySelectorAll('td')[1].querySelector('b'); return b ? getComputedStyle(b).color : ''; }""")
+    _up = pg.evaluate("() => getComputedStyle(document.body).getPropertyValue('--up').trim()")
+    check(_green != "missing" and _up not in _green and "88, 189, 147" not in _green, f"results: 2021-2026 return is not shown in green ({_green})")
     # v6.26.0: Top10 was stopped 20.11.2026 - it must not come back on any screen
     pg.evaluate("() => switchTab('lab')"); pg.wait_for_timeout(300)
     check("top10" not in pg.evaluate("() => (SUBTABS.lab || []).map(s => s.id).join(',')"), "Top10: no lab sub-tab")
