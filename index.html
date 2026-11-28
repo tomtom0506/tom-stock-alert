@@ -1014,12 +1014,19 @@
 </div>
 
 <script>
-const APP_VERSION = "6.28.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
+const APP_VERSION = "6.29.0"; // bump this every time index.html is updated, so we can tell what's actually deployed
 
 // Detailed per-version logging starts here (v4.0). Everything before that
 // is grouped into summary entries below - add one new entry to the TOP of
 // this array every time APP_VERSION changes.
 const CHANGELOG = [
+  { version: "6.29.0", date: "2026-11-28", items: [
+    "✅ 'ביצועים' נפתח בתוצאה שכבר יש: כלל החשיפה מול ה-S&P ב-1960–1999, 2000–2021 ו-2021–2026, ובזמן אמת. ירוק רק איפה שהוא באמת טוב יותר (ירידה מקסימלית קטנה בכל התקופות). 2021–2026, שבה הוא הניב פחות, מוצג כמו שהוא.",
+    "🔍 בדיקת אמינות של כלל החשיפה: כל החלטה נרשמת ברגע שהיא ניתנת, עם מחיר הסגירה, הממוצע וגרסת המנוע, ולא משוחזרת אחר כך. הבדיקה היומית מוודאת כל בוקר שהכל תקין. אחרי 20 ימי מסחר נקיים ברצף יופיע '✅ אמין לביצוע'.",
+    "📲 התראה חדשה בטלגרם ביום שבו כלל החשיפה מתחלף (100% ↔ 50%).",
+    "🐞 תוקן (backend 5.37.0): בריצה בזמן המסחר בארה\"ב, כלל החשיפה חושב לפי המחיר באמצע היום כאילו היה מחיר סגירה. עכשיו רק לפי סגירה.",
+    "🧪 חשיפה ממונפת: סקירה ראשונה אחרי 3 חודשים במקום 12. נשאר על נייר, כלל העצירה לא השתנה.",
+  ]},
   { version: "6.28.0", date: "2026-11-21", items: [
     "🧪 ניסוי חדש במעבדה: 'חשיפה ממונפת' - 150% כשה-S&P מעל ממוצע 200 הימים, 50% מתחתיו. במחקר הוא ניצח את ה-S&P ב-1960–1999 וב-2000–2021, אבל נכשל ב-2021–2026, ולכן הוא תיק על נייר בלבד, לא מופיע ב'מה עושים היום', ונמדד מהיום מול ה-S&P ומול הליבה. כולל אזהרת סיכון (ירידה כמו ב-1987) וכלל עצירה.",
     "🧭 ליד כלל החשיפה מופיעה עכשיו גם האמת על חמש השנים האחרונות: 7.4% בשנה מול 9.5% ל-S&P, עם ירידה מקסימלית קטנה יותר (20% מול 25%).",
@@ -3169,7 +3176,7 @@ function renderResults(data) {
   const order = { proven: 0, mine: 1, benchmark: 2, experiment: 3 };
   // v6.26.0: Top10 stopped 20.11.2026 (keep-or-kill decision) - out of the table, the result stays on record below
   const sorted = rows.filter(r => r.key !== "top10").sort((a, b) => (order[a.tag] ?? 9) - (order[b.tag] ?? 9));
-  let h = `<div class="section-title">ביצועים מול ה-S&amp;P 500</div>
+  let h = provenResultsCard(data) + reliabilityCard(data.exposure_reliability) + `<div class="section-title">ביצועים מול ה-S&amp;P 500</div>
     <div style="font-size:12px; color:var(--text-faint); line-height:1.6; margin-bottom:8px;">כמה כל אחד הקדים (ירוק) או פיגר (אדום) אחרי ה-S&amp;P, באותם ימים בדיוק מהתאריך שבו התחיל.</div>
     <div id="resultsGapBars"></div>
     <details class="held-list"><summary><span>📋 הטבלה המלאה</span></summary>
@@ -3207,7 +3214,8 @@ function renderExposureLine(data) {
   return `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
     <div><div style="font-size:13px; font-weight:700;">השוק: ${up ? "מעל " : "מתחת ל"}ממוצע 200 ימים ${TAG_HTML.proven}</div>
     <div style="font-size:12.5px; color:var(--text-faint);">ה-S&amp;P ${signedPct(ex.pct_vs_sma, 1)} מהממוצע · ${up ? "חשיפה מלאה למניות" : "כלל החשיפה: חצי מזומן"}</div>
-    <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">בחמש השנים האחרונות: 7.4% בשנה מול 9.5% ל-S&amp;P, אבל ירידה מקסימלית של 20% מול 25%. מגן בירידות, ועולה מעט בתשואה.</div></div>
+    <div style="font-size:12px; color:var(--text-faint); margin-top:2px;">בחמש השנים האחרונות: 7.4% בשנה מול 9.5% ל-S&amp;P, אבל ירידה מקסימלית של 20% מול 25%. מגן בירידות, ועולה מעט בתשואה.</div>
+    ${data.exposure_reliability && data.exposure_reliability.sessions ? `<div style="font-size:12px; color:${data.exposure_reliability.ready ? "var(--up)" : "var(--text-faint)"}; margin-top:2px;">🔍 בדיקת אמינות: ${Math.min(data.exposure_reliability.clean_streak, data.exposure_reliability.target)}/${data.exposure_reliability.target} ימים נקיים${data.exposure_reliability.ready ? " · ✅ אמין לביצוע" : ""}</div>` : ""}</div>
     <div style="font-size:20px; font-weight:800; color:${up ? "var(--up)" : "var(--down)"};">${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%</div></div>
     ${spyChartPoints(data).length >= 10 ? `<details class="held-list" style="margin-top:-2px;"><summary><span>📈 למה ${ex.recommended_exposure_pct ?? (up ? 100 : 50)}%? ה-S&amp;P מול ממוצע 200 הימים</span></summary><div class="act-row" style="padding:8px 12px;"><div id="spyChart"></div><div class="muted-sm" style="line-height:1.5;">כשהקו הכחול מעל הקו המקווקו - חשיפה מלאה. מתחתיו - חצי במזומן. זה הכלל שעבר מחקר.</div></div></details>` : ""}`;
 }
@@ -3529,6 +3537,54 @@ function renderSpyChart(data) {
   vizLine(el, { label: "ה-S&P 500 מול ממוצע 200 הימים", height: 120, fmt: v => "$" + Math.round(v),
     series: [{ name: "S&P 500 (SPY)", color: "var(--viz-1)", points: pts.map(p => [p[0], p[1]]) },
              { name: "ממוצע 200 ימים", color: "var(--viz-bench)", points: pts.map(p => [p[0], p[2]]), dash: true }] });
+}
+
+// ---------- v6.29.0: the result we already have - the exposure rule (✅) vs the S&P ----------
+// Numbers from the research files on main (research/2026-11-21-leveraged-exposure-1950.md,
+// 2026-11-20-breadth-and-lowvol.md, 2026-11-21-leveraged-exposure.md). Green only where it is
+// truly better; 2021-2026 is shown as it is.
+const PROVEN_PERIODS = [
+  { p: "1960–1999", r: 12.2, sr: 12.2, dd: 24, sdd: 45 },
+  { p: "2000–2021", r: 8.0, sr: 8.1, dd: 33, sdd: 55 },
+  { p: "2021–2026", r: 7.4, sr: 9.5, dd: 20, sdd: 25, note: "בקרה" },
+];
+function provenResultsCard(data) {
+  const live = ((data.strategy_comparison || {}).rows || []).find(r => r.key === "core_exposure");
+  const ret = x => {
+    const d = x.r - x.sr;
+    const cls = Math.abs(d) <= 0.2 ? "" : (d > 0 ? "var(--up)" : "#e0a92e");
+    return `<b class="mono"${cls ? ` style="color:${cls};"` : ""}>${x.r}%</b> <span class="muted-sm">מול ${x.sr}%</span>${Math.abs(d) <= 0.2 ? ` <span class="muted-sm">= כמו המדד</span>` : ""}`;
+  };
+  const dd = x => `<b class="mono" style="color:var(--up);">${x.dd}%</b> <span class="muted-sm">מול ${x.sdd}%</span>`;
+  const rows = PROVEN_PERIODS.map(x => `<tr><td><span dir="ltr">${x.p}</span>${x.note ? `<br><span class="muted-sm">${x.note}</span>` : ""}</td><td>${ret(x)}</td><td>${dd(x)}</td></tr>`).join("");
+  const liveRow = live && live.vs_sp500_pct != null ? `<div class="act-row" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+      <div><div style="font-size:13px; font-weight:700;">בזמן אמת, מאז ${fmtDateIL(live.start_date)}</div><div class="muted-sm">תשואה ${signedPct(live.return_pct, 1)} · ה-S&amp;P ${signedPct(live.sp500_same_window_pct, 1)}</div></div>
+      <div class="mono" style="font-size:20px; font-weight:800; color:${live.vs_sp500_pct > 0 ? "var(--up)" : (live.vs_sp500_pct < 0 ? "var(--down)" : "var(--text)")};">${signedPct(live.vs_sp500_pct, 1)}</div></div>` : "";
+  return `<div class="section-title">✅ התוצאה שכבר יש: כלל החשיפה</div>
+    <div style="font-size:15px; font-weight:800; line-height:1.5; margin:0 2px 6px;"><span dir="ltr">1960–2021</span>: תשואה כמו המדד, עם ירידה מקסימלית קטנה בכ-40% עד 45%</div>
+    <div class="muted-sm" style="line-height:1.6; margin:0 2px 8px;">קרן מדד S&amp;P 500: במניות כשהמדד מעל ממוצע 200 הימים, חצי במזומן כשהוא מתחת. זה כל הכלל.</div>
+    <div class="act-row" style="padding:6px 12px;"><table class="res-table" style="width:100%;"><thead><tr><th>תקופה</th><th>תשואה בשנה<br><span class="muted-sm">הכלל מול S&amp;P</span></th><th>ירידה מקסימלית<br><span class="muted-sm">הכלל מול S&amp;P</span></th></tr></thead><tbody>${rows}</tbody></table></div>
+    ${liveRow}
+    <div class="muted-sm" style="line-height:1.6; margin:6px 2px 4px;">2021–2026 מוצג כמו שהוא: הכלל ירד פחות, אבל הניב פחות. בשוק שעובר הרבה פעמים מעל ומתחת לממוצע, ההגנה עולה בתשואה.</div>
+    <div class="muted-sm" style="line-height:1.6; margin:0 2px 14px;">סימולציה על נתוני עבר, כולל עמלות. ב-1960–1999 הדיבידנד הוא הערכה קבועה של 3.5% בשנה. תוצאות עבר לא מבטיחות את העתיד. מידע בלבד, לא ייעוץ השקעות.</div>`;
+}
+
+// ---------- v6.29.0: reliability of the exposure rule - does the app do what it says? ----------
+function reliabilityCard(r) {
+  if (!r || !r.sessions) {
+    return `<div class="act-row" style="font-size:13px; line-height:1.6;"><b>🔍 בדיקת אמינות:</b> מתחילה ביום המסחר הבא. כל החלטה של כלל החשיפה תירשם ברגע שהיא ניתנת, ותיבדק כל בוקר.</div>`;
+  }
+  const n = Math.min(r.clean_streak, r.target);
+  const pct = Math.round(n / r.target * 100);
+  const last = (r.failed || []).slice(-1)[0];
+  return `<div class="act-row" style="font-size:13px; line-height:1.6;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;"><b>🔍 בדיקת אמינות של כלל החשיפה</b><span class="mono" style="font-weight:800; color:${r.ready ? "var(--up)" : "var(--text)"};">${n}/${r.target}</span></div>
+      <div style="height:6px; border-radius:3px; background:var(--viz-grid); margin:6px 0;"><div style="height:6px; border-radius:3px; width:${pct}%; background:${r.ready ? "var(--up)" : "var(--viz-1)"};"></div></div>
+      ${r.ready ? `<div style="color:var(--up); font-weight:700;">✅ אמין לביצוע: ${r.target} ימי מסחר ברצף, כל החלטה נרשמה בזמן, עם מחיר סגירה, והתראה בכל החלפה.</div>`
+        : `<div class="muted-sm">ימי מסחר נקיים ברצף. נבדק: ההחלטה נרשמה ביום שבו ניתנה, לפי מחיר סגירה ולא מחיר באמצע יום, נשלחה התראה כשהכלל התחלף, ואין רישום בימים בלי מסחר.</div>`}
+      ${r.stale ? `<div style="color:var(--down);">⚠️ אין החלטה חדשה מאז ${fmtDateIL(r.last_session)}.</div>` : ""}
+      ${last ? `<div style="color:#e0a92e;">תקלה אחרונה (${fmtDateIL(last.session)}): ${last.fails.join(", ")}. הספירה התחילה מחדש.</div>` : ""}
+    </div>`;
 }
 
 // ---------- v6.28.0: 🧪 leveraged exposure - paper-only forward test (failed the research hold-out) ----------

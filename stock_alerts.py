@@ -48,7 +48,7 @@ BASE_DIR = Path(__file__).parent
 # of having to infer it after the fact from which fields happen to be
 # present (see the v5.4.3-era "why is overall_score missing" investigation
 # this was added to prevent having to repeat).
-BACKEND_VERSION = "5.36.0"
+BACKEND_VERSION = "5.37.0"
 
 WATCHLIST_FILE = BASE_DIR / "watchlist.json"
 TA_TICKERS_FILE = BASE_DIR / "ta_tickers.json"
@@ -4475,6 +4475,12 @@ FUND_CACHE_FETCH_PER_RUN = 60      # fundamentals are slow (.info) - spread the 
 FUND_CACHE_MIN_COVERAGE = 0.9      # refresh the long-term list only once this share of S&P 500 names has fresh fundamentals
 
 
+def complete_closes(closes, last_complete):
+    """Pure: drop bars dated after the last COMPLETE session (an in-progress day)."""
+    keep = [ts.date() <= last_complete for ts in closes.index]
+    return closes[keep]
+
+
 def compute_exposure_signal(store):
     """Daily exposure recommendation from the S&P 500 vs its 200-day
     average, plus the full per-date series (used by the exposure sims below
@@ -4485,6 +4491,9 @@ def compute_exposure_signal(store):
     except Exception as e:
         print(f"Exposure signal fetch failed: {e}")
         return
+    # v5.37.0: the rule acts on the CLOSE - during US trading hours Yahoo's last bar is today's
+    # live price, which used to be read as a close (and would now be logged as a decision)
+    closes = complete_closes(closes, expected_last_session())
     if len(closes) < EXPOSURE_SMA_DAYS + 1:
         return
     sma = closes.rolling(EXPOSURE_SMA_DAYS).mean()
@@ -4916,15 +4925,108 @@ def build_leveraged_exposure_sim(store):
     core_pct, _ = core_return_since(spy_d, list(flags.items()), start)
     sim["core_pct"] = core_pct
     sim["stopped_on"] = old.get("stopped_on") or (sim["daily_log"][-1]["date"] if sim["stop_hit"] else None)
-    y, m = int(start[:4]), int(start[5:7])
-    sim["review_on"] = f"{y + 1}-{m:02d}-{start[8:10]}"
+    y, m = int(start[:4]), int(start[5:7]) + 3      # v5.37.0: first review after 3 months
+    y, m = (y + 1, m - 12) if m > 12 else (y, m)
+    sim["review_on"] = f"{y}-{m:02d}-{min(int(start[8:10]), 28):02d}"
     sim["label"] = "חשיפה ממונפת (ניסוי)"
     store["leveraged_exposure_sim"] = sim
+
+
+# ---------- v5.37.0: exposure-rule reliability (Tomer, 28.11.2026: "reliable before real money") ----------
+# Every exposure decision is recorded ONCE, when it is made (append-only, never rebuilt
+# afterwards), with the index close, its 200-day average and the engine version. A change
+# of the rule (100% <-> 50%) sends one Telegram alert on that run. exposure_reliability()
+# then checks each recorded session; 20 clean sessions in a row = "reliable to act on".
+RELIABILITY_TARGET_SESSIONS = 20
+
+
+def log_exposure_decision(store, now_utc=None):
+    """Append today's decision if this session isn't logged yet. Returns the new entry (or None)."""
+    ex = store.get("exposure") or {}
+    session = ex.get("as_of")
+    if not session or ex.get("recommended_exposure_pct") is None:
+        return None
+    log = store.setdefault("exposure_log", [])
+    if any(e.get("session") == session for e in log):
+        return None                                   # already recorded - never rewritten
+    prev = log[-1] if log else None
+    entry = {
+        "session": session, "exposure_pct": ex["recommended_exposure_pct"],
+        "index_close": ex.get("index_close"), "sma200": ex.get("sma200"), "pct_vs_sma": ex.get("pct_vs_sma"),
+        "logged_at": (now_utc or datetime.now(timezone.utc)).isoformat(), "backend_version": BACKEND_VERSION,
+        "flip": bool(prev and prev.get("exposure_pct") != ex["recommended_exposure_pct"]),
+        "alert_sent": False,
+    }
+    log.append(entry)
+    store["exposure_log"] = log[-400:]
+    return entry
+
+
+def exposure_flip_message(entry):
+    up = entry["exposure_pct"] >= 100
+    return (f"🧭 כלל החשיפה התחלף: {entry['exposure_pct']}% במניות\n"
+            f"ה-S&P 500 נסגר {'מעל' if up else 'מתחת ל'}ממוצע 200 הימים "
+            f"({entry.get('pct_vs_sma'):+.1f}%) בסגירה של {entry['session'][8:10]}.{entry['session'][5:7]}.\n"
+            f"{'חזרה לחשיפה מלאה.' if up else 'הכלל: חצי במניות, חצי במזומן.'}\n"
+            f"כלל שעבר מחקר. מידע בלבד, לא ייעוץ השקעות.")
+
+
+def exposure_reliability(log, today=None):
+    """Pure. One verdict per recorded session:
+    on_time - logged within 1 day of the session close; fresh - index close and its
+    average present and positive; alerted - a rule change sent its alert; trading_day -
+    not a weekend; unique - the session is recorded once. Returns the summary."""
+    today = today or date.today()
+    seen, rows = {}, []
+    for e in log or []:
+        seen[e.get("session")] = seen.get(e.get("session"), 0) + 1
+    for e in log or []:
+        s = e.get("session") or ""
+        fails = []
+        try:
+            sd = date.fromisoformat(s)
+            ld = datetime.fromisoformat(e.get("logged_at")).date()
+            if (ld - sd).days > 1 or ld < sd:
+                fails.append("נרשם באיחור")
+            if sd.weekday() >= 5:
+                fails.append("יום בלי מסחר")
+        except (TypeError, ValueError):
+            fails.append("תאריך לא תקין")
+        if not (e.get("index_close") or 0) > 0 or not (e.get("sma200") or 0) > 0:
+            fails.append("מחיר חסר")
+        if e.get("flip") and not e.get("alert_sent"):
+            fails.append("לא נשלחה התראה על החלפה")
+        if seen.get(s, 0) > 1:
+            fails.append("נרשם פעמיים")
+        rows.append({"session": s, "ok": not fails, "fails": fails})
+    streak = 0
+    for r in reversed(rows):
+        if not r["ok"]:
+            break
+        streak += 1
+    last = rows[-1]["session"] if rows else None
+    stale = bool(last) and (today - date.fromisoformat(last)).days > 4
+    return {"start": rows[0]["session"] if rows else None, "sessions": len(rows),
+            "clean_streak": streak, "target": RELIABILITY_TARGET_SESSIONS,
+            "ready": streak >= RELIABILITY_TARGET_SESSIONS and not stale, "stale": stale,
+            "last_session": last, "failed": [r for r in rows if not r["ok"]][-10:]}
+
+
+def record_exposure_reliability(store):
+    entry = log_exposure_decision(store)
+    if entry and entry["flip"]:
+        send_telegram_message(exposure_flip_message(entry), kind="exposure_flip")
+        entry["alert_sent"] = True
+    store["exposure_reliability"] = exposure_reliability(store.get("exposure_log"))
 
 
 def update_three_layer_views(store):
     """Runs every cycle after the existing sims/benchmarks are updated."""
     compute_exposure_signal(store)
+    try:
+        record_exposure_reliability(store)
+    except Exception as e:
+        print(f"Exposure reliability failed: {type(e).__name__}: {e}")
     try:
         build_leveraged_exposure_sim(store)
     except Exception as e:
@@ -7402,6 +7504,7 @@ def write_today_json(store):
         # v5.33.0: the home screen renders from today.json alone (predictions.json loads on demand)
         "market_regime": store.get("market_regime"), "market_breadth": store.get("market_breadth"),
         "list_status": store.get("list_status"),
+        "exposure_reliability": store.get("exposure_reliability"),
         # v5.35.0: the home chart - S&P 500 vs its 200-day average (why exposure is 50% or 100%)
         "spy_chart": spy_vs_sma_chart(store.get("spy_closes") or {}),
         "book": {k: {x: v for x, v in ((store.get("strategy_book") or {}).get(k) or {}).items()
